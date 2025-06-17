@@ -9,3 +9,13 @@ Please note this is a work in progress.
 # Things to do...
 * Add evaluators to `llm_eval/evaluators.py`
 * Add tests to `tests`
+
+### Create conda environment
+`conda env create -f environment.yaml`
+
+### Update environment.yaml from conda environment
+`conda env export | grep -v '^prefix:' > environment.yaml`
+
+### Install package for development
+`pip install -e .`
+
