@@ -1,0 +1,17 @@
+name: llm_eval
+channels:
+  - https://repo.anaconda.com/pkgs/main
+  - https://repo.anaconda.com/pkgs/r
+dependencies:
+  - python=3.12
+  - conda-forge::huggingface_hub
+  - conda-forge::ragas
+  - conda-forge::langchain-openai
+  - microsoft::azure-ai-evaluation
+  - conda-forge::pytest
+  - conda-forge::transformers
+  - conda-forge::python-dotenv
+  - pytorch
+  - pip
+  - pip:
+      - promptflow

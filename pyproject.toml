@@ -3,9 +3,9 @@ name = "audacia-llm-evaluation"
 version = "0.0.2"
 description = "A framework to evaluate LLMs in AI systems"
 authors = [
-    { name="Chris Bentley", email="chris.bentley@audacia.co.uk" },
-    { name="Alan Kerby", email="alan.kerby@audacia.co.uk" },
-    { name="Liam Ward", email="liam.ward@audacia.co.uk" }
+    { name = "Chris Bentley", email = "chris.bentley@audacia.co.uk" },
+    { name = "Alan Kerby", email = "alan.kerby@audacia.co.uk" },
+    { name = "Liam Ward", email = "liam.ward@audacia.co.uk" }
 ]
 license = "MIT"
 readme = "README.md"
