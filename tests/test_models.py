@@ -2,7 +2,14 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from llm_eval.models import cache_required_models, preload_huggingface_model
+from llm_eval.models import (
+    cache_required_models,
+    preload_huggingface_model,
+    get_azure_ai_evaluation_model_config,
+    get_azure_openai_embedding_model,
+    get_azure_openai_llm,
+    get_azure_openai_llm_inference,
+)
 
 
 @pytest.fixture
@@ -59,17 +66,18 @@ def test_cache_required_models_raises_if_no_custom_config():
     with pytest.raises(ValueError):
         # This will raise due to `custom_model_config=None` when use_standard_models=False
         cache_required_models(use_standard_models=False)
-from llm_eval.models import get_azure_ai_evaluation_model_config, get_azure_openai_embedding_model, get_azure_openai_llm, get_azure_openai_llm_inference
 
 
 def test_get_azure_openai_llm_inference():
-    response = get_azure_openai_llm_inference('is your response a string')
+    response = get_azure_openai_llm_inference("is your response a string")
     assert isinstance(response, str)
+
 
 def test_get_azure_openai_embedding_model():
     model = get_azure_openai_embedding_model()
     response = model.embed_query("is embeeding a list of floats")
     assert all(isinstance(x, float) for x in response)
+
 
 def test_get_azure_ai_evaluation_model_config():
     model_config = get_azure_ai_evaluation_model_config()
@@ -81,5 +89,7 @@ def test_get_azure_ai_evaluation_model_config():
         api_version=model_config["api_version"],
     )
 
-    response = get_azure_openai_llm_inference(prompt="is your response a string", model=model)
+    response = get_azure_openai_llm_inference(
+        prompt="is your response a string", model=model
+    )
     assert isinstance(response, str)

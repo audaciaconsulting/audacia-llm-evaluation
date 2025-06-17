@@ -1,7 +1,14 @@
 import os
+from typing import Optional
 
+from azure.ai.evaluation import AzureOpenAIModelConfiguration
+from dotenv import load_dotenv
 from huggingface_hub import snapshot_download
+from langchain_openai import AzureChatOpenAI, AzureOpenAIEmbeddings
+from ragas.embeddings import LangchainEmbeddingsWrapper
 from transformers import AutoConfig, AutoModel, AutoTokenizer
+
+load_dotenv()
 
 _REQUIRED_MODELS = {
     "sentiment": {"name": "tabularisai/multilingual-sentiment-analysis"},
@@ -32,7 +39,13 @@ def preload_huggingface_model(
 
     try:
         model_path = snapshot_download(
-            repo_id=model_name, local_dir=os.path.join(local_dir, "models--" + model_name.replace("/", "--")) if local_dir else local_dir, revision=revision
+            repo_id=model_name,
+            local_dir=(
+                os.path.join(local_dir, "models--" + model_name.replace("/", "--"))
+                if local_dir
+                else local_dir
+            ),
+            revision=revision,
         )
     except Exception as e:
         raise EnvironmentError(f"Failed to download snapshot for '{model_name}': {e}")
@@ -91,34 +104,30 @@ def cache_required_models(
         ValueError: If `use_standard_models` is False and `custom_model_config` is not provided.
     """
     if not use_standard_models and not custom_model_config:
-        raise ValueError("custom_model_config must be provided if use_standard_models is False.")
-    
+        raise ValueError(
+            "custom_model_config must be provided if use_standard_models is False."
+        )
+
     MODELS = _REQUIRED_MODELS if use_standard_models else custom_model_config
-    
+
     for area in MODELS.keys():
         preload_huggingface_model(
             model_name=MODELS[area]["name"],
             local_dir=custom_cache_dir,
-            revision="main"
-            if "revision" not in MODELS[area].keys()
-            else MODELS[area]["revision"],
+            revision=(
+                "main"
+                if "revision" not in MODELS[area].keys()
+                else MODELS[area]["revision"]
+            ),
         )
-from typing import Optional
-from dotenv import load_dotenv
-from langchain_openai import AzureChatOpenAI, AzureOpenAIEmbeddings
-import os
-from ragas.embeddings import LangchainEmbeddingsWrapper
-from azure.ai.evaluation import AzureOpenAIModelConfiguration
-
-load_dotenv()
 
 
 def get_azure_ai_evaluation_model_config():
-    return  AzureOpenAIModelConfiguration(
+    return AzureOpenAIModelConfiguration(
         azure_endpoint=os.getenv("AZURE_OPENAI_LLM_ENDPOINT"),
         api_key=os.getenv("AZURE_OPENAI_LLM_API_KEY"),
         azure_deployment=os.getenv("AZURE_OPENAI_LLM_MODEL"),
-        api_version=os.getenv("AZURE_OPENAI_LLM_API_VERSION")
+        api_version=os.getenv("AZURE_OPENAI_LLM_API_VERSION"),
     )
 
 
@@ -153,10 +162,13 @@ def get_azure_openai_embedding_model():
 
     return openai_embedding
 
+
 def get_ragas_wrapped_embedding_model(model: AzureOpenAIEmbeddings):
     return LangchainEmbeddingsWrapper(model)
 
 
-def get_azure_openai_llm_inference(prompt: str, model: Optional[AzureChatOpenAI] = None):
+def get_azure_openai_llm_inference(
+    prompt: str, model: Optional[AzureChatOpenAI] = None
+):
     model = model or get_azure_openai_llm()
     return model.invoke(prompt).content

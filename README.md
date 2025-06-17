@@ -14,7 +14,8 @@ Please note this is a work in progress.
 `conda env create -f environment.yaml`
 
 ### Update environment.yaml from conda environment
-`conda env export | grep -v '^prefix:' > environment.yaml`
+`conda env export --from-history | grep -v '^prefix:' > environment.yaml`
+pip packages must be added manually
 
 ### Install package for development
 `pip install -e .`
