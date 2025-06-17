@@ -10,6 +10,25 @@ logger = logging.getLogger(__name__)
 
 
 class RunSimilarityEvaluator:
+    """Computes semantic similarity between a model's response and ground truth using embeddings.
+
+    Converts both texts to vector embeddings and calculates a similarity score from 1 (least similar)
+    to 5 (most similar). Useful for evaluating model output quality in text generation tasks.
+
+    Note:
+        The output includes both legacy `gpt_` keys and new unprefixed keys. Prefer the new keys for future use.
+
+    Args:
+        query (str): Input query.
+        response (str): Model-generated response.
+        ground_truth (str): Expected response.
+        threshold (float): Minimum similarity score to pass.
+        model_config (Optional[AzureOpenAIModelConfiguration]): Model config. Defaults to standard config if None.
+
+    Methods:
+        __call__(): Returns raw similarity results.
+        evaluate(): Logs and asserts whether similarity meets threshold.
+    """
 
     def __init__(
         self,
@@ -36,7 +55,7 @@ class RunSimilarityEvaluator:
     def evaluate(self):
 
         result = self()
-        result_threshold = result["gpt_similarity"] >= self.threshold
+        result_threshold = result["similarity"] >= self.threshold
 
         result.update(
             {

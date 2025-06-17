@@ -136,7 +136,19 @@ def get_azure_openai_llm(
     api_key: Optional[str] = None,
     azure_endpoint: Optional[str] = None,
     api_version: Optional[str] = None,
-):
+) -> AzureChatOpenAI:
+    """Returns an AzureChatOpenAI client with provided or environment-configured parameters.
+
+    Args:
+        model (Optional[str]): Azure OpenAI model deployment name.
+        api_key (Optional[str]): Azure OpenAI API key.
+        azure_endpoint (Optional[str]): Azure endpoint URL.
+        api_version (Optional[str]): API version to use.
+
+    Returns:
+        AzureChatOpenAI: Configured Azure OpenAI chat client.
+    """
+
     defaults = {
         "model": os.getenv("AZURE_OPENAI_LLM_MODEL"),
         "api_key": os.getenv("AZURE_OPENAI_LLM_API_KEY"),
@@ -170,5 +182,15 @@ def get_ragas_wrapped_embedding_model(model: AzureOpenAIEmbeddings):
 def get_azure_openai_llm_inference(
     prompt: str, model: Optional[AzureChatOpenAI] = None
 ):
+    """Invokes the Azure OpenAI model with a given prompt and returns the response content.
+
+    Args:
+        prompt (str): The input prompt to send to the model.
+        model (Optional[AzureChatOpenAI]): An optional AzureChatOpenAI instance. If not provided,
+            a default instance is created using environment configuration.
+
+    Returns:
+        str: The content of the model's response.
+    """
     model = model or get_azure_openai_llm()
     return model.invoke(prompt).content
