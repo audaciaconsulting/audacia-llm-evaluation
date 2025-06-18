@@ -2,7 +2,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from llm_eval.models import (
+from llm_eval.model_tools import (
     cache_required_models,
     preload_huggingface_model,
     get_azure_ai_evaluation_model_config,
@@ -22,10 +22,10 @@ def custom_model_config():
     return {"custom_task": {"name": "test/test-model", "revision": "main"}}
 
 
-@patch("llm_eval.models.snapshot_download")
-@patch("llm_eval.models.AutoConfig.from_pretrained")
-@patch("llm_eval.models.AutoTokenizer.from_pretrained")
-@patch("llm_eval.models.AutoModel.from_pretrained")
+@patch("llm_eval.model_tools.snapshot_download")
+@patch("llm_eval.model_tools.AutoConfig.from_pretrained")
+@patch("llm_eval.model_tools.AutoTokenizer.from_pretrained")
+@patch("llm_eval.model_tools.AutoModel.from_pretrained")
 def test_preload_huggingface_model_success(
     mock_model, mock_tokenizer, mock_config, mock_snapshot, fake_model_name
 ):
@@ -43,14 +43,14 @@ def test_preload_huggingface_model_success(
     mock_model.assert_called()
 
 
-@patch("llm_eval.models.preload_huggingface_model")
+@patch("llm_eval.model_tools.preload_huggingface_model")
 def test_cache_required_models_with_default(mock_preload):
     # Should call preload 3 times for the default _REQUIRED_MODELS
     cache_required_models()
     assert mock_preload.call_count == 3
 
 
-@patch("llm_eval.models.preload_huggingface_model")
+@patch("llm_eval.model_tools.preload_huggingface_model")
 def test_cache_required_models_with_custom_config(mock_preload, custom_model_config):
     cache_required_models(
         use_standard_models=False,
