@@ -10,7 +10,7 @@ from transformers import AutoConfig, AutoModel, AutoTokenizer
 
 load_dotenv()
 
-_REQUIRED_MODELS = {
+REQUIRED_MODELS = {
     "sentiment": {"name": "tabularisai/multilingual-sentiment-analysis"},
     "bias": {
         "name": "d4data/bias-detection-model",
@@ -108,7 +108,7 @@ def cache_required_models(
             "custom_model_config must be provided if use_standard_models is False."
         )
 
-    MODELS = _REQUIRED_MODELS if use_standard_models else custom_model_config
+    MODELS = REQUIRED_MODELS if use_standard_models else custom_model_config
 
     for area in MODELS.keys():
         preload_huggingface_model(

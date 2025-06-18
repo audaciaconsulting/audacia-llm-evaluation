@@ -7,6 +7,18 @@ authors = [
     { name = "Alan Kerby", email = "alan.kerby@audacia.co.uk" },
     { name = "Liam Ward", email = "liam.ward@audacia.co.uk" }
 ]
+requires-python = ">=3.11"
+dependencies = [
+  "huggingface_hub",         
+  "ragas",                   
+  "langchain-openai",        
+  "azure-ai-evaluation",    
+  "pytest",                  
+  "transformers",           
+  "python-dotenv",          
+  "torch",                  
+  "promptflow"
+]             
 license = "MIT"
 readme = "README.md"
 
