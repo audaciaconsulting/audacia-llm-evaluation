@@ -1,6 +1,6 @@
 from typing import Optional
 from azure.ai.evaluation import SimilarityEvaluator, AzureOpenAIModelConfiguration
-from llm_eval.models import get_azure_ai_evaluation_model_config
+from llm_eval.model_tools import get_azure_ai_evaluation_model_config
 import logging
 
 from tests.utils import format_dict_log
