@@ -7,11 +7,12 @@ dependencies:
   - conda-forge::huggingface_hub
   - conda-forge::ragas
   - conda-forge::langchain-openai
-  - microsoft::azure-ai-evaluation
   - conda-forge::pytest
   - conda-forge::transformers
   - conda-forge::python-dotenv
+  - conda-forge::pytest-asyncio
   - pytorch
   - pip
   - pip:
       - promptflow
+      - azure-ai-projects
