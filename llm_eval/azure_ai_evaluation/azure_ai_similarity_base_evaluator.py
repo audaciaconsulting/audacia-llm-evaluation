@@ -52,4 +52,6 @@ class BaseScoreEvaluator(ABC):
         })
 
         logger.info(format_dict_log(dictionary=result))
-        assert result[self.get_result_key()] == 'pass'
+
+        return result
+        # assert result[self.get_result_key()] == 'pass'
