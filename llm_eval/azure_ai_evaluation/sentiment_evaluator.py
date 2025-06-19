@@ -3,11 +3,13 @@ from statistics import mean, stdev
 from typing import List
 
 from llm_eval.custom_evaluator_tools import SentimentEvaluator
-from tests.utils import format_dict_log
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
+def format_dict_log(dictionary: dict):
+    lines = '\n'.join(f"{k}: {v}" for k, v in dictionary.items())
+    return f"\n\n{'*'*100}\n\n{lines}\n\n{'*'*100}\n\n"
 
 class RunSentimentEvaluator:
     def __init__(self, response: str):

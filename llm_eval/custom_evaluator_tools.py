@@ -22,7 +22,7 @@ class SentimentEvaluator:
         # set up the scoring pipeline
         sentiment_pipe = pipeline(
             "text-classification",
-            model=REQUIRED_MODELS["sentiment"],
+            model=REQUIRED_MODELS["sentiment"]['name'],
             return_all_scores=True,
             device="cpu",
         )
