@@ -1,7 +1,7 @@
 import logging
 from abc import ABC, abstractmethod
 
-from utils import format_dict_log
+from llm_eval.utils import format_dict_log
 
 logger = logging.getLogger(__name__)
 
