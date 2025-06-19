@@ -20,7 +20,7 @@ _REQUIRED_MODELS = {
 
 
 def preload_huggingface_model(
-    model_name: str, local_dir: str = None, revision: str = "main"
+        model_name: str, local_dir: str = None, revision: str = "main"
 ):
     """
     Downloads and caches a Hugging Face model, tokenizer, and config.
@@ -87,9 +87,9 @@ def preload_huggingface_model(
 
 
 def cache_required_models(
-    use_standard_models: bool = True,
-    custom_cache_dir: str = None,
-    custom_model_config: dict = None,
+        use_standard_models: bool = True,
+        custom_cache_dir: str = None,
+        custom_model_config: dict = None,
 ):
     """
     Downloads and caches required Hugging Face models.
@@ -132,10 +132,10 @@ def get_azure_ai_evaluation_model_config():
 
 
 def get_azure_openai_llm(
-    model: Optional[str] = None,
-    api_key: Optional[str] = None,
-    azure_endpoint: Optional[str] = None,
-    api_version: Optional[str] = None,
+        model: Optional[str] = None,
+        api_key: Optional[str] = None,
+        azure_endpoint: Optional[str] = None,
+        api_version: Optional[str] = None,
 ) -> AzureChatOpenAI:
     """Returns an AzureChatOpenAI client with provided or environment-configured parameters.
 
@@ -179,8 +179,13 @@ def get_ragas_wrapped_embedding_model(model: AzureOpenAIEmbeddings):
     return LangchainEmbeddingsWrapper(model)
 
 
+def get_ragas_wrapped_azure_open_ai_embedding_model() -> LangchainEmbeddingsWrapper:
+    model = get_azure_openai_embedding_model()
+    return get_ragas_wrapped_embedding_model(model)
+
+
 def get_azure_openai_llm_inference(
-    prompt: str, model: Optional[AzureChatOpenAI] = None
+        prompt: str, model: Optional[AzureChatOpenAI] = None
 ):
     """Invokes the Azure OpenAI model with a given prompt and returns the response content.
 
