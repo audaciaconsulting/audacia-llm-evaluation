@@ -9,7 +9,7 @@ dependencies:
   - python=3.12
   - pip
   - conda-forge::pytest
-  - conda-forge::ragas
+  - conda-forge::ragas_evaluators
   - conda-forge::huggingface_hub
   - pytorch
   - conda-forge::pytest-asyncio
