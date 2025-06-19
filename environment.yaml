@@ -3,16 +3,17 @@ channels:
   - https://repo.anaconda.com/pkgs/main
   - https://repo.anaconda.com/pkgs/r
 dependencies:
-  - python=3.12
-  - conda-forge::huggingface_hub
-  - conda-forge::ragas
   - conda-forge::langchain-openai
-  - conda-forge::pytest
-  - conda-forge::transformers
   - conda-forge::python-dotenv
-  - conda-forge::pytest-asyncio
-  - pytorch
+  - conda-forge::transformers
+  - python=3.12
   - pip
+  - conda-forge::pytest
+  - conda-forge::ragas
+  - conda-forge::huggingface_hub
+  - pytorch
+  - conda-forge::pytest-asyncio
   - pip:
       - promptflow
       - azure-ai-projects
+      - azure.ai.evaluation

@@ -12,6 +12,8 @@ Please note this is a work in progress.
 
 ### Create conda environment
 `conda env create -f environment.yaml`
+### Update conda env
+`conda env update -f environment.yaml`
 
 ### Update environment.yaml from conda environment
 `conda env export --from-history | grep -v '^prefix:' > environment.yaml`
