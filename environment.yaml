@@ -1,19 +1,19 @@
-name: llm_eval
-channels:
-  - https://repo.anaconda.com/pkgs/main
-  - https://repo.anaconda.com/pkgs/r
-dependencies:
-  - conda-forge::langchain-openai
-  - conda-forge::python-dotenv
-  - conda-forge::transformers
-  - python=3.12
-  - pip
-  - conda-forge::pytest
-  - conda-forge::ragas_evaluators
-  - conda-forge::huggingface_hub
-  - pytorch
-  - conda-forge::pytest-asyncio
-  - pip:
-      - promptflow
-      - azure-ai-projects
-      - azure.ai.evaluation
+#name: llm_eval
+#channels:
+#  - https://repo.anaconda.com/pkgs/main
+#  - https://repo.anaconda.com/pkgs/r
+#dependencies:
+#  - conda-forge::langchain-openai
+#  - conda-forge::python-dotenv
+#  - conda-forge::transformers
+#  - python=3.12
+#  - pip
+#  - conda-forge::pytest
+#  - conda-forge::ragas
+#  - conda-forge::huggingface_hub
+#  - pytorch
+#  - conda-forge::pytest-asyncio
+#  - pip:
+#      - promptflow
+#      - azure-ai-projects
+#      - azure.ai.evaluation
