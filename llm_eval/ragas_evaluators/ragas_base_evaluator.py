@@ -6,7 +6,7 @@ logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 class RagasBaseEvaluator:
-    def __init__(self, response: str, reference: str, threshold: float, ragas_metric: type,
+    def __init__(self, sample_data: dict, threshold: float, ragas_metric: type,
                  ragas_metric_args: dict = None):
         """
         Initializes the evaluator.
@@ -20,8 +20,7 @@ class RagasBaseEvaluator:
         if ragas_metric_args is None:
             ragas_metric_args = {}
 
-        self.response = response
-        self.reference = reference
+        self.sample_data = sample_data
         self.threshold = threshold
         self.ragas_metric = ragas_metric
         self.ragas_metric_args = ragas_metric_args
@@ -36,7 +35,7 @@ class RagasBaseEvaluator:
         """
         Scores the response and determines if it passes the threshold.
         """
-        sample = SingleTurnSample(response=self.response, reference=self.reference)
+        sample = SingleTurnSample(**self.sample_data)
         score = await self.ragas_metric(**self.ragas_metric_args).single_turn_ascore(sample=sample)
 
         if isinstance(self.threshold, bool):
@@ -45,8 +44,7 @@ class RagasBaseEvaluator:
             pass_eval = 'pass' if score >= self.threshold else 'fail'
 
         results = {
-            "response": self.response,
-            "reference": self.reference,
+            **self.sample_data,
             self.metric_name: score,
             f"{self.metric_name}_threshold": self.threshold,
             self.metric_name_result: pass_eval,

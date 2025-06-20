@@ -6,7 +6,9 @@ from dotenv import load_dotenv
 from huggingface_hub import snapshot_download
 from langchain_openai import AzureChatOpenAI, AzureOpenAIEmbeddings
 from ragas.embeddings import LangchainEmbeddingsWrapper
+from ragas.llms import LangchainLLMWrapper
 from transformers import AutoConfig, AutoModel, AutoTokenizer
+from langchain.chat_models.base import BaseChatModel
 
 load_dotenv()
 
@@ -162,6 +164,14 @@ def get_azure_openai_llm(
         azure_endpoint=azure_endpoint or defaults["azure_endpoint"],
         api_version=api_version or defaults["api_version"],
     )
+
+
+def get_ragas_wrapped_llm(model: BaseChatModel):
+    return LangchainLLMWrapper(model)
+
+def get_ragas_wrapped_azure_openai_llm():
+    llm = get_azure_openai_llm()
+    return get_ragas_wrapped_llm(llm)
 
 
 def get_azure_openai_embedding_model():
