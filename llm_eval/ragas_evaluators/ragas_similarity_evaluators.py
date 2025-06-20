@@ -30,10 +30,11 @@ class RunSemanticSimilarity(RagasBaseEvaluator):
     def __init__(self, response: str, reference: str, threshold: float,
                  embedding_model: LangchainEmbeddingsWrapper = None):
         embedding_model = embedding_model or get_ragas_wrapped_azure_open_ai_embedding_model()
-        super().__init__(response, reference, threshold, SemanticSimilarity, {"embeddings": embedding_model})
+        super().__init__(sample_data={"response": response, "reference": reference}, threshold=threshold,
+                         ragas_metric=SemanticSimilarity, ragas_metric_args={"embeddings": embedding_model})
 
 
-class RunNonLLMStringSimilarity(RagasBaseEvaluator): #TODO add distance measures param
+class RunNonLLMStringSimilarity(RagasBaseEvaluator):  # TODO add distance measures param
     """
         Evaluation Class: RunNonLLMStringSimilarity
         Evaluation Method: String Distance
@@ -48,8 +49,10 @@ class RunNonLLMStringSimilarity(RagasBaseEvaluator): #TODO add distance measures
             reference (str): The reference string against which the model's response will be compared.
             threshold (float): The minimum score required for passing the evaluation, based on the distance measure.
             """
+
     def __init__(self, response: str, reference: str, threshold: float):
-        super().__init__(response, reference, threshold, NonLLMStringSimilarity)
+        super().__init__(sample_data={"response": response, "reference": reference}, threshold=threshold,
+                         ragas_metric=NonLLMStringSimilarity)
 
 
 class RunStringPresence(RagasBaseEvaluator):
@@ -66,8 +69,10 @@ class RunStringPresence(RagasBaseEvaluator):
             response (str): The model-generated response to evaluate.
             reference (str): The reference string to check for presence in the model's response.
             """
+
     def __init__(self, response: str, reference: str):
-        super().__init__(response, reference, False, StringPresence)
+        super().__init__(sample_data={"response": response, "reference": reference}, threshold=False,
+                         ragas_metric=StringPresence)
 
 
 class RunExactMatch(RagasBaseEvaluator):
@@ -84,5 +89,7 @@ class RunExactMatch(RagasBaseEvaluator):
             response (str): The model-generated response to evaluate.
             reference (str): The reference string that the model's response is compared against.
             """
+
     def __init__(self, response: str, reference: str):
-        super().__init__(response, reference, False, ExactMatch)
+        super().__init__(sample_data={"response": response, "reference": reference}, threshold=False,
+                         ragas_metric=ExactMatch)
