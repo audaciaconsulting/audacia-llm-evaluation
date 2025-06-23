@@ -82,6 +82,11 @@ class RunSimilarityEvaluator:
         )
 
         logger.info(format_dict_log(dictionary=result))
+        return result
+
+
+    def evaluate_assert(self):
+        result = self.evaluate()
         assert result['similarity_result'] == 'pass'
 
 
