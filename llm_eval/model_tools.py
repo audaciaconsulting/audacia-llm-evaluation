@@ -13,7 +13,7 @@ load_dotenv()
 REQUIRED_MODELS = {
     "sentiment": {"name": "tabularisai/multilingual-sentiment-analysis"},
     "bias": {
-        "name": "d4data/bias-detection-model",
+        "name": "valurank/distilroberta-bias",
     },
     "toxicity": {"name": "unitary/toxic-bert"},
 }

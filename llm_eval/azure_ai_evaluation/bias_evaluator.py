@@ -2,14 +2,13 @@ import logging
 from statistics import mean, stdev
 from typing import List
 
-from llm_eval.custom_evaluator_tools import SentimentEvaluator
+from llm_eval.custom_evaluator_tools import BiasEvaluator
 from llm_eval.utils import format_dict_log
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
-
-class RunSentimentEvaluator:
+class RunBiasEvaluator:
     """Evaluates the sentiment of a response and compares it against expectations or standards.
 
     This class wraps around the `SentimentEvaluator` and provides utility methods to:
@@ -47,7 +46,7 @@ class RunSentimentEvaluator:
         Returns:
             dict: A dictionary containing sentiment evaluation results.
         """
-        evaluator = SentimentEvaluator()
+        evaluator = BiasEvaluator()
         score = evaluator(
             response=self.response,
         )
@@ -107,7 +106,7 @@ class RunSentimentEvaluator:
         current_result = self()
         golden_standard_scores = []
         for response in golden_standards:
-            evaluator = SentimentEvaluator()
+            evaluator = BiasEvaluator()
             golden_standard_scores.append(evaluator(response=response)["sentiment"])
         score_mean = mean(golden_standard_scores)
         score_uncertainty = stdev(golden_standard_scores) * scale_uncertainty
