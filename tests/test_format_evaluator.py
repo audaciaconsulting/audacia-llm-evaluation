@@ -7,15 +7,15 @@ from llm_eval.format_evaluator import RunFormatEvaluator
 @pytest.mark.parametrize(
     "response, expected_type, expected_result",
     [
-        ("some string", str, True),
-        ({"key": "value"}, dict, True),
-        ([1, 2, 3], list, True),
-        (123, str, False),
+        ("some string", str, 'pass'),
+        ({"key": "value"}, dict, 'pass'),
+        ([1, 2, 3], list, 'pass'),
+        (123, str, 'fail'),
     ]
 )
 def test_evaluate_custom_response(response: Any, expected_type: type, expected_result: bool):
     evaluator = RunFormatEvaluator(response)
-    assert evaluator.evaluate_custom_response(expected_type) == expected_result
+    assert evaluator.evaluate_custom_response(expected_type)['custom_response_result'] == expected_result
 
 
 def test_evaluate_custom_response_assert_passes():
@@ -33,16 +33,16 @@ def test_evaluate_custom_response_assert_fails():
 @pytest.mark.parametrize(
     "json_str, expected_result",
     [
-        ('{"a": 1}', True),
-        ('[1, 2, 3]', False),
-        ('"just a string"', False),
-        ('invalid json', False),
-        (1234, False),  # Not a string at all
+        ('{"a": 1}', 'pass'),
+        ('[1, 2, 3]', 'fail'),
+        ('"just a string"', 'fail'),
+        ('invalid json', 'fail'),
+        (1234, 'fail'),  # Not a string at all
     ]
 )
 def test_evaluate_json_response(json_str: Any, expected_result: bool):
     evaluator = RunFormatEvaluator(json_str)
-    assert evaluator.evaluate_json_response() == expected_result
+    assert evaluator.evaluate_json_response()['json_response_result'] == expected_result
 
 
 def test_evaluate_json_response_assert_passes():

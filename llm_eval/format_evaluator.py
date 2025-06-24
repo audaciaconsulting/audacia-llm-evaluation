@@ -67,7 +67,7 @@ class RunFormatEvaluator:
         if assert_result:
             assert isinstance(self.response, expected_format), "The response is in the incorrect format"
         else:
-            return isinstance(self.response, expected_format)
+            return {'custom_response_result': 'pass' if isinstance(self.response, expected_format) else 'fail'}
     
     def evaluate_json_response(self, assert_result: bool = False):
         """Attempts to parse the response as JSON and checks if it results in a dictionary.
@@ -96,7 +96,7 @@ class RunFormatEvaluator:
         if assert_result:
             assert pass_state, "The response is not in a valid JSON format"
         else:
-            return pass_state
+            return {'json_response_result': 'pass' if pass_state else 'fail'}
     
 
 
