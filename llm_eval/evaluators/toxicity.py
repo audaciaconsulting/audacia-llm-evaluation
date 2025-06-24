@@ -1,7 +1,7 @@
 import logging
 
 from llm_eval.base_evaluators.custom_evaluators import ToxicityEvaluator
-from llm_eval.base_evaluators.transformer_evaluators.transformer_base_evaluator import (
+from base_evaluators.transformer_base_evaluator import (
     TransformerRunEvaluator,
 )
 
