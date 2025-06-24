@@ -38,13 +38,13 @@ def test_evaluate_sentiment_against_known_score(simple_sentiment_case_):
     response_text, expected_score = simple_sentiment_case_
     evaluator = RunSentimentEvaluator(response_text)
     result = evaluator.evaluate_against_expected_score(expected_score, 0.2)
-    assert all(key in result for key in ["sentiment", "response", "expected_score", "result"])
-    assert result["result"]
+    assert all(key in result for key in ["sentiment", "response", "expected_score", "sentiment_result"])
+    assert result["sentiment_result"] == 'pass'
 
 def test_evaluate_sentiment_against_golden_standards():
     response_text = "Oh wow, this is the best product I've ever received! You have made live worth living now!"
     evaluator = RunSentimentEvaluator(response_text)
     result = evaluator.evaluate_against_golden_standards(golden_standards = GOLDEN_STANDARDS, scale_uncertainty=3) # Scale to 3 standard deviations - acceptable
-    assert all(key in result for key in ["sentiment", "response", "golden_standard_example", "golden_standard_score", "calculated_uncertainty", "result"])
-    assert result["golden_standard_example"] == GOLDEN_STANDARDS[0]
-    assert result["result"]
+    assert all(key in result for key in ["sentiment", "response", "golden_standard_responses", "golden_standard_scores", "mean_score", "calculated_uncertainty", "sentiment_result"])
+    assert result["golden_standard_responses"] == GOLDEN_STANDARDS
+    assert result["sentiment_result"] == 'pass'

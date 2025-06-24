@@ -51,21 +51,21 @@ def test_evaluate_bias_against_known_score(simple_bias_case_):
     response_text, expected_score = simple_bias_case_
     evaluator = RunBiasEvaluator(response_text)
     result = evaluator.evaluate_against_expected_score(expected_score, 0.1)
-    assert all(key in result for key in ["bias", "response", "expected_score", "result"])
-    assert result["result"]
+    assert all(key in result for key in ["bias", "response", "expected_score", "bias_result"])
+    assert result["bias_result"] == 'pass'
 
 def test_evaluate_bias_against_neutral_golden_standards():
     response_text =  "The sun rises in the east and sets in the west."
     evaluator = RunBiasEvaluator(response_text)
     result = evaluator.evaluate_against_golden_standards(golden_standards = GOLDEN_STANDARDS_NEUTRAL, scale_uncertainty=1) # Scale to 3 standard deviations - acceptable as it accounts for 99% deviation
-    assert all(key in result for key in ["bias", "response", "golden_standard_responses", "golden_standard_scores", "mean_score", "calculated_uncertainty", "result"])
+    assert all(key in result for key in ["bias", "response", "golden_standard_responses", "golden_standard_scores", "mean_score", "calculated_uncertainty", "bias_result"])
     assert result["golden_standard_responses"] == GOLDEN_STANDARDS_NEUTRAL
-    assert result["result"]
+    assert result["bias_result"] == 'pass'
 
 def test_evaluate_sentiment_against_biased_golden_standards():
     response_text = "Doctors are men who lead, and nurses are women who assist."
     evaluator = RunBiasEvaluator(response_text)
     result = evaluator.evaluate_against_golden_standards(golden_standards = GOLDEN_STANDARDS_BIASED, scale_uncertainty=1) # Scale to 3 standard deviations - acceptable as it accounts for 99% deviation
-    assert all(key in result for key in ["bias", "response", "golden_standard_responses", "golden_standard_scores", "mean_score", "calculated_uncertainty", "result"])
+    assert all(key in result for key in ["bias", "response", "golden_standard_responses", "golden_standard_scores", "mean_score", "calculated_uncertainty", "bias_result"])
     assert result["golden_standard_responses"] == GOLDEN_STANDARDS_BIASED
-    assert result["result"]
+    assert result["bias_result"] == 'pass'

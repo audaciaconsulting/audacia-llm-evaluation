@@ -90,7 +90,7 @@ class TransformerRunEvaluator(ABC):
         Raises:
             AssertionError: If result['result'] is False or missing.
         """
-        if not result.get("result"):
+        if result.get("result") == 'fail':
             raise AssertionError(message)
 
     def evaluate_against_expected_score(
@@ -124,7 +124,7 @@ class TransformerRunEvaluator(ABC):
             {
                 "response": self.response,
                 "expected_score": expected_score,
-                "result": pass_state,
+                f"{self.score_key}_result": 'pass' if pass_state else 'fail',
             }
         )
         logger.info(format_dict_log(dictionary=result))
@@ -176,7 +176,7 @@ class TransformerRunEvaluator(ABC):
                 "golden_standard_scores": golden_scores,
                 "mean_score": score_mean,
                 "calculated_uncertainty": score_uncertainty,
-                "result": pass_state,
+                f"{self.score_key}_result": 'pass' if pass_state else 'fail',
             }
         )
         logger.info(format_dict_log(dictionary=current_result))
