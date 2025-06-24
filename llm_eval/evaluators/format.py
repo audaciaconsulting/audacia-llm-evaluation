@@ -1,5 +1,5 @@
-from llm_eval.custom_evaluator_tools import FormatEvaluator
-from llm_eval.utils import format_dict_log
+from llm_eval.base_evaluators.custom_evaluators import FormatEvaluator
+from llm_eval.tools.utils import format_dict_log
 import logging
 from typing import Any
 import json
@@ -97,6 +97,3 @@ class RunFormatEvaluator:
             assert pass_state, "The response is not in a valid JSON format"
         else:
             return {'json_response_result': 'pass' if pass_state else 'fail'}
-    
-
-

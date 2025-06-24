@@ -1,7 +1,7 @@
 from typing import Any
 from transformers import pipeline
 
-from llm_eval.model_tools import REQUIRED_MODELS
+from llm_eval.tools.model_tools import REQUIRED_MODELS
 
 
 class TransformerEvaluator:

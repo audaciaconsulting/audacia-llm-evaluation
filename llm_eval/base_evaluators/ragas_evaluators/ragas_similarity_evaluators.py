@@ -1,7 +1,7 @@
 from ragas.metrics import NonLLMStringSimilarity, StringPresence, ExactMatch, SemanticSimilarity
 from ragas.embeddings import LangchainEmbeddingsWrapper
-from llm_eval.model_tools import get_ragas_wrapped_azure_open_ai_embedding_model
-from llm_eval.ragas_evaluators.ragas_base_evaluator import RagasBaseEvaluator
+from llm_eval.tools.model_tools import get_ragas_wrapped_azure_open_ai_embedding_model
+from llm_eval.base_evaluators.ragas_evaluators.ragas_base_evaluator import RagasBaseEvaluator
 
 
 class RunSemanticSimilarity(RagasBaseEvaluator):

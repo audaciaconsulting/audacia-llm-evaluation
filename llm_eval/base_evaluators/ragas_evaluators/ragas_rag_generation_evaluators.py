@@ -2,8 +2,8 @@ from ragas.embeddings import LangchainEmbeddingsWrapper
 from ragas.llms import LangchainLLMWrapper
 from ragas.metrics import Faithfulness, ResponseRelevancy
 
-from llm_eval.model_tools import get_ragas_wrapped_azure_openai_llm, get_ragas_wrapped_azure_open_ai_embedding_model
-from llm_eval.ragas_evaluators.ragas_base_evaluator import RagasBaseEvaluator
+from llm_eval.tools.model_tools import get_ragas_wrapped_azure_openai_llm, get_ragas_wrapped_azure_open_ai_embedding_model
+from llm_eval.base_evaluators.ragas_evaluators.ragas_base_evaluator import RagasBaseEvaluator
 
 
 class RunFaithfulness(RagasBaseEvaluator):
