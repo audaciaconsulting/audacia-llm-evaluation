@@ -35,7 +35,7 @@ class TransformerRunEvaluator(ABC):
                 return "sentiment"
     """
 
-    def __init__(self, response: str, evaluate_method: type, evaluate_method_args: dict):
+    def __init__(self, response: str, evaluate_method_args: dict):
         """
         Initializes the evaluator with a response.
 
@@ -43,7 +43,6 @@ class TransformerRunEvaluator(ABC):
             response (str): The textual response to evaluate.
         """
         self.response = response
-        self.evaluate_method = evaluate_method
         self.evaluate_method_args = evaluate_method_args
         self.result = None
 
@@ -73,6 +72,10 @@ class TransformerRunEvaluator(ABC):
         """
         pass
 
+    @abstractmethod
+    def get_evaluate_method(self):
+        pass
+
     def __call__(self):
         """
         Runs the evaluation on the response using the configured evaluator class.
@@ -80,9 +83,8 @@ class TransformerRunEvaluator(ABC):
         Returns:
             dict: A dictionary containing the evaluation score.
         """
-        evaluator = self.evaluator_class()
-        self.result = evaluator(response=self.response)
-        return self.evaluate_method(**self.evaluate_method_args)
+        self.result = self.evaluator_class()(response=self.response)
+        return self.get_evaluate_method()(**self.evaluate_method_args)
 
     def _assert_result(self, result: dict, message: str):
         """

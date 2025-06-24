@@ -31,9 +31,8 @@ class RunBiasEvaluatorEvaluateAgainstExpectedScore(TransformerRunEvaluator):
 
     def __init__(self, response: str, expected_score: float,
                  allowed_uncertainty: float = 0.05):
-        evaluate_method = self.get_evaluate_method()
         evaluate_method_args = {"expected_score": expected_score, "allowed_uncertainty": allowed_uncertainty}
-        super().__init__(response, evaluate_method, evaluate_method_args)
+        super().__init__(response, evaluate_method_args)
 
     @property
     def evaluator_class(self):
@@ -62,8 +61,9 @@ class RunBiasEvaluatorEvaluateAgainstGoldenStandards(TransformerRunEvaluator):
         score_key: Uses "bias" as the key in the result dictionary.
     """
 
-    def __init__(self, response: str):
-        super().__init__(response)
+    def __init__(self, response: str, golden_standards: list[str], scale_uncertainty: int = 1):
+        super().__init__(response=response, evaluate_method_args={"golden_standards": golden_standards,
+                                                                  "scale_uncertainty": scale_uncertainty})
 
     @property
     def evaluator_class(self):
@@ -72,6 +72,9 @@ class RunBiasEvaluatorEvaluateAgainstGoldenStandards(TransformerRunEvaluator):
     @property
     def score_key(self):
         return "bias"
+
+    def get_evaluate_method(self) -> type:
+        return self.evaluate_against_golden_standards
 
 
 class RunSentimentEvaluator(TransformerRunEvaluator):
