@@ -1,6 +1,5 @@
-from typing import Optional
 import pytest
-from llm_eval.azure_ai_evaluation.sentiment_evaluator import RunSentimentEvaluator
+from llm_eval.transformer_evaluators.transformer_evaluators import RunSentimentEvaluator
 
 
 GOLDEN_STANDARDS = [

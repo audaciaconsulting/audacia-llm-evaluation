@@ -1,5 +1,5 @@
 import pytest
-from llm_eval.azure_ai_evaluation.bias_evaluator import RunBiasEvaluator 
+from llm_eval.transformer_evaluators.transformer_evaluators import RunBiasEvaluator 
 
 
 GOLDEN_STANDARDS_NEUTRAL = [

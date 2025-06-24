@@ -3,11 +3,84 @@ from transformers import pipeline
 from llm_eval.model_tools import REQUIRED_MODELS
 
 
-class SentimentEvaluator:
-    def __init__(self):
-        pass
+class TransformerEvaluator:
+    """
+    A general-purpose evaluator for text classification using Hugging Face Transformers.
+
+    This class wraps a classification pipeline and allows for either single-label or weighted aggregate
+    scoring, depending on initialization parameters.
+
+    Args:
+        evaluator (str): Key to retrieve the model name from REQUIRED_MODELS.
+        label_index (int, optional): Index of the label to extract the score from if not aggregating. Defaults to 0.
+        aggregate (bool, optional): Whether to compute a weighted aggregate score across all labels. Defaults to False.
+        aggregate_weights (dict, optional): Dictionary of label weights used during aggregation. Required if aggregate is True.
+
+    Example:
+        evaluator = TransformerEvaluator("sentiment", aggregate=True, aggregate_weights=...)
+        result = evaluator(response="The response text.")
+    """
+    def __init__(
+        self,
+        evaluator: str,
+        *,
+        label_index: int = 0,
+        aggregate: bool = False,
+        aggregate_weights: dict = None,
+    ):
+        self.evaluator = evaluator
+        self.label_index = label_index
+        self.aggregate = aggregate
+        self.aggregate_weights = aggregate_weights
 
     def __call__(self, *, response: str, **kwargs):
+        """
+        Evaluates the response using the configured text classification model.
+
+        Args:
+            response (str): The textual response to evaluate.
+            **kwargs: Additional keyword arguments (ignored in current implementation).
+
+        Returns:
+            dict: A dictionary containing the evaluation score with the evaluator name as the key.
+        """
+        classifier = pipeline(
+            "text-classification",
+            model=REQUIRED_MODELS[self.evaluator]["name"],
+            return_all_scores=True,
+            device="cpu",
+        )
+        results = classifier(response)[0]
+
+        if self.aggregate and self.aggregate_weights:
+            score = sum(
+                self.aggregate_weights[x["label"]] * x["score"] for x in results
+            )
+        else:
+            score = results[self.label_index]["score"]
+
+        return {self.evaluator: score}
+
+
+class SentimentEvaluator(TransformerEvaluator):
+    """
+    Evaluates the sentiment of a response using a predefined transformer model.
+
+    Maps sentiment labels to numerical values using a predefined weighting scheme and computes
+    an aggregate sentiment score.
+
+    Scoring weights:
+        - "Very Negative": -1.0
+        - "Negative": -0.5
+        - "Neutral": 0.0
+        - "Positive": 0.5
+        - "Very Positive": 1.0
+
+    Example:
+        evaluator = SentimentEvaluator()
+        result = evaluator(response="This is a great product!")
+    """
+    def __init__(self):
         WEIGHTS = {
             "Very Negative": -1.0,
             "Negative": -0.5,
@@ -15,51 +88,38 @@ class SentimentEvaluator:
             "Positive": 0.5,
             "Very Positive": 1.0,
         }
-        # set up the scoring pipeline
-        sentiment_pipe = pipeline(
-            "text-classification",
-            model=REQUIRED_MODELS["sentiment"]['name'],
-            return_all_scores=True,
-            device="cpu",
+        super().__init__(
+            evaluator="sentiment",
+            aggregate=True,
+            aggregate_weights=WEIGHTS,
         )
-        # score the AI system response
-        full_sentiment = sentiment_pipe(response)[0]
-        agg_sentiment_score = sum(
-            WEIGHTS[x["label"]] * x["score"] for x in full_sentiment
-        )
-        return {"sentiment": agg_sentiment_score}
 
 
-class BiasEvaluator:
+class BiasEvaluator(TransformerEvaluator):
+    """
+    Evaluates the bias score of a response using a transformer model.
+
+    Selects the score from a specific label index (default 0), which is assumed
+    to represent the target bias class.
+
+    Example:
+        evaluator = BiasEvaluator()
+        result = evaluator(response="That’s not how everyone sees it.")
+    """
     def __init__(self):
-        pass
+        super().__init__(evaluator="bias", label_index=0)
 
-    def __call__(self, *, response: str, **kwargs):
-        # set up the scoring pipeline
-        bias_pipe = pipeline(
-            "text-classification",
-            model=REQUIRED_MODELS["bias"]['name'],
-            return_all_scores=True,
-            device="cpu",
-        )
-        # score the AI system response
-        full_bias = bias_pipe(response)[0][0]
-        return {"bias": full_bias["score"]}
-    
 
-class ToxicityEvaluator:
+class ToxicityEvaluator(TransformerEvaluator):
+    """
+    Evaluates the toxicity of a response using a transformer model.
+
+    Selects the score from a specific label index (default 1), which is assumed
+    to correspond to the toxicity class in the classification output.
+
+    Example:
+        evaluator = ToxicityEvaluator()
+        result = evaluator(response="You’re an idiot.")
+    """
     def __init__(self):
-        pass
-
-    def __call__(self, *, response: str, **kwargs):
-        # set up the scoring pipeline
-        bias_pipe = pipeline(
-            "text-classification",
-            model=REQUIRED_MODELS["toxicity"]['name'],
-            return_all_scores=True,
-            device="cpu",
-        )
-        # score the AI system response
-        full_bias = bias_pipe(response)[0][1]
-        return {"toxicity": full_bias["score"]}
-    
+        super().__init__(evaluator="toxicity", label_index=1)

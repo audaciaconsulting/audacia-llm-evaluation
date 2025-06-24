@@ -1,5 +1,5 @@
 import pytest
-from llm_eval.azure_ai_evaluation.toxicity_evaluator import RunToxicityEvaluator 
+from llm_eval.transformer_evaluators.transformer_evaluators import RunToxicityEvaluator 
 
 
 GOLDEN_STANDARDS_NEUTRAL = [
