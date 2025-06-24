@@ -1,5 +1,5 @@
 import pytest
-from llm_eval.transformer_evaluators.transformer_evaluators import RunToxicityEvaluator 
+from llm_eval.transformer_evaluators.transformer_evaluators import BaseToxicityEvaluator
 
 
 GOLDEN_STANDARDS_NEUTRAL = [
@@ -41,7 +41,7 @@ def simple_toxicity_case_(request):
 
 def test_expected_bias_score(simple_toxicity_case_):
     response_text, expected_score = simple_toxicity_case_
-    evaluator = RunToxicityEvaluator(response_text)
+    evaluator = BaseToxicityEvaluator(response_text)
     result = evaluator()
     assert "toxicity" in result
     assert expected_score - 0.1 <= result['toxicity'] <= expected_score + 0.1 
@@ -49,14 +49,14 @@ def test_expected_bias_score(simple_toxicity_case_):
 
 def test_evaluate_bias_against_known_score(simple_toxicity_case_):
     response_text, expected_score = simple_toxicity_case_
-    evaluator = RunToxicityEvaluator(response_text)
+    evaluator = BaseToxicityEvaluator(response_text)
     result = evaluator.evaluate_against_expected_score(expected_score, 0.1)
     assert all(key in result for key in ["toxicity", "response", "expected_score", "toxicity_result"])
     assert result["toxicity_result"] == 'pass'
 
 def test_evaluate_bias_against_neutral_golden_standards():
     response_text =  "The sun rises in the east and sets in the west."
-    evaluator = RunToxicityEvaluator(response_text)
+    evaluator = BaseToxicityEvaluator(response_text)
     result = evaluator.evaluate_against_golden_standards(golden_standards = GOLDEN_STANDARDS_NEUTRAL, scale_uncertainty=3) # Scale to 3 standard deviations - acceptable as it accounts for 99% deviation
     assert all(key in result for key in ["toxicity", "response", "golden_standard_responses", "golden_standard_scores", "mean_score", "calculated_uncertainty", "toxicity_result"])
     assert result["golden_standard_responses"] == GOLDEN_STANDARDS_NEUTRAL
@@ -64,7 +64,7 @@ def test_evaluate_bias_against_neutral_golden_standards():
 
 def test_evaluate_sentiment_against_biased_golden_standards():
     response_text = "You're a worthless piece of trash and everyone hates you."
-    evaluator = RunToxicityEvaluator(response_text)
+    evaluator = BaseToxicityEvaluator(response_text)
     result = evaluator.evaluate_against_golden_standards(golden_standards = GOLDEN_STANDARDS_TOXIC, scale_uncertainty=3) # Scale to 3 standard deviations - acceptable as it accounts for 99% deviation
     assert all(key in result for key in ["toxicity", "response", "golden_standard_responses", "golden_standard_scores", "mean_score", "calculated_uncertainty", "toxicity_result"])
     assert result["golden_standard_responses"] == GOLDEN_STANDARDS_TOXIC

@@ -32,7 +32,7 @@ def test_run_similarity_evaluator_should_pass(
         ground_truth=ground_truth,
         threshold=threshold,
         model_config=model_config,
-    ).evaluate_assert()
+    ).evaluate(assert_result=True)
 
 
 @pytest.mark.parametrize(
@@ -61,7 +61,7 @@ def test_run_similarity_evaluator_should_fail(
             ground_truth=ground_truth,
             threshold=threshold,
             model_config=model_config,
-        ).evaluate_assert()
+        ).evaluate(assert_result=True)
 
 
 @pytest.mark.asyncio
@@ -76,7 +76,7 @@ def test_run_similarity_evaluator_should_fail(
     ],
 )
 async def test_f1_score_evaluator_should_pass(response, ground_truth, threshold):
-    await RunF1ScoreEvaluator(response, ground_truth, threshold).evaluate_assert()
+    await RunF1ScoreEvaluator(response, ground_truth, threshold).evaluate(assert_result=True)
 
 
 @pytest.mark.asyncio
@@ -92,7 +92,7 @@ async def test_f1_score_evaluator_should_pass(response, ground_truth, threshold)
 )
 async def test_f1_score_evaluator_should_fail(response, ground_truth, threshold):
     with pytest.raises(AssertionError):
-        await RunF1ScoreEvaluator(response, ground_truth, threshold).evaluate_assert()
+        await RunF1ScoreEvaluator(response, ground_truth, threshold).evaluate(assert_result=True)
 
 
 @pytest.mark.asyncio
@@ -107,7 +107,7 @@ async def test_f1_score_evaluator_should_fail(response, ground_truth, threshold)
     ],
 )
 async def test_bleu_score_evaluator_should_pass(response, ground_truth, threshold):
-    await RunBleuScoreEvaluator(response, ground_truth, threshold).evaluate_assert()
+    await RunBleuScoreEvaluator(response, ground_truth, threshold).evaluate(assert_result=True)
 
 
 @pytest.mark.asyncio
@@ -123,7 +123,7 @@ async def test_bleu_score_evaluator_should_pass(response, ground_truth, threshol
 )
 async def test_bleu_score_evaluator_should_fail(response, ground_truth, threshold):
     with pytest.raises(AssertionError):
-        await RunBleuScoreEvaluator(response, ground_truth, threshold).evaluate_assert()
+        await RunBleuScoreEvaluator(response, ground_truth, threshold).evaluate(assert_result=True)
 
 
 @pytest.mark.asyncio
@@ -138,7 +138,7 @@ async def test_bleu_score_evaluator_should_fail(response, ground_truth, threshol
     ],
 )
 async def test_gleu_score_evaluator_should_pass(response, ground_truth, threshold):
-    await RunGleuScoreEvaluator(response, ground_truth, threshold).evaluate_assert()
+    await RunGleuScoreEvaluator(response, ground_truth, threshold).evaluate(assert_result=True)
 
 
 @pytest.mark.asyncio
@@ -154,7 +154,7 @@ async def test_gleu_score_evaluator_should_pass(response, ground_truth, threshol
 )
 async def test_gleu_score_evaluator_should_fail(response, ground_truth, threshold):
     with pytest.raises(AssertionError):
-        await RunGleuScoreEvaluator(response, ground_truth, threshold).evaluate_assert()
+        await RunGleuScoreEvaluator(response, ground_truth, threshold).evaluate(assert_result=True)
 
 
 @pytest.mark.asyncio
@@ -169,7 +169,7 @@ async def test_gleu_score_evaluator_should_fail(response, ground_truth, threshol
     ],
 )
 async def test_rouge_score_evaluator_should_pass(response, ground_truth, threshold):
-    await RunRougeScoreEvaluator(response, ground_truth, threshold).evaluate_assert()
+    await RunRougeScoreEvaluator(response, ground_truth, threshold).evaluate(assert_result=True)
 
 
 @pytest.mark.asyncio
@@ -185,7 +185,7 @@ async def test_rouge_score_evaluator_should_pass(response, ground_truth, thresho
 )
 async def test_rouge_score_evaluator_should_fail(response, ground_truth, threshold):
     with pytest.raises(AssertionError):
-        await RunRougeScoreEvaluator(response, ground_truth, threshold).evaluate_assert()
+        await RunRougeScoreEvaluator(response, ground_truth, threshold).evaluate(assert_result=True)
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize(
@@ -199,8 +199,7 @@ async def test_rouge_score_evaluator_should_fail(response, ground_truth, thresho
     ],
 )
 async def test_meteor_score_evaluator_should_pass(response, ground_truth, threshold):
-    await RunMeteorScoreEvaluator(response, ground_truth, threshold).evaluate_assert()
-
+    await RunMeteorScoreEvaluator(response, ground_truth, threshold).evaluate(assert_result=True)
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize(
@@ -215,4 +214,4 @@ async def test_meteor_score_evaluator_should_pass(response, ground_truth, thresh
 )
 async def test_rouge_score_evaluator_should_fail(response, ground_truth, threshold):
     with pytest.raises(AssertionError):
-        await RunMeteorScoreEvaluator(response, ground_truth, threshold).evaluate_assert()
+        await RunMeteorScoreEvaluator(response, ground_truth, threshold).evaluate(assert_result=True)

@@ -70,7 +70,7 @@ class RunSimilarityEvaluator:
             ground_truth=self.ground_truth,
         )
 
-    def evaluate(self):
+    def evaluate(self, assert_result: bool = False):
         result = self()
 
         result.update(
@@ -82,12 +82,11 @@ class RunSimilarityEvaluator:
         )
 
         logger.info(format_dict_log(dictionary=result))
+
+        if assert_result:
+            assert result['similarity_result'] == 'pass'
+
         return result
-
-
-    def evaluate_assert(self):
-        result = self.evaluate()
-        assert result['similarity_result'] == 'pass'
 
 
 class RunF1ScoreEvaluator(BaseScoreEvaluator):
@@ -112,6 +111,9 @@ class RunF1ScoreEvaluator(BaseScoreEvaluator):
             threshold (float): The F1 score threshold to determine a pass/fail outcome. Must be between 0 and 1.
         """
 
+    def __init__(self, response: str, ground_truth: str, threshold: float):
+        super().__init__(response, ground_truth, threshold)
+
     def get_evaluator(self):
         return F1ScoreEvaluator(threshold=self.threshold)
 
@@ -134,6 +136,9 @@ class RunBleuScoreEvaluator(BaseScoreEvaluator):
             ground_truth (str): The reference text.
             threshold (float): BLEU score threshold (0.0 to 1.0).
         """
+
+    def __init__(self, response: str, ground_truth: str, threshold: float):
+        super().__init__(response, ground_truth, threshold)
 
     def get_evaluator(self):
         return BleuScoreEvaluator(threshold=self.threshold)
@@ -158,6 +163,9 @@ class RunGleuScoreEvaluator(BaseScoreEvaluator):
             ground_truth (str): The reference text.
             threshold (float): GLEU score threshold (0.0 to 1.0).
         """
+
+    def __init__(self, response: str, ground_truth: str, threshold: float):
+        super().__init__(response, ground_truth, threshold)
 
     def get_evaluator(self):
         return GleuScoreEvaluator(threshold=self.threshold)
@@ -184,6 +192,9 @@ class RunRougeScoreEvaluator(BaseScoreEvaluator):
            ground_truth (str): The reference text.
            threshold (float): Threshold for F1 score (0.0 to 1.0).
        """
+
+    def __init__(self, response: str, ground_truth: str, threshold: float):
+        super().__init__(response, ground_truth, threshold)
 
     def get_evaluator(self):
         return RougeScoreEvaluator(rouge_type=RougeType.ROUGE_L, precision_threshold=self.threshold,
@@ -212,6 +223,9 @@ class RunMeteorScoreEvaluator(BaseScoreEvaluator):
             ground_truth (str): The reference text.
             threshold (float): METEOR score threshold (0.0 to 1.0).
         """
+
+    def __init__(self, response: str, ground_truth: str, threshold: float):
+        super().__init__(response, ground_truth, threshold)
 
     def get_evaluator(self):
         return MeteorScoreEvaluator(threshold=self.threshold)

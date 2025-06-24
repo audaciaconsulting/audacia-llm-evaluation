@@ -43,7 +43,7 @@ class BaseScoreEvaluator(ABC):
         })
         return result
 
-    async def evaluate(self):
+    async def evaluate(self, assert_result: bool = False) -> dict:
         result = await self()
 
         result.update({
@@ -52,10 +52,8 @@ class BaseScoreEvaluator(ABC):
         })
 
         logger.info(format_dict_log(dictionary=result))
+
+        if assert_result:
+            assert result[self.get_result_key()] == 'pass'
+
         return result
-
-
-    async def evaluate_assert(self):
-        result = await self.evaluate()
-        assert result[self.get_result_key()] == 'pass'
-
