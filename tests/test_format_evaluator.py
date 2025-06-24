@@ -1,7 +1,6 @@
 import pytest
 from typing import Any
 
-# Assume these are already defined in your codebase
 from llm_eval.format_evaluator import RunFormatEvaluator
 
 
