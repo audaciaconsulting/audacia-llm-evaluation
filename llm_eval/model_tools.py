@@ -4,25 +4,25 @@ from typing import Optional
 from azure.ai.evaluation import AzureOpenAIModelConfiguration
 from dotenv import load_dotenv
 from huggingface_hub import snapshot_download
+from langchain.chat_models.base import BaseChatModel
 from langchain_openai import AzureChatOpenAI, AzureOpenAIEmbeddings
 from ragas.embeddings import LangchainEmbeddingsWrapper
 from ragas.llms import LangchainLLMWrapper
 from transformers import AutoConfig, AutoModel, AutoTokenizer
-from langchain.chat_models.base import BaseChatModel
 
 load_dotenv()
 
 REQUIRED_MODELS = {
     "sentiment": {"name": "tabularisai/multilingual-sentiment-analysis"},
     "bias": {
-        "name": "d4data/bias-detection-model",
+        "name": "valurank/distilroberta-bias",
     },
-    "toxicity": {"name": "unitary/toxic-bert"},
+    "toxicity": {"name": "s-nlp/roberta_toxicity_classifier"},
 }
 
 
 def preload_huggingface_model(
-        model_name: str, local_dir: str = None, revision: str = "main"
+    model_name: str, local_dir: str = None, revision: str = "main"
 ):
     """
     Downloads and caches a Hugging Face model, tokenizer, and config.
@@ -89,9 +89,9 @@ def preload_huggingface_model(
 
 
 def cache_required_models(
-        use_standard_models: bool = True,
-        custom_cache_dir: str = None,
-        custom_model_config: dict = None,
+    use_standard_models: bool = True,
+    custom_cache_dir: str = None,
+    custom_model_config: dict = None,
 ):
     """
     Downloads and caches required Hugging Face models.
@@ -134,10 +134,10 @@ def get_azure_ai_evaluation_model_config():
 
 
 def get_azure_openai_llm(
-        model: Optional[str] = None,
-        api_key: Optional[str] = None,
-        azure_endpoint: Optional[str] = None,
-        api_version: Optional[str] = None,
+    model: Optional[str] = None,
+    api_key: Optional[str] = None,
+    azure_endpoint: Optional[str] = None,
+    api_version: Optional[str] = None,
 ) -> AzureChatOpenAI:
     """Returns an AzureChatOpenAI client with provided or environment-configured parameters.
 
@@ -169,6 +169,7 @@ def get_azure_openai_llm(
 def get_ragas_wrapped_llm(model: BaseChatModel):
     return LangchainLLMWrapper(model)
 
+
 def get_ragas_wrapped_azure_openai_llm():
     llm = get_azure_openai_llm()
     return get_ragas_wrapped_llm(llm)
@@ -195,7 +196,7 @@ def get_ragas_wrapped_azure_open_ai_embedding_model() -> LangchainEmbeddingsWrap
 
 
 def get_azure_openai_llm_inference(
-        prompt: str, model: Optional[AzureChatOpenAI] = None
+    prompt: str, model: Optional[AzureChatOpenAI] = None
 ):
     """Invokes the Azure OpenAI model with a given prompt and returns the response content.
 
