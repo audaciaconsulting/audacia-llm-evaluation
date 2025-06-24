@@ -1,5 +1,5 @@
 import pytest
-from ragas_evaluators.ragas_rag_evaluators import RunLLMContextPrecisionWithReference, \
+from llm_eval.ragas_evaluators.ragas_rag_retrieval_evaluators import RunLLMContextPrecisionWithReference, \
     RunNonLLMContextPrecisionWithReference, RunLLMContextRecall, RunNonLLMContextRecall
 
 
