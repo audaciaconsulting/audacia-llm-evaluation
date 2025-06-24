@@ -1,6 +1,6 @@
 import pytest
 
-from ragas_evaluators.ragas_rag_generation_evaluators import RunFaithfulness, RunResponseRelevancy
+from llm_eval.ragas_evaluators.ragas_rag_generation_evaluators import RunFaithfulness, RunResponseRelevancy
 
 
 @pytest.mark.asyncio

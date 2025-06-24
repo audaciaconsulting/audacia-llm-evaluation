@@ -1,8 +1,8 @@
 from ragas.metrics import LLMContextPrecisionWithReference, NonLLMContextPrecisionWithReference, LLMContextRecall, \
     NonLLMContextRecall
 from langchain.chat_models.base import BaseChatModel
-from model_tools import get_ragas_wrapped_azure_openai_llm
-from ragas_evaluators.ragas_base_evaluator import RagasBaseEvaluator
+from llm_eval.model_tools import get_ragas_wrapped_azure_openai_llm
+from llm_eval.ragas_evaluators.ragas_base_evaluator import RagasBaseEvaluator
 
 
 class RunLLMContextPrecisionWithReference(RagasBaseEvaluator):
