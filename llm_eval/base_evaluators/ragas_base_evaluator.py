@@ -1,6 +1,6 @@
 from ragas.dataset_schema import SingleTurnSample
 import logging
-from llm_eval.utils import format_dict_log, camel_to_snake
+from llm_eval.tools.utils import format_dict_log, camel_to_snake
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)

@@ -1,7 +1,7 @@
 from typing import Any
 from transformers import pipeline
 
-from llm_eval.model_tools import REQUIRED_MODELS
+from llm_eval.tools.model_tools import REQUIRED_MODELS
 
 
 class TransformerEvaluator:
@@ -21,13 +21,14 @@ class TransformerEvaluator:
         evaluator = TransformerEvaluator("sentiment", aggregate=True, aggregate_weights=...)
         result = evaluator(response="The response text.")
     """
+
     def __init__(
-        self,
-        evaluator: str,
-        *,
-        label_index: int = 0,
-        aggregate: bool = False,
-        aggregate_weights: dict = None,
+            self,
+            evaluator: str,
+            *,
+            label_index: int = 0,
+            aggregate: bool = False,
+            aggregate_weights: dict = None,
     ):
         self.evaluator = evaluator
         self.label_index = label_index
@@ -81,6 +82,7 @@ class SentimentEvaluator(TransformerEvaluator):
         evaluator = SentimentEvaluator()
         result = evaluator(response="This is a great product!")
     """
+
     def __init__(self):
         WEIGHTS = {
             "Very Negative": -1.0,
@@ -107,6 +109,7 @@ class BiasEvaluator(TransformerEvaluator):
         evaluator = BiasEvaluator()
         result = evaluator(response="That’s not how everyone sees it.")
     """
+
     def __init__(self):
         super().__init__(evaluator="bias", label_index=0)
 
@@ -122,6 +125,7 @@ class ToxicityEvaluator(TransformerEvaluator):
         evaluator = ToxicityEvaluator()
         result = evaluator(response="You’re an idiot.")
     """
+
     def __init__(self):
         super().__init__(evaluator="toxicity", label_index=1)
 
@@ -138,6 +142,7 @@ class FormatEvaluator:
         result = evaluator(response="hello")
         # result -> {'format': <class 'str'>}
     """
+
     def __init__(self):
         pass
 
