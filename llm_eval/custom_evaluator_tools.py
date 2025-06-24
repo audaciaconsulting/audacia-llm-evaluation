@@ -32,8 +32,31 @@ class SentimentEvaluator:
 
 
 class FormatEvaluator:
+    """Evaluator that inspects the format type of a given response object.
+
+    This class provides a callable interface to determine the type of the
+    input response. It returns a dictionary with the format information,
+    useful for downstream format validation or logging purposes.
+
+    Methods:
+        __call__(response: Any, **kwargs): Evaluates and returns the type of the response.
+
+    Example:
+        evaluator = FormatEvaluator()
+        result = evaluator(response="hello")
+        # result -> {'format': <class 'str'>}
+    """
     def __init__(self):
         pass
 
     def __call__(self, *, response: Any, **kwargs):
+        """Evaluates the format (type) of the response.
+
+        Args:
+            response (Any): The response object to evaluate.
+            **kwargs: Additional keyword arguments (ignored by default).
+
+        Returns:
+            dict: A dictionary containing the type of the response under the key 'format'.
+        """
         return {"format": type(response)}
