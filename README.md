@@ -10,14 +10,14 @@ Please note this is a work in progress.
 * Add evaluators to `llm_eval/evaluators.py`
 * Add tests to `tests`
 
-### Create conda environment
-`conda env create -f environment.yaml`
-### Update conda env
-`conda env update -f environment.yaml`
+## Developement
+### Create environment
+`pyenv local 3.11.13` 
+`uv venv`
+`uv sync`
 
-### Update environment.yaml from conda environment
-`conda env export --from-history | grep -v '^prefix:' > environment.yaml`
-pip packages must be added manually
+### Update env
+`uv add xxx`
 
 ### Install package for development
 `pip install -e .`

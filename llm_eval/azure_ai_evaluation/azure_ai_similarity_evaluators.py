@@ -15,7 +15,7 @@ from llm_eval.azure_ai_evaluation.azure_ai_similarity_base_evaluator import Base
 from llm_eval.model_tools import get_azure_ai_evaluation_model_config
 import logging
 
-from utils import format_dict_log
+from llm_eval.utils import format_dict_log
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -82,6 +82,11 @@ class RunSimilarityEvaluator:
         )
 
         logger.info(format_dict_log(dictionary=result))
+        return result
+
+
+    def evaluate_assert(self):
+        result = self.evaluate()
         assert result['similarity_result'] == 'pass'
 
 

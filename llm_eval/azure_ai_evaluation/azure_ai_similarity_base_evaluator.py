@@ -52,4 +52,10 @@ class BaseScoreEvaluator(ABC):
         })
 
         logger.info(format_dict_log(dictionary=result))
+        return result
+
+
+    async def evaluate_assert(self):
+        result = await self.evaluate()
         assert result[self.get_result_key()] == 'pass'
+
