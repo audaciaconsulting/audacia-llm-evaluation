@@ -14,7 +14,9 @@ from ragas.metrics import (
     StringPresence,
 )
 
-from llm_eval.base_evaluators.ragas_evaluators.ragas_base_evaluator import (
+
+
+from base_evaluators.ragas_base_evaluator import (
     RagasBaseEvaluator,
 )
 from llm_eval.tools.model_tools import (

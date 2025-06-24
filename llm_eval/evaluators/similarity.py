@@ -12,7 +12,7 @@ from azure.ai.evaluation import (
     SimilarityEvaluator,
 )
 
-from llm_eval.base_evaluators.azure_ai_evaluation.azure_ai_similarity_base_evaluator import (
+from base_evaluators.azure_ai_similarity_base_evaluator import (
     BaseScoreEvaluator,
 )
 from llm_eval.tools.model_tools import get_azure_ai_evaluation_model_config
