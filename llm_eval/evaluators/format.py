@@ -1,7 +1,7 @@
 import json
 from typing import Any
 
-from base_evaluators.format_base_evaluator import FormatBaseEvaluator
+from llm_eval.base_evaluators.format_base_evaluator import FormatBaseEvaluator
 
 
 class RunCustomResponseEvaluator(FormatBaseEvaluator):

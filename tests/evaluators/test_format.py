@@ -1,7 +1,7 @@
 import pytest
 from typing import Any
 
-from evaluators.format import RunCustomResponseEvaluator, RunJsonResponseEvaluator
+from llm_eval.evaluators.format import RunCustomResponseEvaluator, RunJsonResponseEvaluator
 
 
 @pytest.mark.parametrize(
