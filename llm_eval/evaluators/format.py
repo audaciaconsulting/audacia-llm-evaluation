@@ -1,47 +1,21 @@
 import json
-import logging
 from typing import Any
-from abc import ABC, abstractmethod
 
-from llm_eval.tools.utils import format_dict_log
-
-logging.basicConfig(level=logging.DEBUG)
-logger = logging.getLogger(__name__)
-
-class BaseFormatEvaluator(ABC):
-    """Base class for evaluating the format of a model response."""
-
-    def __init__(self, response: Any, evaluator_name: str, assert_fail_message: str, assert_result: bool = False):
-        self.response = response
-        self.evaluator_name = evaluator_name
-        self.assert_fail_message = assert_fail_message
-        self.assert_result = assert_result
-
-    def __call__(self):
-        result = self.evaluate()
-        logger.info(format_dict_log(dictionary=result))
-
-        if self.assert_result:
-            assert result[f'{self.evaluator_name}_result'] == 'pass', self.assert_fail_message
-
-        return result
-
-    def _format_result(self, result_flag: bool):
-        return {
-            "response": self.response,
-            "format": type(self.response),
-            f"{self.evaluator_name}_result": "pass" if result_flag else "fail"
-        }
-
-    @abstractmethod
-    def evaluate(self):
-        pass
+from base_evaluators.format_base_evaluator import FormatBaseEvaluator
 
 
-class RunCustomResponseEvaluator(BaseFormatEvaluator):
+class RunCustomResponseEvaluator(FormatBaseEvaluator):
     """Evaluator for checking if a response matches an expected Python type."""
 
     def __init__(self, response: Any, expected_type: type, assert_result: bool = False):
+        """
+        Initialize the custom response evaluator.
+
+        Args:
+            response (Any): The model response to evaluate.
+            expected_type (type): The expected Python type (e.g., dict, list, str).
+            assert_result (bool): Whether to assert the evaluation result or not.
+        """
         self.expected_type = expected_type
         super().__init__(
             response=response,
@@ -54,10 +28,17 @@ class RunCustomResponseEvaluator(BaseFormatEvaluator):
         return self._format_result(isinstance(self.response, self.expected_type))
 
 
-class RunJsonResponseEvaluator(BaseFormatEvaluator):
+class RunJsonResponseEvaluator(FormatBaseEvaluator):
     """Evaluator for checking if a response is valid JSON and is a dictionary."""
 
     def __init__(self, response: Any, assert_result: bool = False):
+        """
+        Initialize the JSON response evaluator.
+
+        Args:
+            response (Any): The response string to evaluate.
+            assert_result (bool): Whether to assert the evaluation result or not.
+        """
         super().__init__(
             response=response,
             evaluator_name='json_response',
