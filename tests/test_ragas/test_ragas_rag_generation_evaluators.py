@@ -17,7 +17,7 @@ async def test_run_faithfulness_passes(
         response=response,
         retrieved_contexts=retrieved_contexts,
         threshold=threshold,
-    ).evaluate_assert()
+    ).evaluate(assert_result=True)
 
 
 @pytest.mark.asyncio
@@ -35,7 +35,7 @@ async def test_run_faithfulness_fails(
             response=response,
             retrieved_contexts=retrieved_contexts,
             threshold=threshold,
-        ).evaluate_assert()
+        ).evaluate(assert_result=True)
 
 
 @pytest.mark.asyncio
@@ -46,7 +46,7 @@ async def test_run_response_relevancy_passes(
 ):
     await RunResponseRelevancy(
         user_input=user_input, response=response, threshold=threshold
-    ).evaluate_assert()
+    ).evaluate(assert_result=True)
 
 
 @pytest.mark.asyncio
@@ -58,4 +58,4 @@ async def test_run_response_relevancy_fails(
     with pytest.raises(AssertionError):
         await RunResponseRelevancy(
             user_input=user_input, response=response, threshold=threshold
-        ).evaluate_assert()
+        ).evaluate(assert_result=True)

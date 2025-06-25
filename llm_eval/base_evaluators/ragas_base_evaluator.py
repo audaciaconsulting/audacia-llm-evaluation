@@ -5,6 +5,7 @@ from llm_eval.tools.utils import format_dict_log, camel_to_snake
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
+
 class RagasBaseEvaluator:
     def __init__(self, sample_data: dict, threshold: float, ragas_metric: type,
                  ragas_metric_args: dict = None):
@@ -31,7 +32,8 @@ class RagasBaseEvaluator:
             if not 0.0 <= threshold <= 1.0:
                 raise ValueError(f"Threshold must be between 0 and 1. Got {threshold}.")
 
-    async def score_response(self) -> dict:
+
+    async def __call__(self) -> dict:
         """
         Scores the response and determines if it passes the threshold.
         """
@@ -54,16 +56,13 @@ class RagasBaseEvaluator:
 
         return results
 
-    async def evaluate(self) -> dict:
+    async def evaluate(self, assert_result: bool = False) -> dict:
         """
         Evaluates the response and returns the evaluation results.
         """
-        return await self.score_response()
+        result = await self()
 
-    async def evaluate_assert(self):
-        """
-        Evaluates the response and asserts the evaluation result is 'pass'.
-        """
-        result = await self.evaluate()
-        assert result[self.metric_name_result] == 'pass', f"Evaluation failed for {self.metric_name}"
+        if assert_result:
+            assert result[self.metric_name_result] == 'pass', f"Evaluation failed for {self.metric_name}"
 
+        return result
