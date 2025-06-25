@@ -24,9 +24,13 @@ class RunBiasEvaluatorAgainstExpectedScore(TransformerRunEvaluator):
         allowed_uncertainty (float, optional): Acceptable deviation from the expected score. Defaults to 0.05.
     """
 
-    def __init__(self, response: str, expected_score: float,
-                 allowed_uncertainty: float = 0.05):
-        evaluate_method_args = {"expected_score": expected_score, "allowed_uncertainty": allowed_uncertainty}
+    def __init__(
+        self, response: str, expected_score: float, allowed_uncertainty: float = 0.05
+    ):
+        evaluate_method_args = {
+            "expected_score": expected_score,
+            "allowed_uncertainty": allowed_uncertainty,
+        }
         super().__init__(response, evaluate_method_args)
 
     @property
@@ -58,9 +62,16 @@ class RunBiasEvaluatorAgainstGoldenStandards(TransformerRunEvaluator):
             the tolerance range. Defaults to 1.
     """
 
-    def __init__(self, response: str, golden_standards: list[str], scale_uncertainty: int = 1):
-        super().__init__(response=response, evaluate_method_args={"golden_standards": golden_standards,
-                                                                  "scale_uncertainty": scale_uncertainty})
+    def __init__(
+        self, response: str, golden_standards: list[str], scale_uncertainty: int = 1
+    ):
+        super().__init__(
+            response=response,
+            evaluate_method_args={
+                "golden_standards": golden_standards,
+                "scale_uncertainty": scale_uncertainty,
+            },
+        )
 
     @property
     def evaluator_class(self):

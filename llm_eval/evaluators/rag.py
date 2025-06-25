@@ -1,194 +1,265 @@
-from ragas.metrics import LLMContextPrecisionWithReference, NonLLMContextPrecisionWithReference, LLMContextRecall, \
-    NonLLMContextRecall
 from langchain.chat_models.base import BaseChatModel
+from ragas.embeddings import LangchainEmbeddingsWrapper
+from ragas.llms import LangchainLLMWrapper
+from ragas.metrics import (
+    Faithfulness,
+    LLMContextPrecisionWithReference,
+    LLMContextRecall,
+    NonLLMContextPrecisionWithReference,
+    NonLLMContextRecall,
+    ResponseRelevancy,
+)
+
 from llm_eval.base_evaluators.ragas_base_evaluator import RagasBaseEvaluator
+from llm_eval.tools.model_tools import (
+    get_ragas_wrapped_azure_open_ai_embedding_model,
+    get_ragas_wrapped_azure_openai_llm,
+)
 
 
 class RunLLMContextPrecisionWithReference(RagasBaseEvaluator):
     """
-        Evaluation Class: RAG
-        Evaluation Method: LLM
-        Granularity: High
+    Evaluation Class: RAG
+    Evaluation Method: LLM
+    Granularity: High
 
-        Evaluator class for computing context precision of retrieved contexts using an LLM,
-        with a reference answer (ground truth). The metric determines how well the retrieved
-        contexts align with the reference answer, evaluating the RAG system's ability to
-        rank relevant contexts higher.
+    Evaluator class for computing context precision of retrieved contexts using an LLM,
+    with a reference answer (ground truth). The metric determines how well the retrieved
+    contexts align with the reference answer, evaluating the RAG system's ability to
+    rank relevant contexts higher.
 
-        Args:
-            user_input (str): The user query or input to evaluate.
-            reference (str): The expected or reference answer to the user query.
-            retrieved_contexts (list[str]): A list of contexts retrieved by the system
-                that are intended to help answer the query.
-            threshold (float): A floating-point threshold in the range [0.0, 1.0] used
-                to determine pass/fail criteria for the metric.
-            llm (BaseChatModel, optional): An optional LLM instance to use for evaluation.
-                If not provided, a default Azure OpenAI model is used.
-        """
+    Args:
+        user_input (str): The user query or input to evaluate.
+        reference (str): The expected or reference answer to the user query.
+        retrieved_contexts (list[str]): A list of contexts retrieved by the system
+            that are intended to help answer the query.
+        threshold (float): A floating-point threshold in the range [0.0, 1.0] used
+            to determine pass/fail criteria for the metric.
+        llm (BaseChatModel, optional): An optional LLM instance to use for evaluation.
+            If not provided, a default Azure OpenAI model is used.
+    """
 
-    def __init__(self, user_input: str, reference: str, retrieved_contexts: list[str], threshold: float,
-                 llm: BaseChatModel = None):
+    def __init__(
+        self,
+        user_input: str,
+        reference: str,
+        retrieved_contexts: list[str],
+        threshold: float,
+        llm: BaseChatModel = None,
+    ):
         llm = llm or get_ragas_wrapped_azure_openai_llm()
         super().__init__(
-            sample_data={"user_input": user_input, "reference": reference, "retrieved_contexts": retrieved_contexts},
-            threshold=threshold, ragas_metric=LLMContextPrecisionWithReference, ragas_metric_args={"llm": llm})
+            sample_data={
+                "user_input": user_input,
+                "reference": reference,
+                "retrieved_contexts": retrieved_contexts,
+            },
+            threshold=threshold,
+            ragas_metric=LLMContextPrecisionWithReference,
+            ragas_metric_args={"llm": llm},
+        )
 
 
 class RunNonLLMContextPrecisionWithReference(RagasBaseEvaluator):
     """
-       Evaluation Class: RAG
-       Evaluation Method: String Similarity
-       Granularity: Low
+    Evaluation Class: RAG
+    Evaluation Method: String Similarity
+    Granularity: Low
 
-       Evaluator class for computing context precision of retrieved contexts using a
-       non-LLM similarity metric, with a reference set of contexts. The metric assesses
-       how well the retrieved contexts align with the reference contexts by comparing
-       them via a non-LLM distance measure (e.g., string similarity). It evaluates the
-       RAG system’s ability to retrieve and rank relevant textual passages.
+    Evaluator class for computing context precision of retrieved contexts using a
+    non-LLM similarity metric, with a reference set of contexts. The metric assesses
+    how well the retrieved contexts align with the reference contexts by comparing
+    them via a non-LLM distance measure (e.g., string similarity). It evaluates the
+    RAG system’s ability to retrieve and rank relevant textual passages.
 
-       Args:
-           retrieved_contexts (str): The list of contexts retrieved by the RAG system.
-           reference_contexts (str): The list of ground truth/reference contexts that
-               should ideally be retrieved.
-           threshold (float): A floating-point threshold in the range [0.0, 1.0] used
-               to convert similarity scores to binary verdicts for precision evaluation.
-       """
+    Args:
+        retrieved_contexts (str): The list of contexts retrieved by the RAG system.
+        reference_contexts (str): The list of ground truth/reference contexts that
+            should ideally be retrieved.
+        threshold (float): A floating-point threshold in the range [0.0, 1.0] used
+            to convert similarity scores to binary verdicts for precision evaluation.
+    """
 
-    def __init__(self, retrieved_contexts: str, reference_contexts: str, threshold: float):
+    def __init__(
+        self, retrieved_contexts: str, reference_contexts: str, threshold: float
+    ):
         super().__init__(
-            sample_data={"retrieved_contexts": retrieved_contexts, "reference_contexts": reference_contexts},
-            threshold=threshold, ragas_metric=NonLLMContextPrecisionWithReference)
+            sample_data={
+                "retrieved_contexts": retrieved_contexts,
+                "reference_contexts": reference_contexts,
+            },
+            threshold=threshold,
+            ragas_metric=NonLLMContextPrecisionWithReference,
+        )
 
 
 class RunLLMContextRecall(RagasBaseEvaluator):
     """
-        Evaluation Class: RAG
-        Evaluation Method: LLM
-        Granularity: High
+    Evaluation Class: RAG
+    Evaluation Method: LLM
+    Granularity: High
 
-        Evaluator class for computing context recall using an LLM, based on how well the
-        retrieved contexts support the information in the reference answer. The metric estimates
-        recall by classifying whether each part of the reference answer is attributable to the
-        retrieved context, measuring the RAG system’s ability to include all necessary supporting
-        information.
+    Evaluator class for computing context recall using an LLM, based on how well the
+    retrieved contexts support the information in the reference answer. The metric estimates
+    recall by classifying whether each part of the reference answer is attributable to the
+    retrieved context, measuring the RAG system’s ability to include all necessary supporting
+    information.
 
-        Args:
-            user_input (str): The original user query being evaluated.
-            response (str): The response generated by the RAG system.
-            reference (str): The reference answer used for evaluating recall.
-            retrieved_contexts (list[str]): A list of textual contexts retrieved by the system.
-            threshold (float): A floating-point threshold in the range [0.0, 1.0] used to determine
-                pass/fail criteria for the metric.
-            llm (BaseChatModel, optional): An optional LLM instance used for performing classification.
-                If not provided, a default Azure OpenAI model is used.
-        """
+    Args:
+        user_input (str): The original user query being evaluated.
+        response (str): The response generated by the RAG system.
+        reference (str): The reference answer used for evaluating recall.
+        retrieved_contexts (list[str]): A list of textual contexts retrieved by the system.
+        threshold (float): A floating-point threshold in the range [0.0, 1.0] used to determine
+            pass/fail criteria for the metric.
+        llm (BaseChatModel, optional): An optional LLM instance used for performing classification.
+            If not provided, a default Azure OpenAI model is used.
+    """
 
-    def __init__(self, user_input: str, response: str, reference: str, retrieved_contexts: list[str], threshold: float,
-                 llm: BaseChatModel = None):
+    def __init__(
+        self,
+        user_input: str,
+        response: str,
+        reference: str,
+        retrieved_contexts: list[str],
+        threshold: float,
+        llm: BaseChatModel = None,
+    ):
         llm = llm or get_ragas_wrapped_azure_openai_llm()
         super().__init__(
-            sample_data={"user_input": user_input, "response": response, "reference": reference,
-                         "retrieved_contexts": retrieved_contexts},
-            threshold=threshold, ragas_metric=LLMContextRecall, ragas_metric_args={'llm': llm})
+            sample_data={
+                "user_input": user_input,
+                "response": response,
+                "reference": reference,
+                "retrieved_contexts": retrieved_contexts,
+            },
+            threshold=threshold,
+            ragas_metric=LLMContextRecall,
+            ragas_metric_args={"llm": llm},
+        )
 
 
 class RunNonLLMContextRecall(RagasBaseEvaluator):
     """
-        Evaluation Class: RAG
-        Evaluation Method: String similarity
-        Granularity: High
+    Evaluation Class: RAG
+    Evaluation Method: String similarity
+    Granularity: High
 
-        Evaluator class for computing context recall using a non-LLM similarity metric, based on how well
-        the retrieved contexts cover the reference contexts. The metric estimates recall by checking whether
-        each reference context is sufficiently matched by any of the retrieved contexts using a string similarity
-        measure. It evaluates the RAG system’s ability to retrieve all relevant supporting content.
+    Evaluator class for computing context recall using a non-LLM similarity metric, based on how well
+    the retrieved contexts cover the reference contexts. The metric estimates recall by checking whether
+    each reference context is sufficiently matched by any of the retrieved contexts using a string similarity
+    measure. It evaluates the RAG system’s ability to retrieve all relevant supporting content.
 
-        Args:
-            retrieved_contexts (list[str]): A list of contexts retrieved by the RAG system.
-            reference_contexts (list[str]): A list of reference or ground truth contexts that should be covered
-                by the retrieved contexts.
-            threshold (float): A floating-point threshold in the range [0.0, 1.0] used to determine whether
-                a retrieved-reference match is considered relevant for recall computation.
-        """
+    Args:
+        retrieved_contexts (list[str]): A list of contexts retrieved by the RAG system.
+        reference_contexts (list[str]): A list of reference or ground truth contexts that should be covered
+            by the retrieved contexts.
+        threshold (float): A floating-point threshold in the range [0.0, 1.0] used to determine whether
+            a retrieved-reference match is considered relevant for recall computation.
+    """
 
-    def __init__(self, retrieved_contexts: list[str], reference_contexts: list[str], threshold: float):
+    def __init__(
+        self,
+        retrieved_contexts: list[str],
+        reference_contexts: list[str],
+        threshold: float,
+    ):
         super().__init__(
-            sample_data={"retrieved_contexts": retrieved_contexts, "reference_contexts": reference_contexts},
-            threshold=threshold, ragas_metric=NonLLMContextRecall)
-
-from ragas.embeddings import LangchainEmbeddingsWrapper
-from ragas.llms import LangchainLLMWrapper
-from ragas.metrics import Faithfulness, ResponseRelevancy
-
-from tools.model_tools import get_ragas_wrapped_azure_openai_llm, get_ragas_wrapped_azure_open_ai_embedding_model
-from base_evaluators.ragas_base_evaluator import RagasBaseEvaluator
+            sample_data={
+                "retrieved_contexts": retrieved_contexts,
+                "reference_contexts": reference_contexts,
+            },
+            threshold=threshold,
+            ragas_metric=NonLLMContextRecall,
+        )
 
 
 class RunFaithfulness(RagasBaseEvaluator):
     """
-        Evaluation Class: RAG
-        Evaluation Method: LLM
-        Granularity: High
+    Evaluation Class: RAG
+    Evaluation Method: LLM
+    Granularity: High
 
-        Evaluator class for computing the faithfulness of a generated response
-        in relation to the retrieved contexts using an LLM. The faithfulness metric
-        assesses whether the generated statements derived from the model’s response
-        can be logically inferred from the retrieved context passages, helping ensure
-        the response does not hallucinate or introduce unsupported claims.
+    Evaluator class for computing the faithfulness of a generated response
+    in relation to the retrieved contexts using an LLM. The faithfulness metric
+    assesses whether the generated statements derived from the model’s response
+    can be logically inferred from the retrieved context passages, helping ensure
+    the response does not hallucinate or introduce unsupported claims.
 
-        Args:
-            user_input (str): The user query or input that triggered the response.
-            response (str): The actual response generated by the RAG system.
-            retrieved_contexts (list[str]): A list of retrieved context passages
-                used as evidence to generate the response.
-            threshold (float): A threshold in the range [0.0, 1.0] representing
-                the minimum score for the response to be considered faithful.
-            llm (LangchainLLMWrapper, optional): A wrapped LLM instance for use
-                in evaluating statement entailment. If not provided, a default
-                Azure OpenAI LLM is used.
+    Args:
+        user_input (str): The user query or input that triggered the response.
+        response (str): The actual response generated by the RAG system.
+        retrieved_contexts (list[str]): A list of retrieved context passages
+            used as evidence to generate the response.
+        threshold (float): A threshold in the range [0.0, 1.0] representing
+            the minimum score for the response to be considered faithful.
+        llm (LangchainLLMWrapper, optional): A wrapped LLM instance for use
+            in evaluating statement entailment. If not provided, a default
+            Azure OpenAI LLM is used.
     """
 
-    def __init__(self, user_input: str, response: str, retrieved_contexts: list[str], threshold: float,
-                 llm: LangchainLLMWrapper = None):
+    def __init__(
+        self,
+        user_input: str,
+        response: str,
+        retrieved_contexts: list[str],
+        threshold: float,
+        llm: LangchainLLMWrapper = None,
+    ):
         llm = llm or get_ragas_wrapped_azure_openai_llm()
         super().__init__(
-            sample_data={"user_input": user_input, "response": response, "retrieved_contexts": retrieved_contexts},
-            threshold=threshold, ragas_metric=Faithfulness, ragas_metric_args={"llm": llm})
+            sample_data={
+                "user_input": user_input,
+                "response": response,
+                "retrieved_contexts": retrieved_contexts,
+            },
+            threshold=threshold,
+            ragas_metric=Faithfulness,
+            ragas_metric_args={"llm": llm},
+        )
 
 
 class RunResponseRelevancy(RagasBaseEvaluator):
     """
-        Evaluation Class: RAG
-        Evaluation Method: LLM + Embeddings
-        Granularity: High
+    Evaluation Class: RAG
+    Evaluation Method: LLM + Embeddings
+    Granularity: High
 
-        Evaluator class for assessing how well a generated response addresses the original
-        user query. This hybrid metric uses an LLM to generate follow-up questions based on
-        the response, then compares them to the original query using cosine similarity in
-        embedding space. A high similarity indicates strong relevance; vague or off-topic
-        questions lower the score. Responses marked as noncommittal are penalized. This
-        evaluation is best suited for tasks where responses must stay focused and aligned to
-        the question, such as in RAG systems, QA bots, and support assistants.
+    Evaluator class for assessing how well a generated response addresses the original
+    user query. This hybrid metric uses an LLM to generate follow-up questions based on
+    the response, then compares them to the original query using cosine similarity in
+    embedding space. A high similarity indicates strong relevance; vague or off-topic
+    questions lower the score. Responses marked as noncommittal are penalized. This
+    evaluation is best suited for tasks where responses must stay focused and aligned to
+    the question, such as in RAG systems, QA bots, and support assistants.
 
-        Args:
-            user_input (str): The original input question or prompt from the user.
-            response (str): The generated response whose relevance is being evaluated.
-            threshold (float): A threshold in the range [0.0, 1.0] determining the
-                minimum acceptable relevancy score for a passing evaluation.
-            llm (LangchainLLMWrapper, optional): An optional LLM instance used for
-                generating follow-up questions based on the response content. If not
-                provided, a default Azure OpenAI model is used.
-            embeddings (LangchainEmbeddingsWrapper, optional): An optional embeddings
-                model used for computing cosine similarity between generated and
-                reference-aligned questions. If not provided, a default Azure OpenAI
-                embedding model is used.
+    Args:
+        user_input (str): The original input question or prompt from the user.
+        response (str): The generated response whose relevance is being evaluated.
+        threshold (float): A threshold in the range [0.0, 1.0] determining the
+            minimum acceptable relevancy score for a passing evaluation.
+        llm (LangchainLLMWrapper, optional): An optional LLM instance used for
+            generating follow-up questions based on the response content. If not
+            provided, a default Azure OpenAI model is used.
+        embeddings (LangchainEmbeddingsWrapper, optional): An optional embeddings
+            model used for computing cosine similarity between generated and
+            reference-aligned questions. If not provided, a default Azure OpenAI
+            embedding model is used.
     """
 
-    def __init__(self, user_input: str, response: str, threshold: float,
-                 llm: LangchainLLMWrapper = None, embeddings: LangchainEmbeddingsWrapper = None):
+    def __init__(
+        self,
+        user_input: str,
+        response: str,
+        threshold: float,
+        llm: LangchainLLMWrapper = None,
+        embeddings: LangchainEmbeddingsWrapper = None,
+    ):
         llm = llm or get_ragas_wrapped_azure_openai_llm()
         embeddings = embeddings or get_ragas_wrapped_azure_open_ai_embedding_model()
         super().__init__(
             sample_data={"user_input": user_input, "response": response},
-            threshold=threshold, ragas_metric=ResponseRelevancy,
-            ragas_metric_args={"llm": llm, "embeddings": embeddings})
+            threshold=threshold,
+            ragas_metric=ResponseRelevancy,
+            ragas_metric_args={"llm": llm, "embeddings": embeddings},
+        )

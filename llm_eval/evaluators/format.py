@@ -1,8 +1,9 @@
-from llm_eval.base_evaluators.custom_evaluators import FormatEvaluator
-from llm_eval.tools.utils import format_dict_log
+import json
 import logging
 from typing import Any
-import json
+
+from llm_eval.base_evaluators.custom_evaluators import FormatEvaluator
+from llm_eval.tools.utils import format_dict_log
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
@@ -51,7 +52,9 @@ class RunFormatEvaluator:
         logger.info(format_dict_log(dictionary=obj_format))
         return obj_format
 
-    def evaluate_custom_response(self, expected_format: Any, assert_result: bool = False):
+    def evaluate_custom_response(
+        self, expected_format: Any, assert_result: bool = False
+    ):
         """Checks if the response is an instance of the expected format.
 
         Args:
@@ -67,9 +70,15 @@ class RunFormatEvaluator:
             AssertionError: If `assert_result` is True and the response does not match the expected format.
         """
         if assert_result:
-            assert isinstance(self.response, expected_format), "The response is in the incorrect format"
+            assert isinstance(self.response, expected_format), (
+                "The response is in the incorrect format"
+            )
         else:
-            return {'custom_response_result': 'pass' if isinstance(self.response, expected_format) else 'fail'}
+            return {
+                "custom_response_result": "pass"
+                if isinstance(self.response, expected_format)
+                else "fail"
+            }
 
     def evaluate_json_response(self, assert_result: bool = False):
         """Attempts to parse the response as JSON and checks if it results in a dictionary.
@@ -98,4 +107,4 @@ class RunFormatEvaluator:
         if assert_result:
             assert pass_state, "The response is not in a valid JSON format"
         else:
-            return {'json_response_result': 'pass' if pass_state else 'fail'}
+            return {"json_response_result": "pass" if pass_state else "fail"}
