@@ -1,6 +1,6 @@
 from typing import Optional
 import pytest
-from llm_eval.azure_ai_evaluation.azure_ai_similarity_evaluators import (
+from llm_eval.evaluators.similarity import (
     RunSimilarityEvaluator,
     AzureOpenAIModelConfiguration, RunF1ScoreEvaluator, RunBleuScoreEvaluator, RunGleuScoreEvaluator,
     RunRougeScoreEvaluator, RunMeteorScoreEvaluator,

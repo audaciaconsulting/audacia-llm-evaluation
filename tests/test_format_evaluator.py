@@ -1,7 +1,7 @@
 import pytest
 from typing import Any
 
-from llm_eval.format_evaluator import RunFormatEvaluator
+from llm_eval.evaluators.format import RunFormatEvaluator
 
 
 @pytest.mark.parametrize(

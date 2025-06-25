@@ -1,6 +1,6 @@
 import pytest
 
-from transformer_evaluators.transformer_evaluators import RunSentimentEvaluatorAgainstExpectedScore, \
+from llm_eval.evaluators.sentiment import RunSentimentEvaluatorAgainstExpectedScore, \
     RunSentimentEvaluatorAgainstGoldenStandards
 
 GOLDEN_STANDARDS = [

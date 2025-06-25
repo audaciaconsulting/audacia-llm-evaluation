@@ -1,4 +1,5 @@
-from llm_eval.utils import format_dict_log
+from llm_eval.tools.utils import format_dict_log
+
 
 def test_format_dict_log():
         a_dict = {"user_input": "When was the first super bowl?",

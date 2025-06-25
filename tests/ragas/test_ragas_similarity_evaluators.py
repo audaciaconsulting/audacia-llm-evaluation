@@ -1,8 +1,7 @@
 import pytest
 
-from llm_eval.ragas_evaluators.ragas_similarity_evaluators import RunNonLLMStringSimilarity, RunSemanticSimilarity, \
-    RunStringPresence
-from llm_eval.ragas_evaluators.ragas_similarity_evaluators import RunExactMatch
+from llm_eval.evaluators.similarity import RunNonLLMStringSimilarity, RunSemanticSimilarity, \
+    RunStringPresence, RunExactMatch
 
 
 @pytest.mark.asyncio

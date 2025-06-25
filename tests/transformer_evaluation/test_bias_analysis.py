@@ -1,5 +1,5 @@
 import pytest
-from llm_eval.transformer_evaluators.transformer_evaluators import RunBiasEvaluatorAgainstExpectedScore, \
+from llm_eval.evaluators.bias import RunBiasEvaluatorAgainstExpectedScore, \
     RunBiasEvaluatorAgainstGoldenStandards
 
 GOLDEN_STANDARDS_NEUTRAL = [

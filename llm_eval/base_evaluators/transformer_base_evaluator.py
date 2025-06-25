@@ -3,7 +3,7 @@ from abc import ABC, abstractmethod
 from statistics import mean, stdev
 from typing import List
 
-from llm_eval.utils import format_dict_log
+from llm_eval.tools.utils import format_dict_log
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)

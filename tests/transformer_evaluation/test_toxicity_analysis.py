@@ -1,5 +1,5 @@
 import pytest
-from llm_eval.transformer_evaluators.transformer_evaluators import RunToxicityEvaluatorAgainstExpectedScore, \
+from llm_eval.evaluators.toxicity import RunToxicityEvaluatorAgainstExpectedScore, \
     RunToxicityEvaluatorAgainstGoldenStandards
 
 GOLDEN_STANDARDS_NEUTRAL = [
