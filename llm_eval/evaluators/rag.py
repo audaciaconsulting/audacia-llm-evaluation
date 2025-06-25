@@ -1,7 +1,7 @@
 from ragas.metrics import LLMContextPrecisionWithReference, NonLLMContextPrecisionWithReference, LLMContextRecall, \
     NonLLMContextRecall
 from langchain.chat_models.base import BaseChatModel
-from base_evaluators.ragas_base_evaluator import RagasBaseEvaluator
+from llm_eval.base_evaluators.ragas_base_evaluator import RagasBaseEvaluator
 
 
 class RunLLMContextPrecisionWithReference(RagasBaseEvaluator):

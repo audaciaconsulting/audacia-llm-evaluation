@@ -1,7 +1,7 @@
 import logging
 
-from base_evaluators.custom_evaluators import BiasEvaluator
-from base_evaluators.transformer_base_evaluator import (
+from llm_eval.base_evaluators.custom_evaluators import BiasEvaluator
+from llm_eval.base_evaluators.transformer_base_evaluator import (
     TransformerRunEvaluator,
 )
 

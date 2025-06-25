@@ -11,11 +11,11 @@ from azure.ai.evaluation import (
 
 )
 
-from base_evaluators.azure_ai_similarity_base_evaluator import BaseScoreEvaluator
-from tools.model_tools import get_azure_ai_evaluation_model_config
+from llm_eval.base_evaluators.azure_ai_similarity_base_evaluator import BaseScoreEvaluator
+from llm_eval.tools.model_tools import get_azure_ai_evaluation_model_config
 import logging
 
-from tools.utils import format_dict_log
+from llm_eval.tools.utils import format_dict_log
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
