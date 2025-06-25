@@ -1,15 +1,9 @@
 from typing import Optional
-
 import pytest
-
 from llm_eval.evaluators.similarity import (
-    AzureOpenAIModelConfiguration,
-    RunBleuScoreEvaluator,
-    RunF1ScoreEvaluator,
-    RunGleuScoreEvaluator,
-    RunMeteorScoreEvaluator,
-    RunRougeScoreEvaluator,
     RunSimilarityEvaluator,
+    AzureOpenAIModelConfiguration, RunF1ScoreEvaluator, RunBleuScoreEvaluator, RunGleuScoreEvaluator,
+    RunRougeScoreEvaluator, RunMeteorScoreEvaluator,
 )
 
 
@@ -17,20 +11,20 @@ from llm_eval.evaluators.similarity import (
     "query, response, ground_truth, threshold, model_config",
     [
         (
-            "Is Marie Curie is born in Paris?",
-            "According to wikipedia, Marie Curie was not born in Paris but in Warsaw.",
-            "Marie Curie was born in Warsaw.",
-            4.5,
-            None,
+                "Is Marie Curie is born in Paris?",
+                "According to wikipedia, Marie Curie was not born in Paris but in Warsaw.",
+                "Marie Curie was born in Warsaw.",
+                4.5,
+                None,
         )
     ],
 )
 def test_run_similarity_evaluator_should_pass(
-    query: str,
-    response: str,
-    ground_truth: str,
-    threshold: float,
-    model_config: Optional[AzureOpenAIModelConfiguration],
+        query: str,
+        response: str,
+        ground_truth: str,
+        threshold: float,
+        model_config: Optional[AzureOpenAIModelConfiguration],
 ):
     RunSimilarityEvaluator(
         query=query,
@@ -38,27 +32,27 @@ def test_run_similarity_evaluator_should_pass(
         ground_truth=ground_truth,
         threshold=threshold,
         model_config=model_config,
-    ).evaluate_assert()
+    ).evaluate(assert_result=True)
 
 
 @pytest.mark.parametrize(
     "query, response, ground_truth, threshold, model_config",
     [
         (
-            "Is Marie Curie is born in Paris?",
-            "According to wikipedia, Marie Curie was not born in Paris but in Warsaw.",
-            "Marie Curie was born in London.",
-            4.0,
-            None,
+                "Is Marie Curie is born in Paris?",
+                "According to wikipedia, Marie Curie was not born in Paris but in Warsaw.",
+                "Marie Curie was born in London.",
+                4.0,
+                None,
         )
     ],
 )
 def test_run_similarity_evaluator_should_fail(
-    query: str,
-    response: str,
-    ground_truth: str,
-    threshold: float,
-    model_config: Optional[AzureOpenAIModelConfiguration],
+        query: str,
+        response: str,
+        ground_truth: str,
+        threshold: float,
+        model_config: Optional[AzureOpenAIModelConfiguration],
 ):
     with pytest.raises(AssertionError):
         RunSimilarityEvaluator(
@@ -67,7 +61,7 @@ def test_run_similarity_evaluator_should_fail(
             ground_truth=ground_truth,
             threshold=threshold,
             model_config=model_config,
-        ).evaluate_assert()
+        ).evaluate(assert_result=True)
 
 
 @pytest.mark.asyncio
@@ -75,14 +69,14 @@ def test_run_similarity_evaluator_should_fail(
     "response, ground_truth, threshold",
     [
         (
-            "According to wikipedia, Marie Curie was not born in Paris but in Warsaw.",
-            "Marie Curie was born in Warsaw.",
-            0.5,
+                "According to wikipedia, Marie Curie was not born in Paris but in Warsaw.",
+                "Marie Curie was born in Warsaw.",
+                0.5
         ),
     ],
 )
 async def test_f1_score_evaluator_should_pass(response, ground_truth, threshold):
-    await RunF1ScoreEvaluator(response, ground_truth, threshold).evaluate_assert()
+    await RunF1ScoreEvaluator(response, ground_truth, threshold).evaluate(assert_result=True)
 
 
 @pytest.mark.asyncio
@@ -90,61 +84,77 @@ async def test_f1_score_evaluator_should_pass(response, ground_truth, threshold)
     "response, ground_truth, threshold",
     [
         (
-            "According to wikipedia, Marie Curie was not born in Paris but in Warsaw.",
-            "Marie Curie was born in Warsaw.",
-            0.9,
+                "According to wikipedia, Marie Curie was not born in Paris but in Warsaw.",
+                "Marie Curie was born in Warsaw.",
+                0.9
         ),
     ],
 )
 async def test_f1_score_evaluator_should_fail(response, ground_truth, threshold):
     with pytest.raises(AssertionError):
-        await RunF1ScoreEvaluator(response, ground_truth, threshold).evaluate_assert()
+        await RunF1ScoreEvaluator(response, ground_truth, threshold).evaluate(assert_result=True)
 
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize(
     "response, ground_truth, threshold",
     [
-        ("Marie Curie was birthed in Warsaw.", "Marie Curie was born in Warsaw.", 0.3),
+        (
+                "Marie Curie was birthed in Warsaw.",
+                "Marie Curie was born in Warsaw.",
+                0.3
+        ),
     ],
 )
 async def test_bleu_score_evaluator_should_pass(response, ground_truth, threshold):
-    await RunBleuScoreEvaluator(response, ground_truth, threshold).evaluate_assert()
+    await RunBleuScoreEvaluator(response, ground_truth, threshold).evaluate(assert_result=True)
 
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize(
     "response, ground_truth, threshold",
     [
-        ("Marie Curie was birthed in Warsaw.", "Marie Curie was born in Warsaw.", 0.4),
+        (
+                "Marie Curie was birthed in Warsaw.",
+                "Marie Curie was born in Warsaw.",
+                0.4
+        ),
     ],
 )
 async def test_bleu_score_evaluator_should_fail(response, ground_truth, threshold):
     with pytest.raises(AssertionError):
-        await RunBleuScoreEvaluator(response, ground_truth, threshold).evaluate_assert()
+        await RunBleuScoreEvaluator(response, ground_truth, threshold).evaluate(assert_result=True)
 
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize(
     "response, ground_truth, threshold",
     [
-        ("Marie Curie was birthed in Warsaw.", "Marie Curie was born in Warsaw.", 0.3),
+        (
+                "Marie Curie was birthed in Warsaw.",
+                "Marie Curie was born in Warsaw.",
+                0.3
+        ),
     ],
 )
 async def test_gleu_score_evaluator_should_pass(response, ground_truth, threshold):
-    await RunGleuScoreEvaluator(response, ground_truth, threshold).evaluate_assert()
+    await RunGleuScoreEvaluator(response, ground_truth, threshold).evaluate(assert_result=True)
 
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize(
     "response, ground_truth, threshold",
     [
-        ("Marie Curie was birthed in Warsaw.", "Marie Curie was born in Warsaw.", 0.6),
+        (
+                "Marie Curie was birthed in Warsaw.",
+                "Marie Curie was born in Warsaw.",
+                0.6
+        ),
     ],
 )
 async def test_gleu_score_evaluator_should_fail(response, ground_truth, threshold):
     with pytest.raises(AssertionError):
-        await RunGleuScoreEvaluator(response, ground_truth, threshold).evaluate_assert()
+        await RunGleuScoreEvaluator(response, ground_truth, threshold).evaluate(assert_result=True)
 
 
 @pytest.mark.asyncio
@@ -152,14 +162,14 @@ async def test_gleu_score_evaluator_should_fail(response, ground_truth, threshol
     "response, ground_truth, threshold",
     [
         (
-            "According to wikipedia, Marie Curie was not born in Paris but in Warsaw.",
-            "Marie Curie was born in Warsaw.",
-            0.5,
+                "According to wikipedia, Marie Curie was not born in Paris but in Warsaw.",
+                "Marie Curie was born in Warsaw.",
+                0.5
         ),
     ],
 )
 async def test_rouge_score_evaluator_should_pass(response, ground_truth, threshold):
-    await RunRougeScoreEvaluator(response, ground_truth, threshold).evaluate_assert()
+    await RunRougeScoreEvaluator(response, ground_truth, threshold).evaluate(assert_result=True)
 
 
 @pytest.mark.asyncio
@@ -167,47 +177,41 @@ async def test_rouge_score_evaluator_should_pass(response, ground_truth, thresho
     "response, ground_truth, threshold",
     [
         (
-            "According to wikipedia, Marie Curie was not born in Paris but in Warsaw.",
-            "Marie Curie was born in Warsaw.",
-            0.7,
+                "According to wikipedia, Marie Curie was not born in Paris but in Warsaw.",
+                "Marie Curie was born in Warsaw.",
+                0.7
         ),
     ],
 )
 async def test_rouge_score_evaluator_should_fail(response, ground_truth, threshold):
     with pytest.raises(AssertionError):
-        await RunRougeScoreEvaluator(
-            response, ground_truth, threshold
-        ).evaluate_assert()
-
+        await RunRougeScoreEvaluator(response, ground_truth, threshold).evaluate(assert_result=True)
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize(
     "response, ground_truth, threshold",
     [
         (
-            "According to wikipedia, Marie Curie was not born in Paris but in Warsaw.",
-            "Marie Curie was born in Warsaw.",
-            0.7,
+                "According to wikipedia, Marie Curie was not born in Paris but in Warsaw.",
+                "Marie Curie was born in Warsaw.",
+                0.7
         ),
     ],
 )
 async def test_meteor_score_evaluator_should_pass(response, ground_truth, threshold):
-    await RunMeteorScoreEvaluator(response, ground_truth, threshold).evaluate_assert()
-
+    await RunMeteorScoreEvaluator(response, ground_truth, threshold).evaluate(assert_result=True)
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize(
     "response, ground_truth, threshold",
     [
         (
-            "According to wikipedia, Marie Curie was not born in Paris but in Warsaw.",
-            "Marie Curie was born in Warsaw.",
-            0.9,
+                "According to wikipedia, Marie Curie was not born in Paris but in Warsaw.",
+                "Marie Curie was born in Warsaw.",
+                0.9
         ),
     ],
 )
-async def test_meteor_score_evaluator_should_fail(response, ground_truth, threshold):
+async def test_rouge_score_evaluator_should_fail(response, ground_truth, threshold):
     with pytest.raises(AssertionError):
-        await RunMeteorScoreEvaluator(
-            response, ground_truth, threshold
-        ).evaluate_assert()
+        await RunMeteorScoreEvaluator(response, ground_truth, threshold).evaluate(assert_result=True)

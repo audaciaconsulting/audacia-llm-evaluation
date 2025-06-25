@@ -12,14 +12,21 @@ from azure.ai.evaluation import (
     SimilarityEvaluator,
 )
 from ragas.embeddings import LangchainEmbeddingsWrapper
-from ragas.metrics import StringPresence, ExactMatch, NonLLMStringSimilarity, SemanticSimilarity
+from ragas.metrics import (
+    ExactMatch,
+    NonLLMStringSimilarity,
+    SemanticSimilarity,
+    StringPresence,
+)
 
-from base_evaluators.azure_ai_similarity_base_evaluator import (
+from llm_eval.base_evaluators.azure_ai_similarity_base_evaluator import (
     BaseScoreEvaluator,
 )
-from base_evaluators.ragas_base_evaluator import RagasBaseEvaluator
-from llm_eval.tools.model_tools import get_azure_ai_evaluation_model_config, \
-    get_ragas_wrapped_azure_open_ai_embedding_model
+from llm_eval.base_evaluators.ragas_base_evaluator import RagasBaseEvaluator
+from llm_eval.tools.model_tools import (
+    get_azure_ai_evaluation_model_config,
+    get_ragas_wrapped_azure_open_ai_embedding_model,
+)
 from llm_eval.tools.utils import format_dict_log
 
 logging.basicConfig(level=logging.INFO)
@@ -51,12 +58,12 @@ class RunSimilarityEvaluator:
     """
 
     def __init__(
-            self,
-            query: str,
-            response: str,
-            ground_truth: str,
-            threshold: float,
-            model_config: Optional[AzureOpenAIModelConfiguration],
+        self,
+        query: str,
+        response: str,
+        ground_truth: str,
+        threshold: float,
+        model_config: Optional[AzureOpenAIModelConfiguration],
     ):
         self.query = query
         self.response = response
@@ -77,7 +84,7 @@ class RunSimilarityEvaluator:
             ground_truth=self.ground_truth,
         )
 
-    def evaluate(self):
+    def evaluate(self, assert_result: bool = False):
         result = self()
 
         result.update(
@@ -89,11 +96,11 @@ class RunSimilarityEvaluator:
         )
 
         logger.info(format_dict_log(dictionary=result))
-        return result
 
-    def evaluate_assert(self):
-        result = self.evaluate()
-        assert result["similarity_result"] == "pass"
+        if assert_result:
+            assert result["similarity_result"] == "pass"
+
+        return result
 
 
 class RunF1ScoreEvaluator(BaseScoreEvaluator):
@@ -118,6 +125,9 @@ class RunF1ScoreEvaluator(BaseScoreEvaluator):
         threshold (float): The F1 score threshold to determine a pass/fail outcome. Must be between 0 and 1.
     """
 
+    def __init__(self, response: str, ground_truth: str, threshold: float):
+        super().__init__(response, ground_truth, threshold)
+
     def get_evaluator(self):
         return F1ScoreEvaluator(threshold=self.threshold)
 
@@ -140,6 +150,9 @@ class RunBleuScoreEvaluator(BaseScoreEvaluator):
          ground_truth (str): The reference text.
          threshold (float): BLEU score threshold (0.0 to 1.0).
     """
+
+    def __init__(self, response: str, ground_truth: str, threshold: float):
+        super().__init__(response, ground_truth, threshold)
 
     def get_evaluator(self):
         return BleuScoreEvaluator(threshold=self.threshold)
@@ -164,6 +177,9 @@ class RunGleuScoreEvaluator(BaseScoreEvaluator):
         ground_truth (str): The reference text.
         threshold (float): GLEU score threshold (0.0 to 1.0).
     """
+
+    def __init__(self, response: str, ground_truth: str, threshold: float):
+        super().__init__(response, ground_truth, threshold)
 
     def get_evaluator(self):
         return GleuScoreEvaluator(threshold=self.threshold)
@@ -190,6 +206,9 @@ class RunRougeScoreEvaluator(BaseScoreEvaluator):
         ground_truth (str): The reference text.
         threshold (float): Threshold for F1 score (0.0 to 1.0).
     """
+
+    def __init__(self, response: str, ground_truth: str, threshold: float):
+        super().__init__(response, ground_truth, threshold)
 
     def get_evaluator(self):
         return RougeScoreEvaluator(
@@ -222,6 +241,9 @@ class RunMeteorScoreEvaluator(BaseScoreEvaluator):
         threshold (float): METEOR score threshold (0.0 to 1.0).
     """
 
+    def __init__(self, response: str, ground_truth: str, threshold: float):
+        super().__init__(response, ground_truth, threshold)
+
     def get_evaluator(self):
         return MeteorScoreEvaluator(threshold=self.threshold)
 
@@ -253,14 +275,14 @@ class RunSemanticSimilarity(RagasBaseEvaluator):
     """
 
     def __init__(
-            self,
-            response: str,
-            reference: str,
-            threshold: float,
-            embedding_model: LangchainEmbeddingsWrapper = None,
+        self,
+        response: str,
+        reference: str,
+        threshold: float,
+        embedding_model: LangchainEmbeddingsWrapper = None,
     ):
         embedding_model = (
-                embedding_model or get_ragas_wrapped_azure_open_ai_embedding_model()
+            embedding_model or get_ragas_wrapped_azure_open_ai_embedding_model()
         )
         super().__init__(
             sample_data={"response": response, "reference": reference},

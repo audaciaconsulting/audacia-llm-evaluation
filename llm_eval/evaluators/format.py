@@ -1,11 +1,13 @@
-from llm_eval.base_evaluators.custom_evaluators import FormatEvaluator
-from llm_eval.tools.utils import format_dict_log
+import json
 import logging
 from typing import Any
-import json
+
+from llm_eval.base_evaluators.custom_evaluators import FormatEvaluator
+from llm_eval.tools.utils import format_dict_log
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
+
 
 class RunFormatEvaluator:
     """Evaluates the format of a model response for correctness and structure.
@@ -30,6 +32,7 @@ class RunFormatEvaluator:
         evaluator.evaluate_custom_response(dict)
         evaluator.evaluate_json_response()
     """
+
     def __init__(self, response: Any):
         """Initializes the RunFormatEvaluator.
 
@@ -45,30 +48,38 @@ class RunFormatEvaluator:
             dict: A dictionary with a single key `'format'` indicating the type of the response.
         """
         evaluator = FormatEvaluator()
-        obj_format = evaluator(response = self.response)
+        obj_format = evaluator(response=self.response)
         logger.info(format_dict_log(dictionary=obj_format))
         return obj_format
-    
-    def evaluate_custom_response(self, expected_format:Any, assert_result: bool = False):
+
+    def evaluate_custom_response(
+        self, expected_format: Any, assert_result: bool = False
+    ):
         """Checks if the response is an instance of the expected format.
 
         Args:
             expected_format (Any): The expected Python type (e.g., `dict`, `list`, `str`).
-            assert_result (bool, optional): If True, raises an AssertionError when the response 
+            assert_result (bool, optional): If True, raises an AssertionError when the response
                 does not match the expected format. Defaults to False.
 
         Returns:
             bool: True if the response matches the expected type; False otherwise.
                 If `assert_result` is True, the method raises an error instead of returning.
-        
+
         Raises:
             AssertionError: If `assert_result` is True and the response does not match the expected format.
         """
         if assert_result:
-            assert isinstance(self.response, expected_format), "The response is in the incorrect format"
+            assert isinstance(self.response, expected_format), (
+                "The response is in the incorrect format"
+            )
         else:
-            return {'custom_response_result': 'pass' if isinstance(self.response, expected_format) else 'fail'}
-    
+            return {
+                "custom_response_result": "pass"
+                if isinstance(self.response, expected_format)
+                else "fail"
+            }
+
     def evaluate_json_response(self, assert_result: bool = False):
         """Attempts to parse the response as JSON and checks if it results in a dictionary.
 
@@ -96,4 +107,4 @@ class RunFormatEvaluator:
         if assert_result:
             assert pass_state, "The response is not in a valid JSON format"
         else:
-            return {'json_response_result': 'pass' if pass_state else 'fail'}
+            return {"json_response_result": "pass" if pass_state else "fail"}
