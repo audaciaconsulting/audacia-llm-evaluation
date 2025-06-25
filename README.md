@@ -20,5 +20,5 @@ Please note this is a work in progress.
 `uv add xxx`
 
 ### Install package for development
-`pip install -e .`
+`uv pip install -e .`
 

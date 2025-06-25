@@ -1,7 +1,7 @@
 import pytest
 from typing import Any
 
-from llm_eval.evaluators.format import RunFormatEvaluator
+from llm_eval.evaluators.format import RunCustomResponseEvaluator, RunJsonResponseEvaluator
 
 
 @pytest.mark.parametrize(
@@ -14,21 +14,21 @@ from llm_eval.evaluators.format import RunFormatEvaluator
     ]
 )
 def test_evaluate_custom_response(response: Any, expected_type: type, expected_result: bool):
-    evaluator = RunFormatEvaluator(response)
-    assert evaluator.evaluate_custom_response(expected_type)['custom_response_result'] == expected_result
+    eval = RunCustomResponseEvaluator(response, expected_type)
+    result = eval()
+    assert result['custom_response_result'] == expected_result
 
 
 def test_evaluate_custom_response_assert_passes():
-    evaluator = RunFormatEvaluator({"key": "value"})
-    # Should not raise
-    evaluator.evaluate_custom_response(dict, assert_result=True)
+    eval = RunCustomResponseEvaluator(response={"key": "value"}, expected_type=dict, assert_result=True)
+    eval()
 
 
 def test_evaluate_custom_response_assert_fails():
-    evaluator = RunFormatEvaluator("not a dict")
-    with pytest.raises(AssertionError, match="The response is in the incorrect format"):
-        evaluator.evaluate_custom_response(dict, assert_result=True)
+    eval = RunCustomResponseEvaluator(response={"not a dict"}, expected_type=dict, assert_result=True)
 
+    with pytest.raises(AssertionError, match="The response is in the incorrect format"):
+        eval()
 
 @pytest.mark.parametrize(
     "json_str, expected_result",
@@ -41,24 +41,24 @@ def test_evaluate_custom_response_assert_fails():
     ]
 )
 def test_evaluate_json_response(json_str: Any, expected_result: bool):
-    evaluator = RunFormatEvaluator(json_str)
-    assert evaluator.evaluate_json_response()['json_response_result'] == expected_result
+    eval = RunJsonResponseEvaluator(response=json_str)
+    assert eval()['json_response_result'] == expected_result
 
 
 def test_evaluate_json_response_assert_passes():
-    evaluator = RunFormatEvaluator('{"valid": true}')
-    # Should not raise
-    evaluator.evaluate_json_response(assert_result=True)
+    eval = RunJsonResponseEvaluator(response='{"valid": true}', assert_result=True)
+    eval()
 
 
 def test_evaluate_json_response_assert_fails_on_invalid_json():
-    evaluator = RunFormatEvaluator('{"missing": "value"')  # malformed JSON
+    eval = RunJsonResponseEvaluator(response='{"missing": "value"', assert_result=True)
+
     with pytest.raises(AssertionError, match="The response is not in a valid JSON format"):
-        evaluator.evaluate_json_response(assert_result=True)
+        eval()
 
 
 def test_evaluate_json_response_assert_fails_on_non_dict():
-    evaluator = RunFormatEvaluator('["not", "a", "dict"]')
-    with pytest.raises(AssertionError, match="The response is not in a valid JSON format"):
-        evaluator.evaluate_json_response(assert_result=True)
+    eval = RunJsonResponseEvaluator(response='["not", "a", "dict"]', assert_result=True)
 
+    with pytest.raises(AssertionError, match="The response is not in a valid JSON format"):
+        eval()
