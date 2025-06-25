@@ -1,6 +1,6 @@
 import pytest
 
-from llm_eval.evaluators.rag import (
+from llm_eval.evaluators.similarity import (
     RunExactMatch,
     RunNonLLMStringSimilarity,
     RunSemanticSimilarity,
