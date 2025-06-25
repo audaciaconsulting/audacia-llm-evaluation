@@ -13,7 +13,7 @@ async def test_llm_context_precision_with_reference_passes(
         threshold=0.9,
 
 ):
-    await RunLLMContextPrecisionWithReference(user_input, reference, retrieved_contexts, threshold).evaluate_assert()
+    await RunLLMContextPrecisionWithReference(user_input, reference, retrieved_contexts, threshold).evaluate(assert_result=True)
 
 
 @pytest.mark.asyncio
@@ -25,7 +25,7 @@ async def test_llm_context_precision_with_reference_fails(
 ):
     with pytest.raises(AssertionError):
         await RunLLMContextPrecisionWithReference(user_input, reference, retrieved_contexts,
-                                                  threshold).evaluate_assert()
+                                                  threshold).evaluate(assert_result=True)
 
 
 @pytest.mark.asyncio
@@ -36,7 +36,7 @@ async def test_non_llm_context_precision_with_reference_passes(
         threshold=0.8,
 
 ):
-    await RunNonLLMContextPrecisionWithReference(retrieved_contexts, reference_contexts, threshold).evaluate_assert()
+    await RunNonLLMContextPrecisionWithReference(retrieved_contexts, reference_contexts, threshold).evaluate(assert_result=True)
 
 
 @pytest.mark.asyncio
@@ -49,7 +49,7 @@ async def test_non_llm_context_precision_with_reference_fails(
 ):
     with pytest.raises(AssertionError):
         await RunNonLLMContextPrecisionWithReference(retrieved_contexts, reference_contexts,
-                                                     threshold).evaluate_assert()
+                                                     threshold).evaluate(assert_result=True)
 
 
 # Context Recall
@@ -64,7 +64,7 @@ async def test_llm_context_recall_passes(
 
 ):
     await RunLLMContextRecall(user_input=user_input, response=response, reference=reference,
-                              retrieved_contexts=retrieved_contexts, threshold=threshold).evaluate_assert()
+                              retrieved_contexts=retrieved_contexts, threshold=threshold).evaluate(assert_result=True)
 
 
 @pytest.mark.asyncio
@@ -78,7 +78,7 @@ async def test_llm_context_recall_fails(
 ):
     with pytest.raises(AssertionError):
         await RunLLMContextRecall(user_input=user_input, response=response, reference=reference,
-                                  retrieved_contexts=retrieved_contexts, threshold=threshold).evaluate_assert()
+                                  retrieved_contexts=retrieved_contexts, threshold=threshold).evaluate(assert_result=True)
 
 
 @pytest.mark.asyncio
@@ -90,7 +90,7 @@ async def test_non_llm_context_recall_passes(
 
 ):
     await RunNonLLMContextRecall(retrieved_contexts=retrieved_contexts, reference_contexts=reference_contexts,
-                                 threshold=threshold).evaluate_assert()
+                                 threshold=threshold).evaluate(assert_result=True)
 
 
 @pytest.mark.asyncio
@@ -103,4 +103,4 @@ async def test_non_llm_context_recall_fails(
 ):
     with pytest.raises(AssertionError):
         await RunNonLLMContextRecall(retrieved_contexts=retrieved_contexts, reference_contexts=reference_contexts,
-                                     threshold=threshold).evaluate_assert()
+                                     threshold=threshold).evaluate(assert_result=True)

@@ -12,7 +12,7 @@ async def test_run_non_llm_string_similarity_passes(
         threshold=0.8,
 
 ):
-    await RunNonLLMStringSimilarity(response, reference, threshold).evaluate_assert()
+    await RunNonLLMStringSimilarity(response, reference, threshold).evaluate(assert_result=True)
 
 @pytest.mark.asyncio
 async def test_run_non_llm_string_similarity_fails(
@@ -22,7 +22,7 @@ async def test_run_non_llm_string_similarity_fails(
 
 ):
     with pytest.raises(AssertionError):
-        await RunNonLLMStringSimilarity(response, reference, threshold).evaluate_assert()
+        await RunNonLLMStringSimilarity(response, reference, threshold).evaluate(assert_result=True)
 
 
 @pytest.mark.asyncio
@@ -31,7 +31,7 @@ async def test_run_embedding_similarity_passes(
         reference="Albert Einstein's theory of relativity revolutionized our understanding of the universe.",
         threshold=0.8
 ):
-    await RunSemanticSimilarity(response, reference, threshold).evaluate_assert()
+    await RunSemanticSimilarity(response, reference, threshold).evaluate(assert_result=True)
 
 
 @pytest.mark.asyncio
@@ -41,14 +41,14 @@ async def test_run_embedding_similarity_fails(
         threshold=0.5
 ):
     with pytest.raises(AssertionError):
-        await RunSemanticSimilarity(response, reference, threshold).evaluate_assert()
+        await RunSemanticSimilarity(response, reference, threshold).evaluate(assert_result=True)
 
 @pytest.mark.asyncio
 async def test_run_string_presence_passes(
         response="Einstein's groundbreaking theory of relativity transformed our comprehension of the cosmos",
         reference="relativity",
 ):
-    await RunStringPresence(response, reference).evaluate_assert()
+    await RunStringPresence(response, reference).evaluate(assert_result=True)
 
 
 @pytest.mark.asyncio
@@ -57,14 +57,14 @@ async def test_run_string_presence_fails(
         reference="Newton"
 ):
     with pytest.raises(AssertionError):
-        await RunStringPresence(response, reference).evaluate_assert()
+        await RunStringPresence(response, reference).evaluate(assert_result=True)
 
 @pytest.mark.asyncio
 async def test_run_exact_match_passes(
         response="Marie Curie was born in Warsaw.",
         reference="Marie Curie was born in Warsaw.",
 ):
-    await RunExactMatch(response, reference).evaluate_assert()
+    await RunExactMatch(response, reference).evaluate(assert_result=True)
 
 
 @pytest.mark.asyncio
@@ -73,4 +73,4 @@ async def test_run_exact_match_fails(
         reference="Marie Curie was born in Warsaw.",
 ):
     with pytest.raises(AssertionError):
-        await RunExactMatch(response, reference).evaluate_assert()
+        await RunExactMatch(response, reference).evaluate(assert_result=True)

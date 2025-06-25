@@ -12,7 +12,7 @@ async def test_run_faithfulness_passes(
         ],
         threshold=0.9):
     await RunFaithfulness(user_input=user_input, response=response, retrieved_contexts=retrieved_contexts,
-                          threshold=threshold).evaluate_assert()
+                          threshold=threshold).evaluate(assert_result=True)
 
 
 @pytest.mark.asyncio
@@ -25,7 +25,7 @@ async def test_run_faithfulness_fails(
         threshold=0.9):
     with pytest.raises(AssertionError):
         await RunFaithfulness(user_input=user_input, response=response, retrieved_contexts=retrieved_contexts,
-                              threshold=threshold).evaluate_assert()
+                              threshold=threshold).evaluate(assert_result=True)
 
 
 @pytest.mark.asyncio
@@ -34,7 +34,7 @@ async def test_run_response_relevancy_passes(
         response="The first superbowl was held on Jan 15, 1967",
         threshold=0.9):
     await RunResponseRelevancy(user_input=user_input, response=response,
-                               threshold=threshold).evaluate_assert()
+                               threshold=threshold).evaluate(assert_result=True)
 
 
 @pytest.mark.asyncio
@@ -44,4 +44,4 @@ async def test_run_response_relevancy_fails(
         threshold=0.7):
     with pytest.raises(AssertionError):
         await RunResponseRelevancy(user_input=user_input, response=response,
-                                   threshold=threshold).evaluate_assert()
+                                   threshold=threshold).evaluate(assert_result=True)
