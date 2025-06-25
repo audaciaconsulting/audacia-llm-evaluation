@@ -34,7 +34,10 @@ pip install git+https://github.com/audaciaconsulting/audacia-llm-evaluation.git
 
 ## 🛠️ Usage Guide
 
-Each evaluator returns a dictionary containing the result, which can be used for logging, test assertions, or quality assurance workflows. In most cases, there will also be the option to use the evaluator in `assert mode` allowing it to directly integrate with any unit tests. See the [docs/](docs) folder for in-depth guidance on individual evaluators.
+Each evaluator returns a dictionary containing a `'result'` field (`'pass'` or `'fail'`), which indicates whether the evaluation meets the expected criteria. Expected criteria can range from user inputted scores, to user inputted golden standard response. Most evaluators also support an optional `assert_result=True` flag, allowing them to raise an error automatically during test execution if the result is a failure. 
+
+Each evaluator may also have additional functionality, for detailed descriptions and configuration options for each evaluator, see the [docs/](docs) directory.
+
 
 ### 1. Importing Evaluators
 
@@ -46,82 +49,33 @@ from llm_eval.evaluators.sentiment import RunSentimentEvaluator
 
 ### 2. Initializing an Evaluator
 
-Instantiate the evaluator with the LLM response you wish to evaluate:
+Instantiate the evaluator with the LLM response you wish to evaluate, plus any other paramters required by the specific evaluator you are using:
 
 ```python
 response = "I absolutely love this product!"
-evaluator = RunSentimentEvaluator(response=response)
+expected_score = 0.65
+allowed_uncertainty = 0.05
+
+evaluator = RunSentimentEvaluator(
+    response=response, 
+    expected_score=expected_score, 
+    allowed_uncertainty=allowed_uncertainty
+)
 ```
 
 ### 3. Running the Evaluation
 
-Invoke the evaluator to obtain the evaluation score:
+Invoke the evaluator to obtain the evaluation score/result:
 
 ```python
 result = evaluator()
 print(result)
-# Output: {'sentiment': 0.6}
+# Output: {'sentiment': 0.62, 'result': 'pass'}
 ```
 
-### 4. Comparing Against Expected Scores
+### 4. Using the Evaluation Assert
 
-To validate the evaluation against an expected score:
-
-```python
-expected_score = 0.6
-evaluation = evaluator.evaluate_against_expected_score(expected_score=expected_score, allowed_uncertainty=0.05)
-print(evaluation)
-"""
-{
-    "sentiment": 0.6,
-    "response": "I absolutely love this product!",
-    "expected_score": 0.6,
-    "sentiment_result": "pass"
-}
-"""
-```
-
-### 5. Evaluating Against Golden Standards
-
-To compare the response against a set of gold-standard responses:
-
-```python
-golden_responses = [
-    "This product is fantastic!",
-    "I am very pleased with this item.",
-    "Absolutely love it!"
-]
-evaluation = evaluator.evaluate_against_golden_standards(golden_standards=golden_responses, scale_uncertainty=1)
-print(evaluation)
-"""
-{
-    "sentiment": 0.6,
-    "response": "I absolutely love this product!",
-    "golden_standard_responses: [
-        "This product is fantastic!",
-        "I am very pleased with this item.",
-        "Absolutely love it!"
-    ],
-    "golden_standard_scores": [0.66, 0.52, 0.62],
-    "mean_score": 0.6,
-    "calculated_uncertainty": 0.06,
-    "sentiment_result": "pass"
-}
-```
-
-### 6. Handling Format Evaluation
-
-For format-specific evaluations, such as checking if a response is valid JSON:
-
-```python
-from llm_eval.evaluators.format import RunFormatEvaluator
-
-response = '{"key": "value"}'
-format_evaluator = RunFormatEvaluator(response=response)
-format_result = format_evaluator.evaluate_json_response()
-print(format_result)
-# Output: {'json_response_result': 'pass'}
-```
+If you're writing a unit test and you want to call the evaluator assert directly, you can 
 
 # 🧪 Evaluators
 
