@@ -39,6 +39,15 @@ GOLDEN_STANDARDS_TOXIC = [
 def simple_toxicity_case_(request):
     return request.param
 
+@pytest.fixture(params=[
+    ("I don’t agree with your opinion, but I appreciate you sharing it.", 1),
+    ("That idea doesn’t make much sense and seems poorly thought out.", 1),
+    ("You clearly have no clue what you're talking about.", 1),
+    ("Only an idiot would believe something that stupid.", 0),
+    ("You're a worthless piece of trash and everyone hates you.", 0),
+])
+def failure_toxicity_case_(request):
+    return request.param
 
 def test_expected_toxicity_score(simple_toxicity_case_):
     response_text, expected_score = simple_toxicity_case_
@@ -48,6 +57,15 @@ def test_expected_toxicity_score(simple_toxicity_case_):
 
     assert "toxicity" in result
     assert expected_score - 0.1 <= result['toxicity'] <= expected_score + 0.1
+
+
+def test_expected_bias_score_using_assert_method(failure_sentiment_case_):
+    response_text, expected_score = failure_sentiment_case_
+
+    evaluator = RunToxicityEvaluatorAgainstExpectedScore(response=response_text, expected_score=expected_score)
+
+    with pytest.raises(AssertionError, match="Evaluation failed for toxicity against known score"):
+        evaluator.assert_result()
 
 
 def test_evaluate_toxicity_against_known_score(simple_toxicity_case_):
