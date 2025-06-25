@@ -129,12 +129,12 @@ The Audacia LLM Evaluation Tool focuses on six key areas of LLM evaluation. In s
 
 ## 📚 Description & Documentation
 
-- [Similarity Scoring](docs/similarity.md) — Measures how closely an LLM response matches a reference answer.
-- [RAG Accuracy](docs/rag.md) — Evaluates whether the response is factually grounded in retrieved context.
-- [Sentiment Scoring](docs/sentiment.md) — Detects the emotional tone of a response (positive, neutral, negative).
-- [Bias Scoring](docs/bias.md) — Assesses whether a response contains social, cultural, or political bias.
-- [Toxicity Scoring](docs/toxicity.md) — Flags offensive, harmful, or abusive language in the response.
-- [Format Consistency](docs/format.md) — Checks if the response is in the correct structure or JSON format.
+- [Similarity Scoring](docs/evaluator_descriptions/similarity.md) — Measures how closely an LLM response matches a reference answer.
+- [RAG Accuracy](docs/evaluator_descriptions/rag.md) — Evaluates whether the response is factually grounded in retrieved context.
+- [Sentiment Scoring](docs/evaluator_descriptions/sentiment.md) — Detects the emotional tone of a response (positive, neutral, negative).
+- [Bias Scoring](docs/evaluator_descriptions/bias.md) — Assesses whether a response contains social, cultural, or political bias.
+- [Toxicity Scoring](docs/evaluator_descriptions/toxicity.md) — Flags offensive, harmful, or abusive language in the response.
+- [Format Consistency](docs/evaluator_descriptions/format.md) — Checks if the response is in the correct structure or JSON format.
 
 ## 🔍 Tool Overview
 
