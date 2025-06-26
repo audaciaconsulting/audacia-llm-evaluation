@@ -116,12 +116,13 @@ The table below summarises each evaluator in the Audacia LLM Evaluation Tool, gr
 |------------------------|------------------------------------------------|--------------------------------------------------------------------------------------------------------|-----------------------------------------------------------|
 | `similarity`           |                                                |                                                                                                        |                                                           |
 | `rag`                  |                                                |                                                                                                        |                                                           |
-| `sentiment`            | `RunSentimentEvaluatorAgainstExpectedScore`    | Compares the emotional tone (positive, neutral, negative) of the response against an expected score.   | Score between -1 (very negative) and 1 (very positive).   |
+| `sentiment`            | `RunSentimentEvaluatorAgainstExpectedScore`    | Compares the emotional tone (positive, neutral, negative) of the response against an expected sentiment. | Score between -1 (very negative) and 1 (very positive).   |
 | `sentiment`            | `RunSentimentEvaluatorAgainstGoldenStandards`  | Compares the emotional tone of the response against a list of golden standard responses.               | Score between -1 (very negative) and 1 (very positive).   |
 | `bias`                 | `RunBiasEvaluatorAgainstExpectedScore`         | Compare the responses potential social, cultural, or political bias against an expected level of bias.  | Score between 0 (neutral) and 1 (biased).                 |
 | `bias`                 | `RunBiasEvaluatorAgainstGoldenStandards`       | Compare the responses potential social, cultural, or political bias against golden standard responses.  | Score between 0 (neutral) and 1 (biased).                 |
-| `toxicity`             | `RunToxicityEvaluator`                         | Flags toxic, offensive, or abusive language in the response.                                           | Score between 0 (neutral) and 1 (toxic).                  |
-| `format`               | `RunFormatEvaluator`                           | Validates whether the output is correctly structured, e.g., valid JSON or expected data type.          | Format of the response.                                   |
+| `toxicity`             | `RunToxicityEvaluatorAgainstExpectedScore`     | Compare the toxicity (offensive or abusive language) in the response against an expected level of toxicity. | Score between 0 (neutral) and 1 (toxic).                |
+| `toxicity`             | `RunToxicityEvaluatorAgainstGoldenStandards`     | Compare the toxicity in the response against a list of golden standards.                             | Score between 0 (neutral) and 1 (toxic).                |
+| `format`               | `RunFormatEvaluator`                           | Validates whether the output is correctly structured, e.g., valid JSON or expected data type.          | Detected format of the response.                           |
 
 
 # Notes
