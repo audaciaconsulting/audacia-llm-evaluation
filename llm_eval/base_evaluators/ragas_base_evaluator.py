@@ -12,6 +12,7 @@ class RagasBaseEvaluator:
         sample_data: dict,
         threshold: float,
         ragas_metric: type,
+        assertion_fail_message: str,
         ragas_metric_args: dict = None,
     ):
         """
@@ -32,6 +33,7 @@ class RagasBaseEvaluator:
         self.ragas_metric_args = ragas_metric_args
         self.metric_name = camel_to_snake(self.ragas_metric.__name__)
         self.metric_name_result = f"{self.metric_name}_result"
+        self.assertion_fail_message = assertion_fail_message
 
         if isinstance(self.threshold, float):
             if not 0.0 <= threshold <= 1.0:

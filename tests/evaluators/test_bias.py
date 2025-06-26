@@ -91,7 +91,8 @@ def test_expected_bias_score_using_assert_method(failure_bias_case_):
     )
 
     with pytest.raises(
-        AssertionError, match="Evaluation failed: level of bias in response too different compared to expected score"
+        AssertionError,
+        match="Evaluation failed: level of bias in response too different compared to expected score",
     ):
         evaluator.assert_result()
 

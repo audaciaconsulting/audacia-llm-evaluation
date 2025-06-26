@@ -128,17 +128,15 @@ class RunMeteorScoreEvaluator(BaseScoreEvaluator):
     """
 
     def __init__(self, response: str, ground_truth: str, threshold: float):
-        super().__init__(response, ground_truth, threshold)
-
-    def get_evaluator(self):
-        return MeteorScoreEvaluator(threshold=self.threshold)
-
-    def get_result_key(self) -> str:
-        return "meteor_result"
-    
-    @property
-    def assertion_fail_message(self):
-        return "Evaluation failed: the METEOR similarity score is not within the acceptable threshold"
+        evaluator = MeteorScoreEvaluator(threshold=threshold)
+        super().__init__(
+            response,
+            ground_truth,
+            threshold,
+            result_key="meteor_result",
+            evaluator=evaluator,
+            assertion_fail_message="Evaluation failed: the METEOR similarity score is not within the acceptable threshold",
+        )
 
 
 class RunBleuScoreEvaluator(BaseScoreEvaluator):
@@ -158,17 +156,15 @@ class RunBleuScoreEvaluator(BaseScoreEvaluator):
     """
 
     def __init__(self, response: str, ground_truth: str, threshold: float):
-        super().__init__(response, ground_truth, threshold)
-
-    def get_evaluator(self):
-        return BleuScoreEvaluator(threshold=self.threshold)
-
-    def get_result_key(self) -> str:
-        return "bleu_result"
-    
-    @property
-    def assertion_fail_message(self):
-        return "Evaluation failed: the BLUE similarity score is not within the acceptable threshold"
+        evaluator = BleuScoreEvaluator(threshold=threshold)
+        super().__init__(
+            response,
+            ground_truth,
+            threshold,
+            result_key="bleu_result",
+            evaluator=evaluator,
+            assertion_fail_message="Evaluation failed: the BLUE similarity score is not within the acceptable threshold",
+        )
 
 
 class RunGleuScoreEvaluator(BaseScoreEvaluator):
@@ -189,17 +185,15 @@ class RunGleuScoreEvaluator(BaseScoreEvaluator):
     """
 
     def __init__(self, response: str, ground_truth: str, threshold: float):
-        super().__init__(response, ground_truth, threshold)
-
-    def get_evaluator(self):
-        return GleuScoreEvaluator(threshold=self.threshold)
-
-    def get_result_key(self) -> str:
-        return "gleu_result"
-    
-    @property
-    def assertion_fail_message(self):
-        return "Evaluation failed: the GLEU similarity score is not within the acceptable threshold"
+        evaluator = GleuScoreEvaluator(threshold=threshold)
+        super().__init__(
+            response,
+            ground_truth,
+            threshold,
+            result_key="gleu_result",
+            evaluator=evaluator,
+            assertion_fail_message="Evaluation failed: the GLEU similarity score is not within the acceptable threshold",
+        )
 
 
 class RunRougeScoreEvaluator(BaseScoreEvaluator):
@@ -222,22 +216,20 @@ class RunRougeScoreEvaluator(BaseScoreEvaluator):
     """
 
     def __init__(self, response: str, ground_truth: str, threshold: float):
-        super().__init__(response, ground_truth, threshold)
-
-    def get_evaluator(self):
-        return RougeScoreEvaluator(
+        evaluator = RougeScoreEvaluator(
             rouge_type=RougeType.ROUGE_L,
-            precision_threshold=self.threshold,
-            recall_threshold=self.threshold,
-            f1_score_threshold=self.threshold,
+            precision_threshold=threshold,
+            recall_threshold=threshold,
+            f1_score_threshold=threshold,
         )
-
-    def get_result_key(self) -> str:
-        return "rouge_f1_score_result"
-    
-    @property
-    def assertion_fail_message(self):
-        return "Evaluation failed: the ROUGE similarity score is not within the acceptable threshold"
+        super().__init__(
+            response,
+            ground_truth,
+            threshold,
+            result_key="rouge_f1_score_result",
+            evaluator=evaluator,
+            assertion_fail_message="Evaluation failed: the ROUGE similarity score is not within the acceptable threshold",
+        )
 
 
 class RunF1ScoreEvaluator(BaseScoreEvaluator):
@@ -263,17 +255,15 @@ class RunF1ScoreEvaluator(BaseScoreEvaluator):
     """
 
     def __init__(self, response: str, ground_truth: str, threshold: float):
-        super().__init__(response, ground_truth, threshold)
-
-    def get_evaluator(self):
-        return F1ScoreEvaluator(threshold=self.threshold)
-
-    def get_result_key(self) -> str:
-        return "f1_result"
-    
-    @property
-    def assertion_fail_message(self):
-        return "Evaluation failed: the F1 similarity score is not within the acceptable threshold"
+        evaluator = F1ScoreEvaluator(threshold=threshold)
+        super().__init__(
+            response,
+            ground_truth,
+            threshold,
+            result_key="f1_result",
+            evaluator=evaluator,
+            assertion_fail_message="Evaluation failed: the F1 similarity score is not within the acceptable threshold",
+        )
 
 
 class RunSemanticSimilarity(RagasBaseEvaluator):
@@ -314,11 +304,8 @@ class RunSemanticSimilarity(RagasBaseEvaluator):
             threshold=threshold,
             ragas_metric=SemanticSimilarity,
             ragas_metric_args={"embeddings": embedding_model},
+            assertion_fail_message="Evaluation failed: response too semantically different to the reference using ragas LLM as a judge method",
         )
-
-    @property
-    def assertion_fail_message(self):
-        return "Evaluation failed: response too semantically different to the reference using ragas LLM as a judge method"
 
 
 class RunNonLLMStringSimilarity(RagasBaseEvaluator):  # TODO add distance measures param
@@ -342,11 +329,9 @@ class RunNonLLMStringSimilarity(RagasBaseEvaluator):  # TODO add distance measur
             sample_data={"response": response, "reference": reference},
             threshold=threshold,
             ragas_metric=NonLLMStringSimilarity,
+            assertion_fail_message="Evaluation failed: response too semantically different to the reference using ragas non-LLM as a judge method",
         )
 
-    @property
-    def assertion_fail_message(self):
-        return "Evaluation failed: response too semantically different to the reference using ragas non-LLM as a judge method"
 
 class RunStringPresence(RagasBaseEvaluator):
     """
@@ -368,11 +353,8 @@ class RunStringPresence(RagasBaseEvaluator):
             sample_data={"response": response, "reference": reference},
             threshold=False,
             ragas_metric=StringPresence,
+            assertion_fail_message="Evaluation failed: the reference string does not exist within the response",
         )
-    
-    @property
-    def assertion_fail_message(self):
-        return "Evaluation failed: the reference string does not exist within the response"
 
 
 class RunExactMatch(RagasBaseEvaluator):
@@ -395,8 +377,5 @@ class RunExactMatch(RagasBaseEvaluator):
             sample_data={"response": response, "reference": reference},
             threshold=False,
             ragas_metric=ExactMatch,
+            assertion_fail_message="Evaluation failed: there are differences between the response and the reference.",
         )
-    
-    @property
-    def assertion_fail_message(self):
-        return "Evaluation failed: there are differences between the response and the reference."

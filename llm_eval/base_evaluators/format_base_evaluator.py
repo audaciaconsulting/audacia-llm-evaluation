@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 class FormatBaseEvaluator(ABC):
     """Base class for evaluating the format of a model response."""
 
-    def __init__(self, response: Any, evaluator_name: str):
+    def __init__(self, response: Any, evaluator_name: str, assertion_fail_message: str):
         """
         Initialize the base format evaluator.
 
@@ -22,6 +22,7 @@ class FormatBaseEvaluator(ABC):
         """
         self.response = response
         self.evaluator_name = evaluator_name
+        self.assertion_fail_message = assertion_fail_message
 
     def __call__(self):
         result = self.evaluate()
