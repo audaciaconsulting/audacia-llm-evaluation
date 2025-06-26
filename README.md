@@ -34,7 +34,7 @@ pip install git+https://github.com/audaciaconsulting/audacia-llm-evaluation.git
 
 ## 🛠️ Usage Guide
 
-Each evaluator returns a dictionary containing a `'result'` field (`'pass'` or `'fail'`), which indicates whether the evaluation meets the expected criteria. Expected criteria can range from user inputted scores, to user inputted golden standard response. Most evaluators also support an optional `assert_result=True` flag, allowing them to raise an error automatically during test execution if the result is a failure. 
+Each evaluator returns a dictionary containing a `'result'` field (`'pass'` or `'fail'`), which indicates whether the evaluation meets the expected criteria. Expected criteria can range from user inputted scores, to user inputted golden standard response, or more comparitive elements. All evaluators also include an `assert_result` method for easy unit testing integration. 
 
 Each evaluator may also have additional functionality, for detailed descriptions and configuration options for each evaluator, see the [docs/](docs) directory.
 
@@ -75,7 +75,20 @@ print(result)
 
 ### 4. Using the Evaluation Assert
 
-If you're writing a unit test and you want to call the evaluator assert directly, you can 
+If you're writing a unit test and you want to call the evaluator assert directly, you can use the `assert_result` method built into each evaluator:
+
+```python
+def test_sentiment_within_expected_range():
+    response = "I absolutely love this product!"
+    expected_score = 0.65
+    allowed_uncertainty = 0.05
+    
+    RunSentimentEvaluator(
+        response=response, 
+        expected_score=expected_score, 
+        allowed_uncertainty=allowed_uncertainty
+    ).assert_result()
+```
 
 # 🧪 Evaluators
 
@@ -99,14 +112,16 @@ from llm_eval.evaluators.evaluator_area import evaluation_tool
 
 The table below summarises each evaluator in the Audacia LLM Evaluation Tool, grouped by their target area and purpose:
 
-| Evaluator Area         | Evaluation Tool          | Description                                                                                   | Basic Output                                              |
-|------------------------|--------------------------|-----------------------------------------------------------------------------------------------|-----------------------------------------------------------|
-| `similarity`           |                          |                                                                                               |                                                           |
-| `rag`                  |                          |                                                                                               |                                                           |
-| `sentiment`            | `RunSentimentEvaluator`  | Detects the emotional tone (positive, neutral, negative) of the response.                     | Score between -1 (very negative) and 1 (very positive).   |
-| `bias`                 | `RunBiasEvaluator`       | Evaluates the response for potential social, cultural, or political bias.                     | Score between 0 (neutral) and 1 (biased).                 |
-| `toxicity`             | `RunToxicityEvaluator`   | Flags toxic, offensive, or abusive language in the response.                                  | Score between 0 (neutral) and 1 (toxic).                  |
-| `format`               | `RunFormatEvaluator`     | Validates whether the output is correctly structured, e.g., valid JSON or expected data type. | Format of the response.                                   |
+| Evaluator Area         | Evaluation Tool                                | Description                                                                                            | Basic Output                                              |
+|------------------------|------------------------------------------------|--------------------------------------------------------------------------------------------------------|-----------------------------------------------------------|
+| `similarity`           |                                                |                                                                                                        |                                                           |
+| `rag`                  |                                                |                                                                                                        |                                                           |
+| `sentiment`            | `RunSentimentEvaluatorAgainstExpectedScore`    | Compares the emotional tone (positive, neutral, negative) of the response against an expected score.   | Score between -1 (very negative) and 1 (very positive).   |
+| `sentiment`            | `RunSentimentEvaluatorAgainstGoldenStandards`  | Compares the emotional tone of the response against a list of golden standard responses.               | Score between -1 (very negative) and 1 (very positive).   |
+| `bias`                 | `RunBiasEvaluatorAgainstExpectedScore`         | Compare the responses potential social, cultural, or political bias against an expected level of bias.  | Score between 0 (neutral) and 1 (biased).                 |
+| `bias`                 | `RunBiasEvaluatorAgainstGoldenStandards`       | Compare the responses potential social, cultural, or political bias against golden standard responses.  | Score between 0 (neutral) and 1 (biased).                 |
+| `toxicity`             | `RunToxicityEvaluator`                         | Flags toxic, offensive, or abusive language in the response.                                           | Score between 0 (neutral) and 1 (toxic).                  |
+| `format`               | `RunFormatEvaluator`                           | Validates whether the output is correctly structured, e.g., valid JSON or expected data type.          | Format of the response.                                   |
 
 
 # Notes
