@@ -47,7 +47,13 @@ def test_run_similarity_evaluator_should_pass(
     result = evaluator()
     evaluator.assert_result()
     assert all(
-        key in result for key in ['similarity', 'gpt_similarity', 'similarity_result', 'similarity_threshold']
+        key in result
+        for key in [
+            "similarity",
+            "gpt_similarity",
+            "similarity_result",
+            "similarity_threshold",
+        ]
     )
 
 
@@ -97,9 +103,7 @@ async def test_f1_score_evaluator_should_pass(response, ground_truth, threshold)
     evaluator = RunF1ScoreEvaluator(response, ground_truth, threshold)
     result = await evaluator()
     await evaluator.assert_result()
-    assert all(
-        key in result for key in ['f1_score', 'f1_result', 'f1_threshold']
-    )
+    assert all(key in result for key in ["f1_score", "f1_result", "f1_threshold"])
 
 
 @pytest.mark.asyncio
@@ -130,9 +134,7 @@ async def test_bleu_score_evaluator_should_pass(response, ground_truth, threshol
     evaluator = RunBleuScoreEvaluator(response, ground_truth, threshold)
     result = await evaluator()
     await evaluator.assert_result()
-    assert all(
-        key in result for key in ['bleu_score', 'bleu_result', 'bleu_threshold']
-    )
+    assert all(key in result for key in ["bleu_score", "bleu_result", "bleu_threshold"])
 
 
 @pytest.mark.asyncio
@@ -158,9 +160,8 @@ async def test_gleu_score_evaluator_should_pass(response, ground_truth, threshol
     evaluator = RunGleuScoreEvaluator(response, ground_truth, threshold)
     result = await evaluator()
     await evaluator.assert_result()
-    assert all(
-        key in result for key in ['gleu_score', 'gleu_result', 'gleu_threshold']
-    )
+    assert all(key in result for key in ["gleu_score", "gleu_result", "gleu_threshold"])
+
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize(
@@ -190,7 +191,18 @@ async def test_rouge_score_evaluator_should_pass(response, ground_truth, thresho
     result = await evaluator()
     await evaluator.assert_result()
     assert all(
-        key in result for key in ['rouge_precision', 'rouge_recall', 'rouge_f1_score', 'rouge_precision_result', 'rouge_recall_result', 'rouge_f1_score_result', 'rouge_precision_threshold', 'rouge_recall_threshold', 'rouge_f1_score_threshold']
+        key in result
+        for key in [
+            "rouge_precision",
+            "rouge_recall",
+            "rouge_f1_score",
+            "rouge_precision_result",
+            "rouge_recall_result",
+            "rouge_f1_score_result",
+            "rouge_precision_threshold",
+            "rouge_recall_threshold",
+            "rouge_f1_score_threshold",
+        ]
     )
 
 
@@ -226,7 +238,7 @@ async def test_meteor_score_evaluator_should_pass(response, ground_truth, thresh
     result = await evaluator()
     await evaluator.assert_result()
     assert all(
-        key in result for key in ['meteor_score', 'meteor_result', 'meteor_threshold']
+        key in result for key in ["meteor_score", "meteor_result", "meteor_threshold"]
     )
 
 
@@ -256,7 +268,14 @@ async def test_run_non_llm_string_similarity_passes(
     result = await evaluator()
     await evaluator.assert_result()
     assert all(
-        key in result for key in ['response', 'reference', 'non_llmstring_similarity', 'non_llmstring_similarity_threshold', 'non_llmstring_similarity_result']
+        key in result
+        for key in [
+            "response",
+            "reference",
+            "non_llmstring_similarity",
+            "non_llmstring_similarity_threshold",
+            "non_llmstring_similarity_result",
+        ]
     )
 
 
@@ -280,7 +299,14 @@ async def test_run_embedding_similarity_passes(
     result = await evaluator()
     await evaluator.assert_result()
     assert all(
-        key in result for key in ['response', 'reference', 'semantic_similarity', 'semantic_similarity_threshold', 'semantic_similarity_result']
+        key in result
+        for key in [
+            "response",
+            "reference",
+            "semantic_similarity",
+            "semantic_similarity_threshold",
+            "semantic_similarity_result",
+        ]
     )
 
 
@@ -303,7 +329,14 @@ async def test_run_string_presence_passes(
     result = await evaluator()
     await evaluator.assert_result()
     assert all(
-        key in result for key in ['response', 'reference', 'string_presence', 'string_presence_threshold', 'string_presence_result']
+        key in result
+        for key in [
+            "response",
+            "reference",
+            "string_presence",
+            "string_presence_threshold",
+            "string_presence_result",
+        ]
     )
 
 
@@ -325,7 +358,14 @@ async def test_run_exact_match_passes(
     result = await evaluator()
     await evaluator.assert_result()
     assert all(
-        key in result for key in ['response', 'reference', 'exact_match', 'exact_match_threshold', 'exact_match_result']
+        key in result
+        for key in [
+            "response",
+            "reference",
+            "exact_match",
+            "exact_match_threshold",
+            "exact_match_result",
+        ]
     )
 
 
