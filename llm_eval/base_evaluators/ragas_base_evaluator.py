@@ -56,13 +56,8 @@ class RagasBaseEvaluator:
 
         return results
 
-    async def evaluate(self, assert_result: bool = False) -> dict:
-        """
-        Evaluates the response and returns the evaluation results.
-        """
+    async def assert_result(self):
         result = await self()
-
-        if assert_result:
-            assert result[self.metric_name_result] == 'pass', f"Evaluation failed for {self.metric_name}"
-
-        return result
+        if result.get(f"{self.metric_name_result}") == 'fail':
+            raise AssertionError(f"Evaluation failed for {self.metric_name_result}")
+        

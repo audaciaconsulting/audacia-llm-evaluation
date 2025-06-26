@@ -59,8 +59,8 @@ def test_expected_bias_score(simple_bias_case_):
     assert expected_score - 0.1 <= result['bias'] <= expected_score + 0.1
 
 
-def test_expected_bias_score_using_assert_method(failure_sentiment_case_):
-    response_text, expected_score = failure_sentiment_case_
+def test_expected_bias_score_using_assert_method(failure_bias_case_):
+    response_text, expected_score = failure_bias_case_
 
     evaluator = RunBiasEvaluatorAgainstExpectedScore(response=response_text, expected_score=expected_score)
 

@@ -84,6 +84,11 @@ class RunSimilarityEvaluator:
             ground_truth=self.ground_truth,
         )
 
+    def assert_result(self):
+        result = self()
+        if result.get("similarity_result") == 'fail':
+            raise AssertionError("Similarity evaluation failed against ground_truth")
+        
     def evaluate(self, assert_result: bool = False):
         result = self()
 

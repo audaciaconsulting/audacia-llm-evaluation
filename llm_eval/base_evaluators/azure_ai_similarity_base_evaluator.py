@@ -41,19 +41,11 @@ class BaseScoreEvaluator(ABC):
             "response": self.response,
             "ground_truth": self.ground_truth,
         })
-        return result
-
-    async def evaluate(self, assert_result: bool = False) -> dict:
-        result = await self()
-
-        result.update({
-            "response": self.response,
-            "ground_truth": self.ground_truth,
-        })
-
         logger.info(format_dict_log(dictionary=result))
-
-        if assert_result:
-            assert result[self.get_result_key()] == 'pass'
-
         return result
+    
+    async def assert_result(self):
+        result = await self()
+        if result.get(f"{self.get_result_key()}") == 'fail':
+            raise AssertionError(f"Evaluation failed for {self.get_result_key()} against ground_truth")
+
