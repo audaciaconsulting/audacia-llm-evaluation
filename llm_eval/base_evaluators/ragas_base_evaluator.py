@@ -7,8 +7,13 @@ logger = logging.getLogger(__name__)
 
 
 class RagasBaseEvaluator:
-    def __init__(self, sample_data: dict, threshold: float, ragas_metric: type,
-                 ragas_metric_args: dict = None):
+    def __init__(
+        self,
+        sample_data: dict,
+        threshold: float,
+        ragas_metric: type,
+        ragas_metric_args: dict = None,
+    ):
         """
         Initializes the evaluator.
 
@@ -32,18 +37,19 @@ class RagasBaseEvaluator:
             if not 0.0 <= threshold <= 1.0:
                 raise ValueError(f"Threshold must be between 0 and 1. Got {threshold}.")
 
-
     async def __call__(self) -> dict:
         """
         Scores the response and determines if it passes the threshold.
         """
         sample = SingleTurnSample(**self.sample_data)
-        score = await self.ragas_metric(**self.ragas_metric_args).single_turn_ascore(sample=sample)
+        score = await self.ragas_metric(**self.ragas_metric_args).single_turn_ascore(
+            sample=sample
+        )
 
         if isinstance(self.threshold, bool):
-            pass_eval = 'pass' if round(score) == 1 else 'fail'
+            pass_eval = "pass" if round(score) == 1 else "fail"
         else:
-            pass_eval = 'pass' if score >= self.threshold else 'fail'
+            pass_eval = "pass" if score >= self.threshold else "fail"
 
         results = {
             **self.sample_data,
@@ -58,6 +64,5 @@ class RagasBaseEvaluator:
 
     async def assert_result(self):
         result = await self()
-        if result.get(f"{self.metric_name_result}") == 'fail':
+        if result.get(f"{self.metric_name_result}") == "fail":
             raise AssertionError(f"Evaluation failed for {self.metric_name_result}")
-        

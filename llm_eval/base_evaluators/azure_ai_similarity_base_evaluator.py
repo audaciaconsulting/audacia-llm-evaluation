@@ -37,15 +37,18 @@ class BaseScoreEvaluator(ABC):
 
     async def __call__(self) -> dict:
         evaluator = self.get_evaluator()
-        result = await evaluator._do_eval({
-            "response": self.response,
-            "ground_truth": self.ground_truth,
-        })
+        result = await evaluator._do_eval(
+            {
+                "response": self.response,
+                "ground_truth": self.ground_truth,
+            }
+        )
         logger.info(format_dict_log(dictionary=result))
         return result
-    
+
     async def assert_result(self):
         result = await self()
-        if result.get(f"{self.get_result_key()}") == 'fail':
-            raise AssertionError(f"Evaluation failed for {self.get_result_key()} against ground_truth")
-
+        if result.get(f"{self.get_result_key()}") == "fail":
+            raise AssertionError(
+                f"Evaluation failed for {self.get_result_key()} against ground_truth"
+            )

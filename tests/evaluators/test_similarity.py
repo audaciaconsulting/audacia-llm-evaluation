@@ -43,7 +43,7 @@ def test_run_similarity_evaluator_should_pass(
         threshold=threshold,
         model_config=model_config,
     )
-    
+
     evaluator.assert_result()
 
 
@@ -92,6 +92,7 @@ def test_run_similarity_evaluator_should_fail(
 async def test_f1_score_evaluator_should_pass(response, ground_truth, threshold):
     evaluator = RunF1ScoreEvaluator(response, ground_truth, threshold)
     await evaluator.assert_result()
+
 
 # TODO from here ----------------------------------------------------------------------
 @pytest.mark.asyncio

@@ -3,8 +3,6 @@ from abc import ABC, abstractmethod
 from statistics import mean, stdev
 from typing import List
 
-from llm_eval.tools.utils import format_dict_log
-
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
@@ -98,15 +96,18 @@ class TransformerRunEvaluator(ABC):
             AssertionError: If result['result'] is False or missing.
         """
         result = self()
-        message_type = "known score" if self.get_evaluate_method() == self.evaluate_against_expected_score else "golden standards"
-        if result.get(f"{self.score_key}_result") == 'fail':
-            raise AssertionError(f"Evaluation failed for {self.score_key} against {message_type}")
-
+        message_type = (
+            "known score"
+            if self.get_evaluate_method() == self.evaluate_against_expected_score
+            else "golden standards"
+        )
+        if result.get(f"{self.score_key}_result") == "fail":
+            raise AssertionError(
+                f"Evaluation failed for {self.score_key} against {message_type}"
+            )
 
     def evaluate_against_expected_score(
-            self,
-            expected_score: float,
-            allowed_uncertainty: float = 0.05
+        self, expected_score: float, allowed_uncertainty: float = 0.05
     ):
         """
         Compares the evaluated score to an expected score within a given uncertainty margin.
@@ -125,24 +126,22 @@ class TransformerRunEvaluator(ABC):
 
         score = self.result[self.score_key]
         pass_state = (
-                expected_score - allowed_uncertainty
-                < score
-                < expected_score + allowed_uncertainty
+            expected_score - allowed_uncertainty
+            < score
+            < expected_score + allowed_uncertainty
         )
         self.result.update(
             {
                 "response": self.response,
                 "expected_score": expected_score,
-                f"{self.score_key}_result": 'pass' if pass_state else 'fail',
+                f"{self.score_key}_result": "pass" if pass_state else "fail",
             }
         )
 
         return self.result
 
     def evaluate_against_golden_standards(
-            self,
-            golden_standards: List[str],
-            scale_uncertainty: int = 1
+        self, golden_standards: List[str], scale_uncertainty: int = 1
     ):
         """
         Compares the evaluated score to the distribution of scores from a set of golden standard responses.
@@ -169,9 +168,9 @@ class TransformerRunEvaluator(ABC):
         score_mean = mean(golden_scores)
         score_uncertainty = stdev(golden_scores) * scale_uncertainty
         pass_state = (
-                score_mean - score_uncertainty
-                < current_score
-                < score_mean + score_uncertainty
+            score_mean - score_uncertainty
+            < current_score
+            < score_mean + score_uncertainty
         )
         self.result.update(
             {
@@ -180,7 +179,7 @@ class TransformerRunEvaluator(ABC):
                 "golden_standard_scores": golden_scores,
                 "mean_score": score_mean,
                 "calculated_uncertainty": score_uncertainty,
-                f"{self.score_key}_result": 'pass' if pass_state else 'fail',
+                f"{self.score_key}_result": "pass" if pass_state else "fail",
             }
         )
         return self.result
