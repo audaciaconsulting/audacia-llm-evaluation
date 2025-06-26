@@ -1,56 +1,70 @@
-📐 Format Evaluator
+# 🧾 Format
 
-**Purpose**  
-The Format Evaluator checks whether a language model's response is returned in the correct **data format or structure** — for example, whether it’s a string, dictionary, list, or well-formed JSON.
+## Purpose  
+The Format Evaluators check whether an LLM-generated response conforms to a required data format — such as a Python type (e.g., `dict`, `list`) or valid JSON. This is essential when your application depends on structured outputs that downstream systems rely on (e.g., calling functions, storing responses, rendering UIs, etc.).
 
-This is especially useful in automated systems or API integrations, where responses must conform to a specific schema or structure (e.g., a JSON object) in order to be parsed or used programmatically.
+For example, if your LLM is expected to return a dictionary that can be parsed as JSON, any deviation from that format could break your pipeline or API integration.
+
+## How They Work  
+Format evaluators determine whether the response returned by the model meets a specific format constraint:
+
+- `RunCustomResponseEvaluator` checks whether the response is an instance of a specified Python type.
+- `RunJsonResponseEvaluator` checks whether the response is a valid JSON string that parses into a Python dictionary.
+
+Each evaluator returns a simple pass/fail result along with the original response and the detected format.
+
+## Evaluators
+
+### 1. RunCustomResponseEvaluator
+
+This evaluator verifies whether the response matches a specific Python type (e.g., `dict`, `list`, `str`, etc.). It uses Python's `isinstance()` internally.
+
+**Expected Inputs:**
+- `response` - The LLM response to evaluate (any object or string).
+- `expected_type` - The Python type that the response is expected to match.
+- `assert_result` *(optional)* - If `True`, the evaluator raises an assertion error if the response fails the check.
+
+**Results Output:**
+- `response` - The original LLM response.
+- `format` - The actual Python type of the response.
+- `custom_response_result` - Either `pass` or `fail` based on the type check.
+
+**When to Use This Evaluator:**
+
+Use this evaluator when:
+- You're expecting a specific Python type from the model (e.g., a list of items or a dict payload).
+- You’re integrating model output into structured systems and want to guard against formatting mismatches.
+- You’re debugging or validating typed output from newer function-calling models.
+
+**Example Use Cases:**
+- ✅ Checking whether a model-generated function call output is returned as a Python `dict`.
+- ✅ Validating that a response representing multiple items is a `list`.
+- ✅ Confirming that a model producing markdown content is returning a `str`.
 
 ---
 
-**How It Works**  
-The Format Evaluator offers three main capabilities:
+### 2. RunJsonResponseEvaluator
 
-1. **Detect the response type**  
-   Automatically identifies and logs the type of the response (e.g., `str`, `dict`, `list`).
+This evaluator checks whether a string response is valid JSON and specifically whether it can be parsed into a Python dictionary. It uses `json.loads()` internally and fails if parsing errors occur or the result is not a `dict`.
 
-2. **Check against an expected Python type**  
-   Validates whether the response is of a specific type (e.g., `dict` or `str`), and returns a **pass/fail** result.
+**Expected Inputs:**
+- `response` - The string response to evaluate.
+- `assert_result` *(optional)* - If `True`, the evaluator raises an assertion error if parsing fails.
 
-3. **Validate JSON format**  
-   Tries to parse the response as JSON and checks that it results in a dictionary (a common format for structured data). Useful for verifying that the model returned valid JSON output.
+**Results Output:**
+- `response` - The original response string.
+- `format` - The type after parsing (if successful).
+- `json_response_result` - Either `pass` or `fail` depending on the success of parsing and type.
 
----
+**When to Use This Evaluator:**
 
-**What It Outputs**  
-When you run the evaluator, you’ll get results like:
+Use this evaluator when:
+- You expect the LLM output to be a JSON object (`{...}`).
+- You want a reliable check that the response can be safely parsed into a `dict`.
+- You’re validating model responses for use in APIs, pipelines, or function calls.
 
-```json
-{
-  "format": "<class 'str'>"
-}
-```
-For specific validation checks, such as custom type or JSON structure, you’ll receive:
-```json
-{
-  "custom_response_result": "pass"
-}
-```
-or:
-```json
-{
-  "json_response_result": "fail"
-}
-```
----
-**When to Use This Evaluator**
+**Example Use Cases:**
+- ✅ Ensuring a tool-using LLM outputs a valid JSON object for an API call.
+- ✅ Validating JSON configuration responses returned by a prompt.
+- ✅ Catching format regressions when switching from plain text to structured model outputs.
 
-Use the Format Evaluator when:
-- You need to ensure LLM responses match a required structure (e.g., valid JSON objects).
-- You’re building integrations where incorrect formats could break downstream logic.
-- You want to enforce consistent response types during testing or fine-tuning.
----
-**Example Use Cases**
-
-- ✅ API assistants should return a valid JSON object like {"status": "ok", "data": {...}}.
-- ❌ A response expected to be a list of results should not return a plain string.
-- ✅ Form generators should always output dictionaries representing field names and values.
