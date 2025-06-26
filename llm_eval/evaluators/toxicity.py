@@ -40,6 +40,10 @@ class RunToxicityEvaluatorAgainstExpectedScore(TransformerRunEvaluator):
     @property
     def score_key(self):
         return "toxicity"
+    
+    @property
+    def assertion_fail_message(self):
+        return "Evaluation failed: toxicity of response too different compared to expected score"
 
     def get_evaluate_method(self) -> type:
         return self.evaluate_against_expected_score
@@ -78,6 +82,10 @@ class RunToxicityEvaluatorAgainstGoldenStandards(TransformerRunEvaluator):
     @property
     def score_key(self):
         return "toxicity"
+    
+    @property
+    def assertion_fail_message(self):
+        return "Evaluation failed: sentiment of response too different compared to golden standard responses"
 
     def get_evaluate_method(self) -> type:
         return self.evaluate_against_golden_standards

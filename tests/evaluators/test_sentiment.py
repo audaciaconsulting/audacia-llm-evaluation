@@ -1,7 +1,9 @@
 import pytest
 
-from llm_eval.evaluators.sentiment import RunSentimentEvaluatorAgainstExpectedScore, \
-    RunSentimentEvaluatorAgainstGoldenStandards
+from llm_eval.evaluators.sentiment import (
+    RunSentimentEvaluatorAgainstExpectedScore,
+    RunSentimentEvaluatorAgainstGoldenStandards,
+)
 
 GOLDEN_STANDARDS = [
     "I can't believe how amazing this is — you've truly outdone yourselves!",
@@ -17,44 +19,99 @@ GOLDEN_STANDARDS = [
 ]
 
 
-@pytest.fixture(params=[
-    ("Oh wow, this is the best product I've ever received! You have made live worth living now!", 0.8),
-    ("This is a really cool product, good job", 0.4),
-    ("This is a product", 0),
-    ("This product isn't very good, try harder", -0.4),
-    ("This is the worst product I've ever seen, the fact that you would even consider presenting this rubbish it to me is insulting",
-     -0.8)
-])
+@pytest.fixture(
+    params=[
+        (
+            "Oh wow, this is the best product I've ever received! You have made live worth living now!",
+            0.8,
+        ),
+        ("This is a really cool product, good job", 0.4),
+        ("This is a product", 0),
+        ("This product isn't very good, try harder", -0.4),
+        (
+            "This is the worst product I've ever seen, the fact that you would even consider presenting this rubbish it to me is insulting",
+            -0.8,
+        ),
+    ]
+)
 def simple_sentiment_case_(request):
+    return request.param
+
+
+@pytest.fixture(
+    params=[
+        (
+            "Oh wow, this is the best product I've ever received! You have made live worth living now!",
+            -0.8,
+        ),
+        ("This is a really cool product, good job", -0.4),
+        ("This is a product", 1),
+        ("This product isn't very good, try harder", 0.4),
+        (
+            "This is the worst product I've ever seen, the fact that you would even consider presenting this rubbish it to me is insulting",
+            0.8,
+        ),
+    ]
+)
+def failure_sentiment_case_(request):
     return request.param
 
 
 def test_expected_sentiment_score(simple_sentiment_case_):
     response_text, expected_score = simple_sentiment_case_
 
-    result = RunSentimentEvaluatorAgainstExpectedScore(response=response_text, expected_score=expected_score).evaluate(
-        assert_result=True)
+    result = RunSentimentEvaluatorAgainstExpectedScore(
+        response=response_text, expected_score=expected_score
+    )()
 
     assert "sentiment" in result
-    assert expected_score - 0.2 <= result['sentiment'] <= expected_score + 0.2
+    assert expected_score - 0.2 <= result["sentiment"] <= expected_score + 0.2
+
+
+def test_expected_sentiment_score_using_assert_method(failure_sentiment_case_):
+    response_text, expected_score = failure_sentiment_case_
+
+    evaluator = RunSentimentEvaluatorAgainstExpectedScore(
+        response=response_text, expected_score=expected_score
+    )
+
+    with pytest.raises(
+        AssertionError, match="Evaluation failed: sentiment of response too different compared to expected score"
+    ):
+        evaluator.assert_result()
 
 
 def test_evaluate_sentiment_against_known_score(simple_sentiment_case_):
     response_text, expected_score = simple_sentiment_case_
-    result = RunSentimentEvaluatorAgainstExpectedScore(response=response_text, expected_score=expected_score,
-                                                       allowed_uncertainty=0.2).evaluate(assert_result=True)
+    result = RunSentimentEvaluatorAgainstExpectedScore(
+        response=response_text, expected_score=expected_score, allowed_uncertainty=0.2
+    )()
 
-    assert all(key in result for key in ["sentiment", "response", "expected_score", "sentiment_result"])
-    assert result["sentiment_result"] == 'pass'
+    assert all(
+        key in result
+        for key in ["sentiment", "response", "expected_score", "sentiment_result"]
+    )
+    assert result["sentiment_result"] == "pass"
 
 
 def test_evaluate_sentiment_against_golden_standards():
     response_text = "Oh wow, this is the best product I've ever received! You have made live worth living now!"
 
-    result = RunSentimentEvaluatorAgainstGoldenStandards(response=response_text, golden_standards=GOLDEN_STANDARDS, scale_uncertainty=3).evaluate(assert_result=True) # Scale to 3 standard deviations - acceptable
+    result = RunSentimentEvaluatorAgainstGoldenStandards(
+        response=response_text, golden_standards=GOLDEN_STANDARDS, scale_uncertainty=3
+    )()  # Scale to 3 standard deviations - acceptable
 
-    assert all(key in result for key in
-               ["sentiment", "response", "golden_standard_responses", "golden_standard_scores", "mean_score",
-                "calculated_uncertainty", "sentiment_result"])
+    assert all(
+        key in result
+        for key in [
+            "sentiment",
+            "response",
+            "golden_standard_responses",
+            "golden_standard_scores",
+            "mean_score",
+            "calculated_uncertainty",
+            "sentiment_result",
+        ]
+    )
     assert result["golden_standard_responses"] == GOLDEN_STANDARDS
-    assert result["sentiment_result"] == 'pass'
+    assert result["sentiment_result"] == "pass"

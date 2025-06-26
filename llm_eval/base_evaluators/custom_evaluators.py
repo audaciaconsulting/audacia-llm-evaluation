@@ -22,12 +22,12 @@ class TransformerEvaluator:
     """
 
     def __init__(
-            self,
-            evaluator: str,
-            *,
-            label_index: int = 0,
-            aggregate: bool = False,
-            aggregate_weights: dict = None,
+        self,
+        evaluator: str,
+        *,
+        label_index: int = 0,
+        aggregate: bool = False,
+        aggregate_weights: dict = None,
     ):
         self.evaluator = evaluator
         self.label_index = label_index

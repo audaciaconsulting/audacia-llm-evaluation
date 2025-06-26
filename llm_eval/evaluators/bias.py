@@ -40,6 +40,10 @@ class RunBiasEvaluatorAgainstExpectedScore(TransformerRunEvaluator):
     @property
     def score_key(self):
         return "bias"
+    
+    @property
+    def assertion_fail_message(self):
+        return "Evaluation failed: level of bias in response too different compared to expected score"
 
     def get_evaluate_method(self) -> type:
         return self.evaluate_against_expected_score
@@ -80,6 +84,10 @@ class RunBiasEvaluatorAgainstGoldenStandards(TransformerRunEvaluator):
     @property
     def score_key(self):
         return "bias"
+    
+    @property
+    def assertion_fail_message(self):
+        return "Evaluation failed: level of bias in response too different compared to golden standard repsonses"
 
     def get_evaluate_method(self) -> type:
         return self.evaluate_against_golden_standards

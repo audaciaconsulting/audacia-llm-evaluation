@@ -58,6 +58,10 @@ class RunLLMContextPrecisionWithReference(RagasBaseEvaluator):
             ragas_metric=LLMContextPrecisionWithReference,
             ragas_metric_args={"llm": llm},
         )
+    
+    @property
+    def assertion_fail_message(self):
+        return "Evaluation failed: the retrieved context does not align with the reference answer"
 
 
 class RunNonLLMContextPrecisionWithReference(RagasBaseEvaluator):
@@ -91,6 +95,10 @@ class RunNonLLMContextPrecisionWithReference(RagasBaseEvaluator):
             threshold=threshold,
             ragas_metric=NonLLMContextPrecisionWithReference,
         )
+
+    @property
+    def assertion_fail_message(self):
+        return "Evaluation failed: the retrieved context does not align with the reference answer using non-LLM methods"
 
 
 class RunLLMContextRecall(RagasBaseEvaluator):
@@ -138,6 +146,10 @@ class RunLLMContextRecall(RagasBaseEvaluator):
             ragas_metric_args={"llm": llm},
         )
 
+    @property
+    def assertion_fail_message(self):
+        return "Evaluation failed: recall too low as retrieved contexts don't support the context in the reference answer"
+
 
 class RunNonLLMContextRecall(RagasBaseEvaluator):
     """
@@ -173,6 +185,9 @@ class RunNonLLMContextRecall(RagasBaseEvaluator):
             ragas_metric=NonLLMContextRecall,
         )
 
+    @property
+    def assertion_fail_message(self):
+        return "Evaluation failed: recall too low as retrieved contexts don't support the context in the reference answer using non-LLM methods"
 
 class RunFaithfulness(RagasBaseEvaluator):
     """
@@ -217,6 +232,10 @@ class RunFaithfulness(RagasBaseEvaluator):
             ragas_metric=Faithfulness,
             ragas_metric_args={"llm": llm},
         )
+    
+    @property
+    def assertion_fail_message(self):
+        return "Evaluation failed: the model response deviated too much from the retrieved context"
 
 
 class RunResponseRelevancy(RagasBaseEvaluator):
@@ -263,3 +282,7 @@ class RunResponseRelevancy(RagasBaseEvaluator):
             ragas_metric=ResponseRelevancy,
             ragas_metric_args={"llm": llm, "embeddings": embeddings},
         )
+
+    @property
+    def assertion_fail_message(self):
+        return "Evaluation failed: the generated response did not address the original user query well enough"
