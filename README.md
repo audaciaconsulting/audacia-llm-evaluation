@@ -157,11 +157,34 @@ The table below summarises each evaluator in the Audacia LLM Evaluation Tool, gr
 ## Which Tool To Use?
 
 ```mermaid
-flowchart TD;
-    A-->B;
-    A-->C;
-    B-->D;
-    C-->D;
+flowchart TD
+    A[What are you evaluating?] --> B1[Similarity to a reference?]
+    A --> B2[Grounding (RAG)?]
+    A --> B3[Emotional tone or sentiment?]
+    A --> B4[Bias?]
+    A --> B5[Toxicity?]
+    A --> B6[Format or structure?]
+
+    B1 --> C1[Exact or substring match?] --> D1[RunExactMatch / RunStringPresence]
+    B1 --> C2[Semantic similarity or embedding match?] --> D2[RunSimilarityEvaluator / RunSemanticSimilarity]
+    B1 --> C3[N-gram/string metrics?] --> D3[RunBleuScoreEvaluator / RunRougeScoreEvaluator / RunF1ScoreEvaluator]
+
+    B2 --> C4[Check retrieved context quality?] --> D4[RunLLMContextPrecisionWithReference / RunNonLLMContextPrecisionWithReference]
+    C4 --> D5[Check response use of context?] --> E1[RunFaithfulness / RunLLMContextRecall]
+    C4 --> D6[Check answer relevance to query?] --> E2[RunResponseRelevancy]
+
+    B3 --> C5[Known sentiment score?] --> D7[RunSentimentEvaluatorAgainstExpectedScore]
+    C5 --> D8[Use golden sentiment examples?] --> E3[RunSentimentEvaluatorAgainstGoldenStandards]
+
+    B4 --> C6[Known bias level?] --> D9[RunBiasEvaluatorAgainstExpectedScore]
+    C6 --> D10[Use unbiased gold examples?] --> E4[RunBiasEvaluatorAgainstGoldenStandards]
+
+    B5 --> C7[Known toxicity score?] --> D11[RunToxicityEvaluatorAgainstExpectedScore]
+    C7 --> D12[Use safe response examples?] --> E5[RunToxicityEvaluatorAgainstGoldenStandards]
+
+    B6 --> C8[Expect Python type (dict, list)?] --> D13[RunCustomResponseEvaluator]
+    C8 --> D14[Expect valid JSON object?] --> E6[RunJsonResponseEvaluator]
+
 ```
 
 
