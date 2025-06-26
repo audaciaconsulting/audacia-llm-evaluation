@@ -154,6 +154,15 @@ The table below summarises each evaluator in the Audacia LLM Evaluation Tool, gr
 | `format`               | `RunJsonResponseEvaluator`                     | Validates whether the LLM output is in a valid JSON format.                                            | Detected format of the response.                           |
 
 
+## Which Tool To Use?
+
+```mermaid
+graph TD;
+    A-->B;
+    A-->C;
+    B-->D;
+    C-->D;
+```
 
 
 # Things to do...
