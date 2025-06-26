@@ -134,11 +134,11 @@ class RunMeteorScoreEvaluator(BaseScoreEvaluator):
         return MeteorScoreEvaluator(threshold=self.threshold)
 
     def get_result_key(self) -> str:
-        return "f1_result"
+        return "meteor_result"
     
     @property
     def assertion_fail_message(self):
-        return "Evaluation failed: the F1 similarity score is not within the acceptable threshold"
+        return "Evaluation failed: the METEOR similarity score is not within the acceptable threshold"
 
 
 class RunBleuScoreEvaluator(BaseScoreEvaluator):
@@ -269,11 +269,11 @@ class RunF1ScoreEvaluator(BaseScoreEvaluator):
         return F1ScoreEvaluator(threshold=self.threshold)
 
     def get_result_key(self) -> str:
-        return "meteor_result"
+        return "f1_result"
     
     @property
     def assertion_fail_message(self):
-        return "Evaluation failed: the METEOR similarity score is not within the acceptable threshold"
+        return "Evaluation failed: the F1 similarity score is not within the acceptable threshold"
 
 
 class RunSemanticSimilarity(RagasBaseEvaluator):

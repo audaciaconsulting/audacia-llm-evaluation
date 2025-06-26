@@ -38,7 +38,7 @@ def test_evaluate_custom_response_assert_fails():
         match="Evaluation failed: output type of response not the expected format",
     ):
         RunCustomResponseEvaluator(
-            response={"not a dict"}, expected_type=dict, assert_result=True
+            response={"not a dict"}, expected_type=dict
         ).assert_result()
 
 
