@@ -87,7 +87,7 @@ class RunSimilarityEvaluator:
     def assert_result(self):
         result = self()
         if result.get("similarity_result") == "fail":
-            raise AssertionError("Similarity evaluation failed against ground_truth")
+            raise AssertionError("Similarity evaluation failed against ground truth")
 
     def evaluate(self, assert_result: bool = False):
         result = self()
@@ -138,6 +138,10 @@ class RunF1ScoreEvaluator(BaseScoreEvaluator):
 
     def get_result_key(self) -> str:
         return "f1_result"
+    
+    @property
+    def assertion_fail_message(self):
+        return "Evaluation failed: the F1 similarity score is not within the acceptable threshold"
 
 
 class RunBleuScoreEvaluator(BaseScoreEvaluator):
@@ -164,6 +168,10 @@ class RunBleuScoreEvaluator(BaseScoreEvaluator):
 
     def get_result_key(self) -> str:
         return "bleu_result"
+    
+    @property
+    def assertion_fail_message(self):
+        return "Evaluation failed: the BLUE similarity score is not within the acceptable threshold"
 
 
 class RunGleuScoreEvaluator(BaseScoreEvaluator):
@@ -191,6 +199,10 @@ class RunGleuScoreEvaluator(BaseScoreEvaluator):
 
     def get_result_key(self) -> str:
         return "gleu_result"
+    
+    @property
+    def assertion_fail_message(self):
+        return "Evaluation failed: the GLEU similarity score is not within the acceptable threshold"
 
 
 class RunRougeScoreEvaluator(BaseScoreEvaluator):
@@ -225,6 +237,10 @@ class RunRougeScoreEvaluator(BaseScoreEvaluator):
 
     def get_result_key(self) -> str:
         return "rouge_f1_score_result"
+    
+    @property
+    def assertion_fail_message(self):
+        return "Evaluation failed: the ROUGE similarity score is not within the acceptable threshold"
 
 
 class RunMeteorScoreEvaluator(BaseScoreEvaluator):
@@ -254,6 +270,10 @@ class RunMeteorScoreEvaluator(BaseScoreEvaluator):
 
     def get_result_key(self) -> str:
         return "meteor_result"
+    
+    @property
+    def assertion_fail_message(self):
+        return "Evaluation failed: the METEOR similarity score is not within the acceptable threshold"
 
 
 class RunSemanticSimilarity(RagasBaseEvaluator):
@@ -296,6 +316,10 @@ class RunSemanticSimilarity(RagasBaseEvaluator):
             ragas_metric_args={"embeddings": embedding_model},
         )
 
+    @property
+    def assertion_fail_message(self):
+        return "Evaluation failed: response too semantically different to the reference using ragas LLM as a judge method"
+
 
 class RunNonLLMStringSimilarity(RagasBaseEvaluator):  # TODO add distance measures param
     """
@@ -320,6 +344,9 @@ class RunNonLLMStringSimilarity(RagasBaseEvaluator):  # TODO add distance measur
             ragas_metric=NonLLMStringSimilarity,
         )
 
+    @property
+    def assertion_fail_message(self):
+        return "Evaluation failed: response too semantically different to the reference using ragas non-LLM as a judge method"
 
 class RunStringPresence(RagasBaseEvaluator):
     """
@@ -342,6 +369,10 @@ class RunStringPresence(RagasBaseEvaluator):
             threshold=False,
             ragas_metric=StringPresence,
         )
+    
+    @property
+    def assertion_fail_message(self):
+        return "Evaluation failed: the reference string does not exist within the response"
 
 
 class RunExactMatch(RagasBaseEvaluator):
@@ -365,3 +396,7 @@ class RunExactMatch(RagasBaseEvaluator):
             threshold=False,
             ragas_metric=ExactMatch,
         )
+    
+    @property
+    def assertion_fail_message(self):
+        return "Evaluation failed: there are differences between the response and the reference."

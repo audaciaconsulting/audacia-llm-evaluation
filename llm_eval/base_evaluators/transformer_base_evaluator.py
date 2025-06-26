@@ -96,15 +96,8 @@ class TransformerRunEvaluator(ABC):
             AssertionError: If result['result'] is False or missing.
         """
         result = self()
-        message_type = (
-            "known score"
-            if self.get_evaluate_method() == self.evaluate_against_expected_score
-            else "golden standards"
-        )
         if result.get(f"{self.score_key}_result") == "fail":
-            raise AssertionError(
-                f"Evaluation failed for {self.score_key} against {message_type}"
-            )
+            raise AssertionError(self.assertion_fail_message)
 
     def evaluate_against_expected_score(
         self, expected_score: float, allowed_uncertainty: float = 0.05

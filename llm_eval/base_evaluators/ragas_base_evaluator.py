@@ -65,4 +65,4 @@ class RagasBaseEvaluator:
     async def assert_result(self):
         result = await self()
         if result.get(f"{self.metric_name_result}") == "fail":
-            raise AssertionError(f"Evaluation failed for {self.metric_name_result}")
+            raise AssertionError(self.assertion_fail_message)

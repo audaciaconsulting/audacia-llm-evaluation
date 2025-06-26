@@ -76,7 +76,7 @@ def test_expected_sentiment_score_using_assert_method(failure_sentiment_case_):
     )
 
     with pytest.raises(
-        AssertionError, match="Evaluation failed for sentiment against known score"
+        AssertionError, match="Evaluation failed: sentiment of response too different compared to expected score"
     ):
         evaluator.assert_result()
 

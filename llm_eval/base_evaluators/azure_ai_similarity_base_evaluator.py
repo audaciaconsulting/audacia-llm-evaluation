@@ -49,6 +49,4 @@ class BaseScoreEvaluator(ABC):
     async def assert_result(self):
         result = await self()
         if result.get(f"{self.get_result_key()}") == "fail":
-            raise AssertionError(
-                f"Evaluation failed for {self.get_result_key()} against ground_truth"
-            )
+            raise AssertionError(self.assertion_fail_message)

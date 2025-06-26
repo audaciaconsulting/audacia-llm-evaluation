@@ -19,6 +19,10 @@ class RunCustomResponseEvaluator(FormatBaseEvaluator):
         self.expected_type = expected_type
         super().__init__(response=response, evaluator_name="custom_response")
 
+    @property
+    def assertion_fail_message(self):
+        return "Evaluation failed: output type of response not the expected format"
+
     def evaluate(self):
         return self._format_result(isinstance(self.response, self.expected_type))
 
@@ -35,6 +39,10 @@ class RunJsonResponseEvaluator(FormatBaseEvaluator):
             assert_result (bool): Whether to assert the evaluation result or not.
         """
         super().__init__(response=response, evaluator_name="json_response")
+
+    @property
+    def assertion_fail_message(self):
+        return "Evaluation failed: output is not a valid JSON format"
 
     def evaluate(self):
         try:

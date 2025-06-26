@@ -33,7 +33,7 @@ def test_evaluate_custom_response_assert_passes():
 def test_evaluate_custom_response_assert_fails():
     with pytest.raises(
         AssertionError,
-        match="Evaluation failed as the response is in the incorrect format",
+        match="Evaluation failed: output type of response not the expected format",
     ):
         RunCustomResponseEvaluator(
             response={"not a dict"}, expected_type=dict, assert_result=True
@@ -62,7 +62,7 @@ def test_evaluate_json_response_assert_passes():
 def test_evaluate_json_response_assert_fails_on_invalid_json():
     with pytest.raises(
         AssertionError,
-        match="Evaluation failed as the response is not in a valid JSON format",
+        match="Evaluation failed: output is not a valid JSON format",
     ):
         RunJsonResponseEvaluator(response='{"missing": "value"').assert_result()
 
@@ -70,6 +70,6 @@ def test_evaluate_json_response_assert_fails_on_invalid_json():
 def test_evaluate_json_response_assert_fails_on_non_dict():
     with pytest.raises(
         AssertionError,
-        match="Evaluation failed as the response is not in a valid JSON format",
+        match="Evaluation failed: output is not a valid JSON format",
     ):
         RunJsonResponseEvaluator(response='["not", "a", "dict"]').assert_result()

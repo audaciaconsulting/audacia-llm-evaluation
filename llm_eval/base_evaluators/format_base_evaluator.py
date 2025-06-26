@@ -39,12 +39,7 @@ class FormatBaseEvaluator(ABC):
     def assert_result(self):
         result = self.evaluate()
         if result.get(f"{self.evaluator_name}_result") == "fail":
-            message_type = (
-                "as the response is in the incorrect format"
-                if self.evaluator_name == "custom_response"
-                else "as the response is not in a valid JSON format"
-            )
-            raise AssertionError(f"Evaluation failed {message_type}")
+            raise AssertionError(self.assertion_fail_message)
 
     @abstractmethod
     def evaluate(self):
