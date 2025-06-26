@@ -1,110 +1,59 @@
 import json
-import logging
 from typing import Any
 
-from llm_eval.base_evaluators.custom_evaluators import FormatEvaluator
-from llm_eval.tools.utils import format_dict_log
-
-logging.basicConfig(level=logging.DEBUG)
-logger = logging.getLogger(__name__)
+from llm_eval.base_evaluators.format_base_evaluator import FormatBaseEvaluator
 
 
-class RunFormatEvaluator:
-    """Evaluates the format of a model response for correctness and structure.
+class RunCustomResponseEvaluator(FormatBaseEvaluator):
+    """Evaluator for checking if a response matches an expected Python type."""
 
-    This class provides utilities to:
-    - Identify the type of a response using `FormatEvaluator`
-    - Log the response format
-    - Check if the response matches a specified type
-    - Validate whether the response is a well-formed JSON dictionary
-
-    Attributes:
-        response (Any): The response object to evaluate.
-
-    Methods:
-        __call__(): Runs the FormatEvaluator and logs the resulting format.
-        evaluate_custom_response(expected_format): Checks if response is an instance of the expected format.
-        evaluate_json_response(): Attempts to parse the response as JSON and verifies it's a dictionary.
-
-    Example:
-        evaluator = RunFormatEvaluator(response='{"key": "value"}')
-        evaluator()
-        evaluator.evaluate_custom_response(dict)
-        evaluator.evaluate_json_response()
-    """
-
-    def __init__(self, response: Any):
-        """Initializes the RunFormatEvaluator.
+    def __init__(self, response: Any, expected_type: type, assert_result: bool = False):
+        """
+        Initialize the custom response evaluator.
 
         Args:
-            response (Any): The response to evaluate.
+            response (Any): The model response to evaluate.
+            expected_type (type): The expected Python type (e.g., dict, list, str).
+            assert_result (bool): Whether to assert the evaluation result or not.
         """
-        self.response = response
+        self.expected_type = expected_type
+        super().__init__(
+            response=response,
+            evaluator_name='custom_response',
+            assert_fail_message="The response is in the incorrect format",
+            assert_result=assert_result
+        )
 
-    def __call__(self):
-        """Evaluates and logs the type of the response using FormatEvaluator.
+    def evaluate(self):
+        return self._format_result(isinstance(self.response, self.expected_type))
 
-        Returns:
-            dict: A dictionary with a single key `'format'` indicating the type of the response.
+
+class RunJsonResponseEvaluator(FormatBaseEvaluator):
+    """Evaluator for checking if a response is valid JSON and is a dictionary."""
+
+    def __init__(self, response: Any, assert_result: bool = False):
         """
-        evaluator = FormatEvaluator()
-        obj_format = evaluator(response=self.response)
-        logger.info(format_dict_log(dictionary=obj_format))
-        return obj_format
-
-    def evaluate_custom_response(
-        self, expected_format: Any, assert_result: bool = False
-    ):
-        """Checks if the response is an instance of the expected format.
+        Initialize the JSON response evaluator.
 
         Args:
-            expected_format (Any): The expected Python type (e.g., `dict`, `list`, `str`).
-            assert_result (bool, optional): If True, raises an AssertionError when the response
-                does not match the expected format. Defaults to False.
-
-        Returns:
-            bool: True if the response matches the expected type; False otherwise.
-                If `assert_result` is True, the method raises an error instead of returning.
-
-        Raises:
-            AssertionError: If `assert_result` is True and the response does not match the expected format.
+            response (Any): The response string to evaluate.
+            assert_result (bool): Whether to assert the evaluation result or not.
         """
-        if assert_result:
-            assert isinstance(self.response, expected_format), (
-                "The response is in the incorrect format"
-            )
-        else:
-            return {
-                "custom_response_result": "pass"
-                if isinstance(self.response, expected_format)
-                else "fail"
-            }
+        super().__init__(
+            response=response,
+            evaluator_name='json_response',
+            assert_fail_message="The response is not in a valid JSON format",
+            assert_result=assert_result
+        )
 
-    def evaluate_json_response(self, assert_result: bool = False):
-        """Attempts to parse the response as JSON and checks if it results in a dictionary.
-
-        Args:
-            assert_result (bool, optional): If True, raises an AssertionError if the response
-                is not valid JSON or not a dictionary. Defaults to False.
-
-        Returns:
-            bool: True if the response is a valid JSON object and parsed as a dictionary; False otherwise.
-                If `assert_result` is True, the method raises an error instead of returning.
-
-        Raises:
-            AssertionError: If `assert_result` is True and the response is not valid JSON
-                or not a dictionary.
-        """
+    def evaluate(self):
         try:
-            response = json.loads(self.response)
-            pass_state = isinstance(response, dict)
-        except json.JSONDecodeError as e:
-            print(f"[JSONDecodeError] Invalid JSON: {e}")
-            pass_state = False
-        except TypeError as e:
-            print(f"[TypeError] Response must be a string, bytes or bytearray: {e}")
-            pass_state = False
-        if assert_result:
-            assert pass_state, "The response is not in a valid JSON format"
-        else:
-            return {"json_response_result": "pass" if pass_state else "fail"}
+            parsed = json.loads(self.response)
+            is_valid = isinstance(parsed, dict)
+        except (json.JSONDecodeError, TypeError) as e:
+            print(f"[Error] JSON parsing failed: {e}")
+            is_valid = False
+
+        return self._format_result(is_valid)
+
+
