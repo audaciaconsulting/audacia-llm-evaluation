@@ -108,13 +108,9 @@ class TransformerRunEvaluator(ABC):
         Args:
             expected_score (float): The target score the response should be close to.
             allowed_uncertainty (float, optional): Acceptable deviation from the expected score. Defaults to 0.05.
-            assert_result (bool, optional): Whether to raise an error on failure. Defaults to False.
 
         Returns:
             dict: A dictionary including evaluation result, expected score, and pass/fail flag.
-
-        Raises:
-            AssertionError: If the result fails and `assert_result` is True.
         """
 
         score = self.result[self.score_key]
@@ -144,13 +140,9 @@ class TransformerRunEvaluator(ABC):
         Args:
             golden_standards (List[str]): A list of gold-standard responses for comparison.
             scale_uncertainty (int, optional): Scaling factor for the standard deviation. Defaults to 1.
-            assert_result (bool, optional): Whether to raise an error on failure. Defaults to False.
 
         Returns:
             dict: A dictionary including golden stats, individual scores, and pass/fail result.
-
-        Raises:
-            AssertionError: If the result fails and `assert_result` is True.
         """
 
         current_score = self.result[self.score_key]

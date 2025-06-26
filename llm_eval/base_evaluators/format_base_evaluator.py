@@ -19,7 +19,6 @@ class FormatBaseEvaluator(ABC):
             response (Any): The model response to evaluate.
             evaluator_name (str): Name of the specific evaluator subclass.
             assert_fail_message (str): Error message to use if the assertion fails.
-            assert_result (bool): Whether to raise an assertion error if the result fails.
         """
         self.response = response
         self.evaluator_name = evaluator_name

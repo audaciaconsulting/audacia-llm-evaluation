@@ -7,14 +7,13 @@ from llm_eval.base_evaluators.format_base_evaluator import FormatBaseEvaluator
 class RunCustomResponseEvaluator(FormatBaseEvaluator):
     """Evaluator for checking if a response matches an expected Python type."""
 
-    def __init__(self, response: Any, expected_type: type, assert_result: bool = False):
+    def __init__(self, response: Any, expected_type: type):
         """
         Initialize the custom response evaluator.
 
         Args:
             response (Any): The model response to evaluate.
             expected_type (type): The expected Python type (e.g., dict, list, str).
-            assert_result (bool): Whether to assert the evaluation result or not.
         """
         self.expected_type = expected_type
         super().__init__(response=response, evaluator_name="custom_response")
@@ -30,13 +29,12 @@ class RunCustomResponseEvaluator(FormatBaseEvaluator):
 class RunJsonResponseEvaluator(FormatBaseEvaluator):
     """Evaluator for checking if a response is valid JSON and is a dictionary."""
 
-    def __init__(self, response: Any, assert_result: bool = False):
+    def __init__(self, response: Any):
         """
         Initialize the JSON response evaluator.
 
         Args:
             response (Any): The response string to evaluate.
-            assert_result (bool): Whether to assert the evaluation result or not.
         """
         super().__init__(response=response, evaluator_name="json_response")
 
