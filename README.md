@@ -157,7 +157,7 @@ The table below summarises each evaluator in the Audacia LLM Evaluation Tool, gr
 ## Which Tool To Use?
 
 ```mermaid
-graph TD;
+flowchart TD;
     A-->B;
     A-->C;
     B-->D;
