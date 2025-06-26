@@ -38,6 +38,20 @@ Each evaluator returns a dictionary containing a `'result'` field (`'pass'` or `
 
 Each evaluator may also have additional functionality, for detailed descriptions and configuration options for each evaluator, see the [docs/](docs) directory.
 
+### 0. Environment Variables
+
+Make sure you have the following environment variables set in your system environment or in a `.env` file located in your project root:
+
+- `AZURE_OPENAI_LLM_MODEL` — The name of the Azure OpenAI language model deployment (e.g., `gpt-35-turbo`).
+- `AZURE_OPENAI_LLM_API_KEY` — The API key used to authenticate requests to the language model.
+- `AZURE_OPENAI_LLM_ENDPOINT` — The endpoint URL for the Azure OpenAI language model resource.
+- `AZURE_OPENAI_LLM_API_VERSION` — The API version to use when calling the language model (e.g., `2024-04-01-preview`).
+
+- `AZURE_OPENAI_EMBEDDING_MODEL` — The name of the Azure OpenAI embedding model deployment.
+- `AZURE_OPENAI_EMBEDDING_MODEL_API_KEY` — The API key for authenticating requests to the embedding model.
+- `AZURE_OPENAI_EMBEDDING_MODEL_ENDPONT` — The endpoint URL for the embedding model resource.
+- `AZURE_OPENAI_EMBEDDING_MODEL_API_VERSION` — The API version used for the embedding model (typically the same as the LLM version).
+
 
 ### 1. Importing Evaluators
 
@@ -140,17 +154,13 @@ The table below summarises each evaluator in the Audacia LLM Evaluation Tool, gr
 | `format`               | `RunJsonResponseEvaluator`                     | Validates whether the LLM output is in a valid JSON format.                                            | Detected format of the response.                           |
 
 
-# Notes
-* Created initial project structure.
-* Use conda and the environment.yml to create the enviornment used in this project, so far only has the python version, update as you add functionality.
-* Using project toml to set up package building.
-* All tools now built and functioning.
-* Adding documentation.
+
 
 # Things to do...
 * Complete extensive user testing
 * Test with python version 3.10 and 3.13
 * Supress or deal with warnings
+* Test with "basics" version of OpenAI API
 
 
 
