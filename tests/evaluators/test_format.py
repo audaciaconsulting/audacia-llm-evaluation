@@ -22,13 +22,15 @@ def test_evaluate_custom_response(
     eval = RunCustomResponseEvaluator(response, expected_type)
     result = eval()
     assert result["custom_response_result"] == expected_result
+    assert all(
+        key in result for key in ["response", "format", "custom_response_result"]
+    )
 
 
 def test_evaluate_custom_response_assert_passes():
     RunCustomResponseEvaluator(
         response={"key": "value"}, expected_type=dict
     ).assert_result()
-
 
 def test_evaluate_custom_response_assert_fails():
     with pytest.raises(
@@ -52,7 +54,11 @@ def test_evaluate_custom_response_assert_fails():
 )
 def test_evaluate_json_response(json_str: Any, expected_result: bool):
     eval = RunJsonResponseEvaluator(response=json_str)
-    assert eval()["json_response_result"] == expected_result
+    result = eval()
+    assert result["json_response_result"] == expected_result
+    assert all(
+        key in result for key in ["response", "format", "json_response_result"]
+    )
 
 
 def test_evaluate_json_response_assert_passes():

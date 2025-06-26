@@ -23,6 +23,23 @@ async def test_llm_context_precision_with_reference_passes(
 
 
 @pytest.mark.asyncio
+async def test_llm_context_precision_with_reference_output(
+    user_input="Where is the Eiffel Tower located?",
+    reference="The Eiffel Tower is located in Paris.",
+    retrieved_contexts=["Paris is the location of the Eiffel Tower"],
+    threshold=0.9,
+):
+    evaluator = RunLLMContextPrecisionWithReference(
+        user_input, reference, retrieved_contexts, threshold
+    )
+    result = await evaluator()
+
+    assert all(
+        key in result for key in ['user_input', 'reference', 'retrieved_contexts', 'llmcontext_precision_with_reference', 'llmcontext_precision_with_reference_threshold', 'llmcontext_precision_with_reference_result']
+    )
+
+
+@pytest.mark.asyncio
 async def test_llm_context_precision_with_reference_fails(
     user_input="Where is the Eiffel Tower located?",
     reference="The Eiffel Tower is located in Paris.",
@@ -50,6 +67,25 @@ async def test_non_llm_context_precision_with_reference_passes(
     await RunNonLLMContextPrecisionWithReference(
         retrieved_contexts, reference_contexts, threshold
     ).assert_result()
+
+
+@pytest.mark.asyncio
+async def test_non_llm_context_precision_with_reference_output(
+    retrieved_contexts=["The Eiffel Tower is located in Paris."],
+    reference_contexts=[
+        "Paris is the capital of France.",
+        "The Eiffel Tower is one of the most famous landmarks in Paris.",
+    ],
+    threshold=0.8,
+):
+    evaluator =  RunNonLLMContextPrecisionWithReference(
+        retrieved_contexts, reference_contexts, threshold
+    )
+    result = await evaluator()
+
+    assert all(
+        key in result for key in ['retrieved_contexts', 'reference_contexts', 'non_llmcontext_precision_with_reference', 'non_llmcontext_precision_with_reference_threshold', 'non_llmcontext_precision_with_reference_result']
+    )
 
 
 @pytest.mark.asyncio
@@ -87,6 +123,30 @@ async def test_llm_context_recall_passes(
 
 
 @pytest.mark.asyncio
+async def test_llm_context_recall_output(
+    user_input="Where is the Eiffel Tower located?",
+    response="The Eiffel Tower is located in Paris.",
+    reference="The Eiffel Tower is located in Paris.",
+    retrieved_contexts=[
+        "Paris is the capital of France and location of the Eiffel Tower."
+    ],
+    threshold=0.8,
+):
+    evaluator =  RunLLMContextRecall(
+        user_input=user_input,
+        response=response,
+        reference=reference,
+        retrieved_contexts=retrieved_contexts,
+        threshold=threshold,
+    )
+    result = await evaluator()
+
+    assert all(
+        key in result for key in ['user_input', 'response', 'reference', 'retrieved_contexts', 'llmcontext_recall', 'llmcontext_recall_threshold', 'llmcontext_recall_result']
+    )
+
+
+@pytest.mark.asyncio
 async def test_llm_context_recall_fails(
     user_input="Where is the Eiffel Tower located?",
     response="The Eiffel Tower is located in Paris.",
@@ -118,6 +178,27 @@ async def test_non_llm_context_recall_passes(
         reference_contexts=reference_contexts,
         threshold=threshold,
     ).assert_result()
+
+
+@pytest.mark.asyncio
+async def test_non_llm_context_recall_output(
+    retrieved_contexts=["Paris is the capital of France."],
+    reference_contexts=[
+        "Paris is the capital of France.",
+        "The Eiffel Tower is one of the most famous landmarks in Paris.",
+    ],
+    threshold=0.5,
+):
+    evaluator =  RunNonLLMContextRecall(
+        retrieved_contexts=retrieved_contexts,
+        reference_contexts=reference_contexts,
+        threshold=threshold,
+    )
+    result = await evaluator()
+
+    assert all(
+        key in result for key in ['retrieved_contexts', 'reference_contexts', 'non_llmcontext_recall', 'non_llmcontext_recall_threshold', 'non_llmcontext_recall_result']
+    )
 
 
 @pytest.mark.asyncio
@@ -155,6 +236,28 @@ async def test_run_faithfulness_passes(
 
 
 @pytest.mark.asyncio
+async def test_run_faithfulness_output(
+    user_input="When was the first super bowl?",
+    response="The first superbowl was held on Jan 15, 1967",
+    retrieved_contexts=[
+        "The First AFL–NFL World Championship Game was an American football game played on January 15, 1967, at the Los Angeles Memorial Coliseum in Los Angeles."
+    ],
+    threshold=0.9,
+):
+    evaluator =  RunFaithfulness(
+        user_input=user_input,
+        response=response,
+        retrieved_contexts=retrieved_contexts,
+        threshold=threshold,
+    )
+    result = await evaluator()
+
+    assert all(
+        key in result for key in ['user_input', 'response', 'retrieved_contexts', 'faithfulness', 'faithfulness_threshold', 'faithfulness_result']
+    )
+
+
+@pytest.mark.asyncio
 async def test_run_faithfulness_fails(
     user_input="When was the first super bowl?",
     response="The first superbowl was held on Jan 15, 1967",
@@ -181,6 +284,22 @@ async def test_run_response_relevancy_passes(
     await RunResponseRelevancy(
         user_input=user_input, response=response, threshold=threshold
     ).assert_result()
+
+
+@pytest.mark.asyncio
+async def test_run_response_relevancy_output(
+    user_input="When was the first super bowl?",
+    response="The first superbowl was held on Jan 15, 1967",
+    threshold=0.9,
+):
+    evaluator =  RunResponseRelevancy(
+        user_input=user_input, response=response, threshold=threshold
+    )
+    result = await evaluator()
+
+    assert all(
+        key in result for key in ['user_input', 'response', 'response_relevancy', 'response_relevancy_threshold', 'response_relevancy_result']
+    )
 
 
 @pytest.mark.asyncio

@@ -44,7 +44,11 @@ def test_run_similarity_evaluator_should_pass(
         model_config=model_config,
     )
 
+    result = evaluator()
     evaluator.assert_result()
+    assert all(
+        key in result for key in ['similarity', 'gpt_similarity', 'similarity_result', 'similarity_threshold']
+    )
 
 
 @pytest.mark.parametrize(
@@ -91,10 +95,13 @@ def test_run_similarity_evaluator_should_fail(
 )
 async def test_f1_score_evaluator_should_pass(response, ground_truth, threshold):
     evaluator = RunF1ScoreEvaluator(response, ground_truth, threshold)
+    result = await evaluator()
     await evaluator.assert_result()
+    assert all(
+        key in result for key in ['f1_score', 'f1_result', 'f1_threshold']
+    )
 
 
-# TODO from here ----------------------------------------------------------------------
 @pytest.mark.asyncio
 @pytest.mark.parametrize(
     "response, ground_truth, threshold",
@@ -120,7 +127,12 @@ async def test_f1_score_evaluator_should_fail(response, ground_truth, threshold)
     ],
 )
 async def test_bleu_score_evaluator_should_pass(response, ground_truth, threshold):
-    await RunBleuScoreEvaluator(response, ground_truth, threshold).assert_result()
+    evaluator = RunBleuScoreEvaluator(response, ground_truth, threshold)
+    result = await evaluator()
+    await evaluator.assert_result()
+    assert all(
+        key in result for key in ['bleu_score', 'bleu_result', 'bleu_threshold']
+    )
 
 
 @pytest.mark.asyncio
@@ -143,8 +155,12 @@ async def test_bleu_score_evaluator_should_fail(response, ground_truth, threshol
     ],
 )
 async def test_gleu_score_evaluator_should_pass(response, ground_truth, threshold):
-    await RunGleuScoreEvaluator(response, ground_truth, threshold).assert_result()
-
+    evaluator = RunGleuScoreEvaluator(response, ground_truth, threshold)
+    result = await evaluator()
+    await evaluator.assert_result()
+    assert all(
+        key in result for key in ['gleu_score', 'gleu_result', 'gleu_threshold']
+    )
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize(
@@ -170,7 +186,12 @@ async def test_gleu_score_evaluator_should_fail(response, ground_truth, threshol
     ],
 )
 async def test_rouge_score_evaluator_should_pass(response, ground_truth, threshold):
-    await RunRougeScoreEvaluator(response, ground_truth, threshold).assert_result()
+    evaluator = RunRougeScoreEvaluator(response, ground_truth, threshold)
+    result = await evaluator()
+    await evaluator.assert_result()
+    assert all(
+        key in result for key in ['rouge_precision', 'rouge_recall', 'rouge_f1_score', 'rouge_precision_result', 'rouge_recall_result', 'rouge_f1_score_result', 'rouge_precision_threshold', 'rouge_recall_threshold', 'rouge_f1_score_threshold']
+    )
 
 
 @pytest.mark.asyncio
@@ -201,7 +222,12 @@ async def test_rouge_score_evaluator_should_fail(response, ground_truth, thresho
     ],
 )
 async def test_meteor_score_evaluator_should_pass(response, ground_truth, threshold):
-    await RunMeteorScoreEvaluator(response, ground_truth, threshold).assert_result()
+    evaluator = RunMeteorScoreEvaluator(response, ground_truth, threshold)
+    result = await evaluator()
+    await evaluator.assert_result()
+    assert all(
+        key in result for key in ['meteor_score', 'meteor_result', 'meteor_threshold']
+    )
 
 
 @pytest.mark.asyncio
@@ -226,7 +252,12 @@ async def test_run_non_llm_string_similarity_passes(
     reference="Marie Curie was born in Warsaw.",
     threshold=0.8,
 ):
-    await RunNonLLMStringSimilarity(response, reference, threshold).assert_result()
+    evaluator = RunNonLLMStringSimilarity(response, reference, threshold)
+    result = await evaluator()
+    await evaluator.assert_result()
+    assert all(
+        key in result for key in ['response', 'reference', 'non_llmstring_similarity', 'non_llmstring_similarity_threshold', 'non_llmstring_similarity_result']
+    )
 
 
 @pytest.mark.asyncio
@@ -245,7 +276,12 @@ async def test_run_embedding_similarity_passes(
     reference="Albert Einstein's theory of relativity revolutionized our understanding of the universe.",
     threshold=0.8,
 ):
-    await RunSemanticSimilarity(response, reference, threshold).assert_result()
+    evaluator = RunSemanticSimilarity(response, reference, threshold)
+    result = await evaluator()
+    await evaluator.assert_result()
+    assert all(
+        key in result for key in ['response', 'reference', 'semantic_similarity', 'semantic_similarity_threshold', 'semantic_similarity_result']
+    )
 
 
 @pytest.mark.asyncio
@@ -263,7 +299,12 @@ async def test_run_string_presence_passes(
     response="Einstein's groundbreaking theory of relativity transformed our comprehension of the cosmos",
     reference="relativity",
 ):
-    await RunStringPresence(response, reference).assert_result()
+    evaluator = RunStringPresence(response, reference)
+    result = await evaluator()
+    await evaluator.assert_result()
+    assert all(
+        key in result for key in ['response', 'reference', 'string_presence', 'string_presence_threshold', 'string_presence_result']
+    )
 
 
 @pytest.mark.asyncio
@@ -280,7 +321,12 @@ async def test_run_exact_match_passes(
     response="Marie Curie was born in Warsaw.",
     reference="Marie Curie was born in Warsaw.",
 ):
-    await RunExactMatch(response, reference).assert_result()
+    evaluator = RunExactMatch(response, reference)
+    result = await evaluator()
+    await evaluator.assert_result()
+    assert all(
+        key in result for key in ['response', 'reference', 'exact_match', 'exact_match_threshold', 'exact_match_result']
+    )
 
 
 @pytest.mark.asyncio
