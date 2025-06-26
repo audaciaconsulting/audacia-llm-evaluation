@@ -108,33 +108,30 @@ class RunSimilarityEvaluator:
         return result
 
 
-class RunF1ScoreEvaluator(BaseScoreEvaluator):
+class RunMeteorScoreEvaluator(BaseScoreEvaluator):
     """
     Evaluation Class: Similarity
-    Evaluation Method: Token
-    Granularity: Low
+    Evaluation Method: n-gram + semantic
+    Granularity: Low-Medium
 
-    The F1 score is a harmonic mean of precision and recall. It measures the accuracy of a generated response
-    by comparing it to a reference ground truth string. Precision is the fraction of relevant tokens among the
-    retrieved ones (i.e., words in the generated response that also appear in the ground truth), while recall
-    is the fraction of relevant tokens that were successfully retrieved (i.e., words in the ground truth that
-    are also found in the generated response).
+    Uses METEOR (Metric for Evaluation of Translation with Explicit Ordering) to assess similarity
+    between generated and reference text. Unlike BLEU or ROUGE, METEOR incorporates stemming,
+    synonym matching, and word order, making it more semantically aware.
 
-    The F1 score ranges from 0.0 to 1.0, with 1.0 indicating a perfect match. This metric is especially useful
-    in tasks where both completeness (recall) and correctness (precision) matter — such as question answering,
-    summarization, and any natural language generation task that involves comparison to reference text.
+    Suitable for tasks like translation, summarization, and paraphrase detection where both lexical
+    and linguistic alignment matter.
 
     Attributes:
-        response (str): The model-generated response to evaluate.
-        ground_truth (str): The correct answer or reference string.
-        threshold (float): The F1 score threshold to determine a pass/fail outcome. Must be between 0 and 1.
+        response (str): The generated text.
+        ground_truth (str): The reference text.
+        threshold (float): METEOR score threshold (0.0 to 1.0).
     """
 
     def __init__(self, response: str, ground_truth: str, threshold: float):
         super().__init__(response, ground_truth, threshold)
 
     def get_evaluator(self):
-        return F1ScoreEvaluator(threshold=self.threshold)
+        return MeteorScoreEvaluator(threshold=self.threshold)
 
     def get_result_key(self) -> str:
         return "f1_result"
@@ -243,30 +240,33 @@ class RunRougeScoreEvaluator(BaseScoreEvaluator):
         return "Evaluation failed: the ROUGE similarity score is not within the acceptable threshold"
 
 
-class RunMeteorScoreEvaluator(BaseScoreEvaluator):
+class RunF1ScoreEvaluator(BaseScoreEvaluator):
     """
     Evaluation Class: Similarity
-    Evaluation Method: n-gram + semantic
-    Granularity: Low-Medium
+    Evaluation Method: Token
+    Granularity: Low
 
-    Uses METEOR (Metric for Evaluation of Translation with Explicit Ordering) to assess similarity
-    between generated and reference text. Unlike BLEU or ROUGE, METEOR incorporates stemming,
-    synonym matching, and word order, making it more semantically aware.
+    The F1 score is a harmonic mean of precision and recall. It measures the accuracy of a generated response
+    by comparing it to a reference ground truth string. Precision is the fraction of relevant tokens among the
+    retrieved ones (i.e., words in the generated response that also appear in the ground truth), while recall
+    is the fraction of relevant tokens that were successfully retrieved (i.e., words in the ground truth that
+    are also found in the generated response).
 
-    Suitable for tasks like translation, summarization, and paraphrase detection where both lexical
-    and linguistic alignment matter.
+    The F1 score ranges from 0.0 to 1.0, with 1.0 indicating a perfect match. This metric is especially useful
+    in tasks where both completeness (recall) and correctness (precision) matter — such as question answering,
+    summarization, and any natural language generation task that involves comparison to reference text.
 
     Attributes:
-        response (str): The generated text.
-        ground_truth (str): The reference text.
-        threshold (float): METEOR score threshold (0.0 to 1.0).
+        response (str): The model-generated response to evaluate.
+        ground_truth (str): The correct answer or reference string.
+        threshold (float): The F1 score threshold to determine a pass/fail outcome. Must be between 0 and 1.
     """
 
     def __init__(self, response: str, ground_truth: str, threshold: float):
         super().__init__(response, ground_truth, threshold)
 
     def get_evaluator(self):
-        return MeteorScoreEvaluator(threshold=self.threshold)
+        return F1ScoreEvaluator(threshold=self.threshold)
 
     def get_result_key(self) -> str:
         return "meteor_result"
