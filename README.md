@@ -154,7 +154,72 @@ The table below summarises each evaluator in the Audacia LLM Evaluation Tool, gr
 | `format`               | `RunJsonResponseEvaluator`                     | Validates whether the LLM output is in a valid JSON format.                                            | Detected format of the response.                           |
 
 
+# 📐 Which Tool To Use?
 
+Here are some flow diagrams that should assist you in picking the right evaluator for the right task.
+
+**I'm looking at the similarity between responses...**
+
+```mermaid
+graph TD
+  A["Do you want to compare responses for similarity?"] --> B1["Is exact text match required?"]
+  B1 --> C1["Yes"] --> D1["Use RunExactMatch"]
+  B1 --> C2["No"] --> B2["Is substring presence enough?"]
+  B2 --> C3["Yes"] --> D2["Use RunStringPresence"]
+  B2 --> C4["No"] --> B3["Do you want semantic similarity using embeddings?"]
+  B3 --> C5["Yes"] --> D3["Use RunSimilarityEvaluator or RunSemanticSimilarity"]
+  B3 --> C6["No"] --> B4["Do you want BLEU or ROUGE-style string similarity?"]
+  B4 --> C7["Yes"] --> D4["Use RunBleuScoreEvaluator, RunRougeScoreEvaluator, or RunF1ScoreEvaluator"]
+  B4 --> C8["No"] --> D5["Use RunNonLLMStringSimilarity or RunGleuScoreEvaluator"]
+```
+
+**I'm judging the perfomance of my RAG system...**
+
+```mermaid
+graph TD
+  A["Are you evaluating RAG system behavior?"] --> B1["Are you judging retrieved context quality?"]
+  B1 --> C1["Yes"] --> D1["Use RunLLMContextPrecisionWithReference or RunNonLLMContextPrecisionWithReference"]
+  B1 --> C2["No"] --> B2["Are you judging whether the response uses the context well?"]
+  B2 --> C3["Yes"] --> D2["Use RunFaithfulness or RunLLMContextRecall"]
+  B2 --> C4["No"] --> B3["Do you want to check how well the response answers the question?"]
+  B3 --> C5["Yes"] --> D3["Use RunResponseRelevancy"]
+```
+
+**I'm comparing the sentiment of my responses...**
+```mermaid
+graph TD
+  A["Are you evaluating emotional tone or sentiment?"] --> B1["Do you know the expected sentiment score?"]
+  B1 --> C1["Yes"] --> D1["Use RunSentimentEvaluatorAgainstExpectedScore"]
+  B1 --> C2["No"] --> B2["Do you have golden responses with the right tone?"]
+  B2 --> C3["Yes"] --> D2["Use RunSentimentEvaluatorAgainstGoldenStandards"]
+```
+
+**I'm comparing the bias of my responses...**
+```mermaid
+graph TD
+  A["Are you checking for cultural, political, or social bias?"] --> B1["Do you know the maximum acceptable bias score?"]
+  B1 --> C1["Yes"] --> D1["Use RunBiasEvaluatorAgainstExpectedScore"]
+  B1 --> C2["No"] --> B2["Do you have low-bias golden responses to compare with?"]
+  B2 --> C3["Yes"] --> D2["Use RunBiasEvaluatorAgainstGoldenStandards"]
+```
+
+**I'm comparing the toxicity of my responses...**
+```mermaid
+graph TD
+  A["Are you checking for toxicity or harmful language?"] --> B1["Do you have a known toxicity threshold?"]
+  B1 --> C1["Yes"] --> D1["Use RunToxicityEvaluatorAgainstExpectedScore"]
+  B1 --> C2["No"] --> B2["Do you have safe reference responses to compare with?"]
+  B2 --> C3["Yes"] --> D2["Use RunToxicityEvaluatorAgainstGoldenStandards"]
+```
+
+**I want to check the output format consistency of my responses...**
+```mermaid
+graph TD
+  A["Are you checking response format or structure?"] --> B1["Should the output be valid JSON?"]
+  B1 --> C1["Yes"] --> D1["Use RunJsonResponseEvaluator"]
+  B1 --> C2["No"] --> B2["Should the output match a specific Python type (e.g., list, dict)?"]
+  B2 --> C3["Yes"] --> D2["Use RunCustomResponseEvaluator"]
+```
 
 # Things to do...
 * Complete extensive user testing
