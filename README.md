@@ -160,39 +160,39 @@ The table below summarises each evaluator in the Audacia LLM Evaluation Tool, gr
 
 ```mermaid
 graph TD
-  A[What are you evaluating?] --> B1[Similarity to a reference?]
-  A --> B2[Grounding (RAG)?]
-  A --> B3[Sentiment or tone?]
-  A --> B4[Bias?]
-  A --> B5[Toxicity?]
-  A --> B6[Format?]
+  A["What are you evaluating?"] --> B1["Similarity to a reference"]
+  A --> B2["Grounding (RAG)"]
+  A --> B3["Sentiment or tone"]
+  A --> B4["Bias"]
+  A --> B5["Toxicity"]
+  A --> B6["Format"]
 
-  B1 --> C1[Exact match or substring?]
-  C1 --> D1[RunExactMatch / RunStringPresence]
+  B1 --> C1["Exact match or substring"]
+  C1 --> D1["RunExactMatch / RunStringPresence"]
 
-  B1 --> C2[Semantic similarity?]
-  C2 --> D2[RunSimilarityEvaluator / RunSemanticSimilarity]
+  B1 --> C2["Semantic similarity"]
+  C2 --> D2["RunSimilarityEvaluator / RunSemanticSimilarity"]
 
-  B1 --> C3[N-gram metrics?]
-  C3 --> D3[BLEU / ROUGE / F1]
+  B1 --> C3["N-gram metrics"]
+  C3 --> D3["BLEU / ROUGE / F1"]
 
-  B2 --> D4[RunContextPrecision, Recall, or Faithfulness]
+  B2 --> D4["RunContextPrecision, Recall, or Faithfulness"]
 
-  B3 --> C4[Known sentiment score?]
-  C4 --> D5[RunSentimentEvaluatorAgainstExpectedScore]
-  C4 --> D6[RunSentimentEvaluatorAgainstGoldenStandards]
+  B3 --> C4["Known sentiment score"]
+  C4 --> D5["RunSentimentEvaluatorAgainstExpectedScore"]
+  C4 --> D6["RunSentimentEvaluatorAgainstGoldenStandards"]
 
-  B4 --> C5[Known bias score?]
-  C5 --> D7[RunBiasEvaluatorAgainstExpectedScore]
-  C5 --> D8[RunBiasEvaluatorAgainstGoldenStandards]
+  B4 --> C5["Known bias score"]
+  C5 --> D7["RunBiasEvaluatorAgainstExpectedScore"]
+  C5 --> D8["RunBiasEvaluatorAgainstGoldenStandards"]
 
-  B5 --> C6[Known toxicity score?]
-  C6 --> D9[RunToxicityEvaluatorAgainstExpectedScore]
-  C6 --> D10[RunToxicityEvaluatorAgainstGoldenStandards]
+  B5 --> C6["Known toxicity score"]
+  C6 --> D9["RunToxicityEvaluatorAgainstExpectedScore"]
+  C6 --> D10["RunToxicityEvaluatorAgainstGoldenStandards"]
 
-  B6 --> C7[Python type (dict, list)?]
-  C7 --> D11[RunCustomResponseEvaluator]
-  C7 --> D12[RunJsonResponseEvaluator]
+  B6 --> C7["Python type (dict, list)"]
+  C7 --> D11["RunCustomResponseEvaluator"]
+  C7 --> D12["RunJsonResponseEvaluator"]
 ```
 
 
