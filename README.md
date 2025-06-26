@@ -122,7 +122,8 @@ The table below summarises each evaluator in the Audacia LLM Evaluation Tool, gr
 | `bias`                 | `RunBiasEvaluatorAgainstGoldenStandards`       | Compare the responses potential social, cultural, or political bias against golden standard responses.  | Score between 0 (neutral) and 1 (biased).                 |
 | `toxicity`             | `RunToxicityEvaluatorAgainstExpectedScore`     | Compare the toxicity (offensive or abusive language) in the response against an expected level of toxicity. | Score between 0 (neutral) and 1 (toxic).                |
 | `toxicity`             | `RunToxicityEvaluatorAgainstGoldenStandards`     | Compare the toxicity in the response against a list of golden standards.                             | Score between 0 (neutral) and 1 (toxic).                |
-| `format`               | `RunFormatEvaluator`                           | Validates whether the output is correctly structured, e.g., valid JSON or expected data type.          | Detected format of the response.                           |
+| `format`               | `RunCustomResponseEvaluator`                   | Validates whether the LLM output is in a given format passed to the evaluator.                         | Detected format of the response.                           |
+| `format`               | `RunJsonResponseEvaluator`                     | Validates whether the LLM output is in a valid JSON format.                                            | Detected format of the response.                           |
 
 
 # Notes
@@ -133,9 +134,9 @@ The table below summarises each evaluator in the Audacia LLM Evaluation Tool, gr
 * Adding documentation.
 
 # Things to do...
-* Restructure tests
 * Complete extensive user testing
 * Test with python version 3.10 and 3.13
+* Supress or deal with warnings
 
 
 
