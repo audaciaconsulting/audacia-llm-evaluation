@@ -156,35 +156,43 @@ The table below summarises each evaluator in the Audacia LLM Evaluation Tool, gr
 
 ## Which Tool To Use?
 
+## Which Tool To Use?
+
 ```mermaid
-flowchart TD
-    A[What are you evaluating?] --> B1[Similarity to a reference?]
-    A --> B2[Grounding (RAG)?]
-    A --> B3[Emotional tone or sentiment?]
-    A --> B4[Bias?]
-    A --> B5[Toxicity?]
-    A --> B6[Format or structure?]
+graph TD
+  A[What are you evaluating?] --> B1[Similarity to a reference?]
+  A --> B2[Grounding (RAG)?]
+  A --> B3[Sentiment or tone?]
+  A --> B4[Bias?]
+  A --> B5[Toxicity?]
+  A --> B6[Format?]
 
-    B1 --> C1[Exact or substring match?] --> D1[RunExactMatch / RunStringPresence]
-    B1 --> C2[Semantic similarity or embedding match?] --> D2[RunSimilarityEvaluator / RunSemanticSimilarity]
-    B1 --> C3[N-gram/string metrics?] --> D3[RunBleuScoreEvaluator / RunRougeScoreEvaluator / RunF1ScoreEvaluator]
+  B1 --> C1[Exact match or substring?]
+  C1 --> D1[RunExactMatch / RunStringPresence]
 
-    B2 --> C4[Check retrieved context quality?] --> D4[RunLLMContextPrecisionWithReference / RunNonLLMContextPrecisionWithReference]
-    C4 --> D5[Check response use of context?] --> E1[RunFaithfulness / RunLLMContextRecall]
-    C4 --> D6[Check answer relevance to query?] --> E2[RunResponseRelevancy]
+  B1 --> C2[Semantic similarity?]
+  C2 --> D2[RunSimilarityEvaluator / RunSemanticSimilarity]
 
-    B3 --> C5[Known sentiment score?] --> D7[RunSentimentEvaluatorAgainstExpectedScore]
-    C5 --> D8[Use golden sentiment examples?] --> E3[RunSentimentEvaluatorAgainstGoldenStandards]
+  B1 --> C3[N-gram metrics?]
+  C3 --> D3[BLEU / ROUGE / F1]
 
-    B4 --> C6[Known bias level?] --> D9[RunBiasEvaluatorAgainstExpectedScore]
-    C6 --> D10[Use unbiased gold examples?] --> E4[RunBiasEvaluatorAgainstGoldenStandards]
+  B2 --> D4[RunContextPrecision, Recall, or Faithfulness]
 
-    B5 --> C7[Known toxicity score?] --> D11[RunToxicityEvaluatorAgainstExpectedScore]
-    C7 --> D12[Use safe response examples?] --> E5[RunToxicityEvaluatorAgainstGoldenStandards]
+  B3 --> C4[Known sentiment score?]
+  C4 --> D5[RunSentimentEvaluatorAgainstExpectedScore]
+  C4 --> D6[RunSentimentEvaluatorAgainstGoldenStandards]
 
-    B6 --> C8[Expect Python type (dict, list)?] --> D13[RunCustomResponseEvaluator]
-    C8 --> D14[Expect valid JSON object?] --> E6[RunJsonResponseEvaluator]
+  B4 --> C5[Known bias score?]
+  C5 --> D7[RunBiasEvaluatorAgainstExpectedScore]
+  C5 --> D8[RunBiasEvaluatorAgainstGoldenStandards]
 
+  B5 --> C6[Known toxicity score?]
+  C6 --> D9[RunToxicityEvaluatorAgainstExpectedScore]
+  C6 --> D10[RunToxicityEvaluatorAgainstGoldenStandards]
+
+  B6 --> C7[Python type (dict, list)?]
+  C7 --> D11[RunCustomResponseEvaluator]
+  C7 --> D12[RunJsonResponseEvaluator]
 ```
 
 
