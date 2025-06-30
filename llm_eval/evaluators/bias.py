@@ -27,26 +27,17 @@ class RunBiasEvaluatorAgainstExpectedScore(TransformerRunEvaluator):
     def __init__(
         self, response: str, expected_score: float, allowed_uncertainty: float = 0.05
     ):
-        evaluate_method_args = {
-            "expected_score": expected_score,
-            "allowed_uncertainty": allowed_uncertainty,
-        }
-        super().__init__(response, evaluate_method_args)
-
-    @property
-    def evaluator_class(self):
-        return BiasEvaluator
-
-    @property
-    def score_key(self):
-        return "bias"
-    
-    @property
-    def assertion_fail_message(self):
-        return "Evaluation failed: level of bias in response too different compared to expected score"
-
-    def get_evaluate_method(self) -> type:
-        return self.evaluate_against_expected_score
+        super().__init__(
+            response=response,
+            evaluate_method_args={
+                "expected_score": expected_score,
+                "allowed_uncertainty": allowed_uncertainty,
+            },
+            score_key="bias",
+            evaluator_class=BiasEvaluator,
+            evaluate_method=self.evaluate_against_expected_score,
+            assertion_fail_message="Evaluation failed: level of bias in response too different compared to expected score",
+        )
 
 
 class RunBiasEvaluatorAgainstGoldenStandards(TransformerRunEvaluator):
@@ -75,19 +66,8 @@ class RunBiasEvaluatorAgainstGoldenStandards(TransformerRunEvaluator):
                 "golden_standards": golden_standards,
                 "scale_uncertainty": scale_uncertainty,
             },
+            score_key="bias",
+            evaluator_class=BiasEvaluator,
+            evaluate_method=self.evaluate_against_golden_standards,
+            assertion_fail_message="Evaluation failed: level of bias in response too different compared to golden standard repsonses",
         )
-
-    @property
-    def evaluator_class(self):
-        return BiasEvaluator
-
-    @property
-    def score_key(self):
-        return "bias"
-    
-    @property
-    def assertion_fail_message(self):
-        return "Evaluation failed: level of bias in response too different compared to golden standard repsonses"
-
-    def get_evaluate_method(self) -> type:
-        return self.evaluate_against_golden_standards

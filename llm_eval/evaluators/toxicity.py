@@ -27,26 +27,17 @@ class RunToxicityEvaluatorAgainstExpectedScore(TransformerRunEvaluator):
     def __init__(
         self, response: str, expected_score: float, allowed_uncertainty: float = 0.05
     ):
-        evaluate_method_args = {
-            "expected_score": expected_score,
-            "allowed_uncertainty": allowed_uncertainty,
-        }
-        super().__init__(response, evaluate_method_args)
-
-    @property
-    def evaluator_class(self):
-        return ToxicityEvaluator
-
-    @property
-    def score_key(self):
-        return "toxicity"
-    
-    @property
-    def assertion_fail_message(self):
-        return "Evaluation failed: toxicity of response too different compared to expected score"
-
-    def get_evaluate_method(self) -> type:
-        return self.evaluate_against_expected_score
+        super().__init__(
+            response=response,
+            evaluate_method_args={
+                "expected_score": expected_score,
+                "allowed_uncertainty": allowed_uncertainty,
+            },
+            score_key="toxicity",
+            evaluator_class=ToxicityEvaluator,
+            evaluate_method=self.evaluate_against_expected_score,
+            assertion_fail_message="Evaluation failed: toxicity of response too different compared to expected score",
+        )
 
 
 class RunToxicityEvaluatorAgainstGoldenStandards(TransformerRunEvaluator):
@@ -73,19 +64,8 @@ class RunToxicityEvaluatorAgainstGoldenStandards(TransformerRunEvaluator):
                 "golden_standards": golden_standards,
                 "scale_uncertainty": scale_uncertainty,
             },
+            score_key="toxicity",
+            evaluator_class=ToxicityEvaluator,
+            evaluate_method=self.evaluate_against_golden_standards,
+            assertion_fail_message="Evaluation failed: sentiment of response too different compared to golden standard responses",
         )
-
-    @property
-    def evaluator_class(self):
-        return ToxicityEvaluator
-
-    @property
-    def score_key(self):
-        return "toxicity"
-    
-    @property
-    def assertion_fail_message(self):
-        return "Evaluation failed: sentiment of response too different compared to golden standard responses"
-
-    def get_evaluate_method(self) -> type:
-        return self.evaluate_against_golden_standards
