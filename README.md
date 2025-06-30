@@ -153,8 +153,7 @@ The table below summarises each evaluator in the Audacia LLM Evaluation Tool, gr
 | `format`               | `RunCustomResponseEvaluator`                   | Validates whether the LLM output is in a given format passed to the evaluator.                         | Detected format of the response.                           |
 | `format`               | `RunJsonResponseEvaluator`                     | Validates whether the LLM output is in a valid JSON format.                                            | Detected format of the response.                           |
 
-
-
+## 🛠️ [Developer Guidelines](docs/developer_guidelines.md)
 
 # Things to do...
 * Complete extensive user testing

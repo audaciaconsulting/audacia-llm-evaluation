@@ -57,11 +57,8 @@ class RunLLMContextPrecisionWithReference(RagasBaseEvaluator):
             threshold=threshold,
             ragas_metric=LLMContextPrecisionWithReference,
             ragas_metric_args={"llm": llm},
+            assertion_fail_message="Evaluation failed: the retrieved context does not align with the reference answer",
         )
-    
-    @property
-    def assertion_fail_message(self):
-        return "Evaluation failed: the retrieved context does not align with the reference answer"
 
 
 class RunNonLLMContextPrecisionWithReference(RagasBaseEvaluator):
@@ -94,11 +91,8 @@ class RunNonLLMContextPrecisionWithReference(RagasBaseEvaluator):
             },
             threshold=threshold,
             ragas_metric=NonLLMContextPrecisionWithReference,
+            assertion_fail_message="Evaluation failed: the retrieved context does not align with the reference answer using non-LLM methods",
         )
-
-    @property
-    def assertion_fail_message(self):
-        return "Evaluation failed: the retrieved context does not align with the reference answer using non-LLM methods"
 
 
 class RunLLMContextRecall(RagasBaseEvaluator):
@@ -144,11 +138,8 @@ class RunLLMContextRecall(RagasBaseEvaluator):
             threshold=threshold,
             ragas_metric=LLMContextRecall,
             ragas_metric_args={"llm": llm},
+            assertion_fail_message="Evaluation failed: recall too low as retrieved contexts don't support the context in the reference answer",
         )
-
-    @property
-    def assertion_fail_message(self):
-        return "Evaluation failed: recall too low as retrieved contexts don't support the context in the reference answer"
 
 
 class RunNonLLMContextRecall(RagasBaseEvaluator):
@@ -183,11 +174,9 @@ class RunNonLLMContextRecall(RagasBaseEvaluator):
             },
             threshold=threshold,
             ragas_metric=NonLLMContextRecall,
+            assertion_fail_message="Evaluation failed: recall too low as retrieved contexts don't support the context in the reference answer using non-LLM methods",
         )
 
-    @property
-    def assertion_fail_message(self):
-        return "Evaluation failed: recall too low as retrieved contexts don't support the context in the reference answer using non-LLM methods"
 
 class RunFaithfulness(RagasBaseEvaluator):
     """
@@ -231,11 +220,8 @@ class RunFaithfulness(RagasBaseEvaluator):
             threshold=threshold,
             ragas_metric=Faithfulness,
             ragas_metric_args={"llm": llm},
+            assertion_fail_message="Evaluation failed: the model response deviated too much from the retrieved context",
         )
-    
-    @property
-    def assertion_fail_message(self):
-        return "Evaluation failed: the model response deviated too much from the retrieved context"
 
 
 class RunResponseRelevancy(RagasBaseEvaluator):
@@ -281,8 +267,5 @@ class RunResponseRelevancy(RagasBaseEvaluator):
             threshold=threshold,
             ragas_metric=ResponseRelevancy,
             ragas_metric_args={"llm": llm, "embeddings": embeddings},
+            assertion_fail_message="Evaluation failed: the generated response did not address the original user query well enough",
         )
-
-    @property
-    def assertion_fail_message(self):
-        return "Evaluation failed: the generated response did not address the original user query well enough"

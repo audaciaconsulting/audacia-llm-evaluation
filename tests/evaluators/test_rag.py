@@ -35,7 +35,15 @@ async def test_llm_context_precision_with_reference_output(
     result = await evaluator()
 
     assert all(
-        key in result for key in ['user_input', 'reference', 'retrieved_contexts', 'llmcontext_precision_with_reference', 'llmcontext_precision_with_reference_threshold', 'llmcontext_precision_with_reference_result']
+        key in result
+        for key in [
+            "user_input",
+            "reference",
+            "retrieved_contexts",
+            "llmcontext_precision_with_reference",
+            "llmcontext_precision_with_reference_threshold",
+            "llmcontext_precision_with_reference_result",
+        ]
     )
 
 
@@ -78,13 +86,20 @@ async def test_non_llm_context_precision_with_reference_output(
     ],
     threshold=0.8,
 ):
-    evaluator =  RunNonLLMContextPrecisionWithReference(
+    evaluator = RunNonLLMContextPrecisionWithReference(
         retrieved_contexts, reference_contexts, threshold
     )
     result = await evaluator()
 
     assert all(
-        key in result for key in ['retrieved_contexts', 'reference_contexts', 'non_llmcontext_precision_with_reference', 'non_llmcontext_precision_with_reference_threshold', 'non_llmcontext_precision_with_reference_result']
+        key in result
+        for key in [
+            "retrieved_contexts",
+            "reference_contexts",
+            "non_llmcontext_precision_with_reference",
+            "non_llmcontext_precision_with_reference_threshold",
+            "non_llmcontext_precision_with_reference_result",
+        ]
     )
 
 
@@ -132,7 +147,7 @@ async def test_llm_context_recall_output(
     ],
     threshold=0.8,
 ):
-    evaluator =  RunLLMContextRecall(
+    evaluator = RunLLMContextRecall(
         user_input=user_input,
         response=response,
         reference=reference,
@@ -142,7 +157,16 @@ async def test_llm_context_recall_output(
     result = await evaluator()
 
     assert all(
-        key in result for key in ['user_input', 'response', 'reference', 'retrieved_contexts', 'llmcontext_recall', 'llmcontext_recall_threshold', 'llmcontext_recall_result']
+        key in result
+        for key in [
+            "user_input",
+            "response",
+            "reference",
+            "retrieved_contexts",
+            "llmcontext_recall",
+            "llmcontext_recall_threshold",
+            "llmcontext_recall_result",
+        ]
     )
 
 
@@ -189,7 +213,7 @@ async def test_non_llm_context_recall_output(
     ],
     threshold=0.5,
 ):
-    evaluator =  RunNonLLMContextRecall(
+    evaluator = RunNonLLMContextRecall(
         retrieved_contexts=retrieved_contexts,
         reference_contexts=reference_contexts,
         threshold=threshold,
@@ -197,7 +221,14 @@ async def test_non_llm_context_recall_output(
     result = await evaluator()
 
     assert all(
-        key in result for key in ['retrieved_contexts', 'reference_contexts', 'non_llmcontext_recall', 'non_llmcontext_recall_threshold', 'non_llmcontext_recall_result']
+        key in result
+        for key in [
+            "retrieved_contexts",
+            "reference_contexts",
+            "non_llmcontext_recall",
+            "non_llmcontext_recall_threshold",
+            "non_llmcontext_recall_result",
+        ]
     )
 
 
@@ -244,7 +275,7 @@ async def test_run_faithfulness_output(
     ],
     threshold=0.9,
 ):
-    evaluator =  RunFaithfulness(
+    evaluator = RunFaithfulness(
         user_input=user_input,
         response=response,
         retrieved_contexts=retrieved_contexts,
@@ -253,7 +284,15 @@ async def test_run_faithfulness_output(
     result = await evaluator()
 
     assert all(
-        key in result for key in ['user_input', 'response', 'retrieved_contexts', 'faithfulness', 'faithfulness_threshold', 'faithfulness_result']
+        key in result
+        for key in [
+            "user_input",
+            "response",
+            "retrieved_contexts",
+            "faithfulness",
+            "faithfulness_threshold",
+            "faithfulness_result",
+        ]
     )
 
 
@@ -292,13 +331,20 @@ async def test_run_response_relevancy_output(
     response="The first superbowl was held on Jan 15, 1967",
     threshold=0.9,
 ):
-    evaluator =  RunResponseRelevancy(
+    evaluator = RunResponseRelevancy(
         user_input=user_input, response=response, threshold=threshold
     )
     result = await evaluator()
 
     assert all(
-        key in result for key in ['user_input', 'response', 'response_relevancy', 'response_relevancy_threshold', 'response_relevancy_result']
+        key in result
+        for key in [
+            "user_input",
+            "response",
+            "response_relevancy",
+            "response_relevancy_threshold",
+            "response_relevancy_result",
+        ]
     )
 
 
