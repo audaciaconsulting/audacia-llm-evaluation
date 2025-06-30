@@ -153,13 +153,141 @@ The table below summarises each evaluator in the Audacia LLM Evaluation Tool, gr
 | `format`               | `RunCustomResponseEvaluator`                   | Validates whether the LLM output is in a given format passed to the evaluator.                         | Detected format of the response.                           |
 | `format`               | `RunJsonResponseEvaluator`                     | Validates whether the LLM output is in a valid JSON format.                                            | Detected format of the response.                           |
 
-## 🛠️ [Developer Guidelines](docs/developer_guidelines.md)
+
+# 📐 Which Tool To Use?
+
+## 📊 Scoring Methods Overview
+
+LLM evaluation can be performed using methods with varying levels of granularity—each offering a tradeoff between semantic precision, computational cost, and use-case applicability. The Audacia LLM Evaluation Tool supports three major categories:
+
+### 🔹 String-Based Methods (Low Granularity)
+
+- **Methods**: Exact Match, BLEU, ROUGE, METEOR  
+- **What they capture**: Lexical overlap  
+- **Strengths**: Fast (1–100µs), simple, and interpretable  
+- **Weaknesses**: Cannot handle paraphrasing or nuanced meaning  
+- **Cost**: Very low (algorithm-based, runs locally)
+
+### 🔸 Embedding-Based Methods (Medium Granularity)
+
+- **Methods**: Cosine Similarity 
+- **What they capture**: Semantic meaning at sentence/token level  
+- **Strengths**: Robust to rewording and structural variation  
+- **Weaknesses**: Lacks context awareness; requires embedding models  
+- **Timing**: Inference takes 100–300ms via API  
+- **Cost**: Medium (~£0.0001) if using an API
+
+### 🔺 LLM-Based Methods (High Granularity)
+
+- **Methods**: LLM-as-a-judge via prompt engineering  
+- **What they capture**: Holistic similarity, quality, tone, and intent  
+- **Strengths**: Most human-like, flexible, and context-aware  
+- **Weaknesses**: Highest latency - 1–3s API, prompt-sensitive, and can be subjective  
+- **Cost**: High (~£0.01) via API
+
+When choosing a scoring method, aim to use the **lowest granularity** that meets your evaluation needs, based on task complexity and system constraints.
+
+Here are some flow diagrams that should assist you in picking the right evaluator for the right task.
+
+**I'm looking at the similarity between responses...**
+
+```mermaid
+flowchart TD
+    A[Start: Need to Evaluate Similarity Between Response and Ground Truth] --> B{Level of Granularity?}
+
+    B -->|Low| B1[Fast, simple\n- Lexical match only]
+    B -->|Medium| B2[Embedding-based\n- Captures semantics]
+    B -->|High| B3[LLM-as-judge\n- Context-aware, costly]
+
+    B1 --> C{Evaluation Method?}
+    
+    C -->|String Match| C1[RunExactMatch\n- Full match required\n- Use when response must be identical]
+    C -->|String Presence| C2[RunStringPresence\n- Ensures key phrase is present\n- Use when response must mention a fact]
+    C -->|Word-Based| C3[RunF1ScoreEvaluator\n- Same words in any order\n- Use when phrasing differs but content is correct]
+    C -->|n-gram| C4{Which n-gram method?\n n-gram = word sequences of n length}
+    C -->|String Distance| C5[RunNonLLMStringSimilarity\n- Same words, slightly reordered or modified\n- Use for fuzzy comparison]
+
+    C4 -->|BLEU| C4a[RunBleuScoreEvaluator\n- Matches short word sequences\n- Best when phrasing matters]
+    C4 -->|ROUGE-L| C4b[RunRougeScoreEvaluator\n- Finds longest matching parts\n- Good for summary coverage]
+    C4 -->|GLEU| C4c[RunGleuScoreEvaluator\n- Best for short answers where both \n extra and missing words matter]
+    C4 -->|METEOR| C4d[RunMeteorScoreEvaluator\n- Allows close matches and synonyms\n- Best when wording flexibility is allowed]
+
+    B2 --> D[RunSemanticSimilarity\n- Embedding similarity score\n- Use when meaning matters more than wording]
+
+    B3 --> H[RunSimilarityEvaluator\n- LLM judgment of response\n- Use when context, tone, and nuance matter most]
+```
+
+
+**I'm judging the perfomance of my RAG system...**
+
+```mermaid
+flowchart
+    A[Start:\nNeed to Evaluate a RAG System] --> B[Retrieval\n\nAre you evaluating the\nquality of retrieved documents?]
+    A --> C[Generation\n\nAre you evaluating the\nquality of the generated response?]
+
+    %% --- Retrieval Split ---
+    B --> B1[Context Precision\n\nAre the top-ranked contexts relevant?]
+    B --> B2[Context Recall\n\nAre all the key facts present\nin the retrieved contexts?]
+
+    %% --- Context Precision Decision ---
+    B1 --> B1a[Do you need deeper\nsemantic judgment?]
+    B1a -->|Yes| B1b[RunLLMContextPrecisionWithReference\n\nLLM-based relevance\nHigh cost, more accurate]
+    B1a -->|No| B1c[RunNonLLMContextPrecisionWithReference\n\nString-based relevance\nFast, lower cost]
+
+    %% --- Context Recall Decision ---
+    B2 --> B2a[Do you need deeper\nsemantic judgment?]
+    B2a -->|Yes| B2b[RunLLMContextRecall\n\nLLM checks for full\ncoverage of ground truth]
+    B2a -->|No| B2c[RunNonLLMContextRecall\n\nString comparison to verify\nrecall of key facts]
+
+    %% --- Generation Metrics ---
+    C --> C1[Faithfulness\n\nIs every claim in the response\ngrounded in the retrieved context?\n\nRunFaithfulness\n\nUse to detect hallucinations or\nunsupported claims]
+    C --> C2[Response Relevancy\n\nDoes the response answer\nthe user’s query?\n\nRunResponseRelevancy\n\nUse when you want to catch vague,\noff-topic, or generic answers]
+```
+
+**I'm comparing the sentiment of my responses...**
+```mermaid
+graph TD
+  A["Are you evaluating emotional tone or sentiment?"] --> B1["Do you know the expected sentiment score?"]
+  B1 --> C1["Yes"] --> D1["Use RunSentimentEvaluatorAgainstExpectedScore"]
+  B1 --> C2["No"] --> B2["Do you have golden responses with the right tone?"]
+  B2 --> C3["Yes"] --> D2["Use RunSentimentEvaluatorAgainstGoldenStandards"]
+```
+
+**I'm comparing the bias of my responses...**
+```mermaid
+graph TD
+  A["Are you checking for cultural, political, or social bias?"] --> B1["Do you know the maximum acceptable bias score?"]
+  B1 --> C1["Yes"] --> D1["Use RunBiasEvaluatorAgainstExpectedScore"]
+  B1 --> C2["No"] --> B2["Do you have low-bias golden responses to compare with?"]
+  B2 --> C3["Yes"] --> D2["Use RunBiasEvaluatorAgainstGoldenStandards"]
+```
+
+**I'm comparing the toxicity of my responses...**
+```mermaid
+graph TD
+  A["Are you checking for toxicity or harmful language?"] --> B1["Do you have a known toxicity threshold?"]
+  B1 --> C1["Yes"] --> D1["Use RunToxicityEvaluatorAgainstExpectedScore"]
+  B1 --> C2["No"] --> B2["Do you have safe reference responses to compare with?"]
+  B2 --> C3["Yes"] --> D2["Use RunToxicityEvaluatorAgainstGoldenStandards"]
+```
+
+**I want to check the output format consistency of my responses...**
+```mermaid
+graph TD
+  A["Are you checking response format or structure?"] --> B1["Should the output be valid JSON?"]
+  B1 --> C1["Yes"] --> D1["Use RunJsonResponseEvaluator"]
+  B1 --> C2["No"] --> B2["Should the output match a specific Python type (e.g., list, dict)?"]
+  B2 --> C3["Yes"] --> D2["Use RunCustomResponseEvaluator"]
+```
 
 # Things to do...
 * Complete extensive user testing
 * Test with python version 3.10 and 3.13
 * Supress or deal with warnings
 * Test with "basics" version of OpenAI API
+* are there input range checks where applicable?
+* RunSimilarityEvaluator os 1-5 scale, could change to 0-1
+* 
 
 
 
