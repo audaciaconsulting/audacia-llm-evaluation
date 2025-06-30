@@ -35,27 +35,30 @@ logger = logging.getLogger(__name__)
 
 class RunSimilarityEvaluator:
     """
-    Evaluation Class: Similarity
-    Evaluation Method: Embedding/Cosine Similarity
-    Granularity: Medium
+    Evaluation Class: Similarity  
+    Evaluation Method: LLM-Based Prompt Evaluation  
+    Granularity: High
 
-    The similarity score is calculated using sentence-level embeddings to compare the semantic meaning
-    between a model-generated response and a predefined ground truth. The score ranges from 1.0 (least similar) to 5.0 (most similar),
-    indicating how closely the response matches the expected output in terms of meaning. The `query` provides context to ensure accurate comparison between `response` and `ground_truth`,
-    as meaning can vary with the prompt.
+    The similarity score is computed using a large language model (LLM) via prompt-based evaluation. Instead of using
+    embedding-based cosine similarity, this method presents the query, model-generated response, and ground truth to
+    an LLM using a structured prompt defined in `similarity.prompty`. The model then evaluates how semantically
+    aligned the response is with the ground truth, producing a score between 1.0 (least similar) and 5.0 (most similar).
 
-    This evaluation method is useful for tasks that involve comparing AI-generated responses to reference answers,
-    such as question answering, summarization, and other natural language generation tasks. It helps in validating
-    and benchmarking model performance on semantic accuracy.
+    The `query` provides context for the comparison, helping the LLM judge whether the response matches the intent and
+    meaning of the ground truth in context.
+
+    This evaluation is especially useful in tasks such as question answering, summarization, and other natural language
+    generation settings where semantic correctness matters. Because it leverages an LLM's judgment, it enables more
+    context-aware and nuanced similarity scoring than purely embedding-based approaches.
 
     Attributes:
         query (str): The input query or prompt providing context for comparison.
         response (str): The model-generated response to evaluate.
         ground_truth (str): The expected correct response or reference text.
-        threshold (float): The minimum similarity score required to pass the evaluation, ranging from 0.0 to 5.0.
-        model_config (Optional[AzureOpenAIModelConfiguration]): Configuration for the embedding model. If not provided,
-            a default Azure AI configuration will be used.
+        threshold (float): The minimum similarity score required to pass the evaluation, ranging from 1.0 to 5.0.
+        model_config (Optional[AzureOpenAIModelConfiguration]): Configuration for the LLM used in evaluation.
     """
+
 
     def __init__(
         self,
@@ -243,13 +246,13 @@ class RunRougeScoreEvaluator(BaseScoreEvaluator):
 class RunF1ScoreEvaluator(BaseScoreEvaluator):
     """
     Evaluation Class: Similarity
-    Evaluation Method: Token
+    Evaluation Method: Words
     Granularity: Low
 
     The F1 score is a harmonic mean of precision and recall. It measures the accuracy of a generated response
-    by comparing it to a reference ground truth string. Precision is the fraction of relevant tokens among the
+    by comparing it to a reference ground truth string. Precision is the fraction of relevant words among the
     retrieved ones (i.e., words in the generated response that also appear in the ground truth), while recall
-    is the fraction of relevant tokens that were successfully retrieved (i.e., words in the ground truth that
+    is the fraction of relevant words that were successfully retrieved (i.e., words in the ground truth that
     are also found in the generated response).
 
     The F1 score ranges from 0.0 to 1.0, with 1.0 indicating a perfect match. This metric is especially useful
