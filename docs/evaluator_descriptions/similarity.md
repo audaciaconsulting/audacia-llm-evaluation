@@ -3,7 +3,7 @@
 ## Purpose
 Similarity evaluators quantify how closely a model-generated response aligns with a reference output. These tools are essential for evaluating natural language generation tasks like summarization, translation, question answering, and paraphrasing.
 
-They help assess both the lexical overlap and the semantic closeness between outputs, using a mix of token-level, string-level, n-gram, and embedding-based methods.
+They help assess both the lexical overlap and the semantic closeness between outputs, using a mix of word-level, string-level, n-gram (sequence of n words), and embedding-based methods.
 
 ## How They Work
 Each evaluator compares a `response` with a `reference` (or `ground_truth`) using a specific similarity metric. Some rely on classical methods (BLEU, ROUGE), others use embeddings for semantic comparison, and some apply binary or string distance-based techniques.
@@ -22,7 +22,7 @@ Results are typically numerical scores with configurable thresholds to decide pa
 | RunBleuScoreEvaluator        | n-gram            | Low         | Overlap of word sequences                  |
 | RunGleuScoreEvaluator        | n-gram            | Low         | Balanced precision/recall overlap          |
 | RunRougeScoreEvaluator       | n-gram            | Low         | Summary-level similarity (F1)              |
-| RunF1ScoreEvaluator          | Token             | Low         | Precision and recall                       |
+| RunF1ScoreEvaluator          | Word              | Low         | Precision and recall                       |
 | RunNonLLMStringSimilarity    | String Distance   | Low         | String distance metrics (e.g. Levenshtein) |
 | RunStringPresence            | String Match      | Low         | Binary presence of reference               |
 | RunExactMatch                | String Match      | Low         | Exact match detection                      |
@@ -142,7 +142,7 @@ Uses ROUGE-L (longest common subsequence) to compute F1 scores.
 
 ### 7. RunF1ScoreEvaluator
 
-Token-level comparison using harmonic mean of precision and recall.
+Word-level comparison using harmonic mean of precision and recall.
 
 **Expected Inputs:**
 - `response` – Model output.
@@ -154,7 +154,7 @@ Token-level comparison using harmonic mean of precision and recall.
 - `f1_result` – `pass`/`fail`.
 
 **Use When:**
-- You want balanced token overlap accuracy.
+- You want balanced word overlap accuracy.
 
 ---
 
