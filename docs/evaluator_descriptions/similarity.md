@@ -24,8 +24,8 @@ Results are typically numerical scores with configurable thresholds to decide pa
 | RunRougeScoreEvaluator       | n-gram            | Low         | Summary-level similarity (F1)              |
 | RunF1ScoreEvaluator          | Word              | Low         | Precision and recall                       |
 | RunNonLLMStringSimilarity    | String Distance   | Low         | String distance metrics (e.g. Levenshtein) |
-| RunStringPresence            | String Match      | Low         | Binary presence of reference               |
-| RunExactMatch                | String Match      | Low         | Exact match detection                      |
+| RunStringPresenceEvaluator            | String Match      | Low         | Binary presence of reference               |
+| RunExactMatchEvaluator                | String Match      | Low         | Exact match detection                      |
 
 ---
 
@@ -176,7 +176,7 @@ Uses string distance metrics (e.g., Levenshtein, Jaro) for similarity.
 
 ---
 
-### 9. RunStringPresence
+### 9. RunStringPresenceEvaluator
 
 Binary check for whether reference string is present in response.
 
@@ -193,7 +193,7 @@ Binary check for whether reference string is present in response.
 
 ---
 
-### 10. RunExactMatch
+### 10. RunExactMatchEvaluator
 
 Binary evaluator for full-string equality.
 

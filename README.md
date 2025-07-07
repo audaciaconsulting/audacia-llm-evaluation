@@ -136,14 +136,14 @@ The table below summarises each evaluator in the Audacia LLM Evaluation Tool, gr
 | `similarity`           | `RunRougeScoreEvaluator`                       | ROUGE-L F1 score using longest common subsequence.                                                     | Score between 0.0 and 1.0.                                |
 | `similarity`           | `RunF1ScoreEvaluator`                          | Token-level precision and recall.                                                                      | Score between 0.0 and 1.0.                                |
 | `similarity`           | `RunNonLLMStringSimilarity`                    | Uses string distance metrics like Levenshtein.                                                         | Score between 0.0 and 1.0.                                |
-| `similarity`           | `RunStringPresence`                            | Binary evaluator for substring presence.                                                               | 1.0 if found, 0.0 if not.                                 |
-| `similarity`           | `RunExactMatch`                                | Binary evaluator for exact match.                                                                      | 1.0 if identical, 0.0 if not.                             |
-| `rag`                  | `RunLLMContextPrecisionWithReference`          | Uses LLM to judge how useful retrieved contexts are relative to a reference answer.                    | Score between 0.0 and 1.0.                                |
-| `rag`                  | `RunNonLLMContextPrecisionWithReference`       | String-based precision comparing retrieved and reference contexts.                                     | Score between 0.0 and 1.0.                                |
-| `rag`                  | `RunLLMContextRecall`                          | LLM-based recall judging how much reference answer is covered by retrieved contexts.                   | Score between 0.0 and 1.0.                                |
-| `rag`                  | `RunNonLLMContextRecall`                       | String-similarity based recall comparing reference and retrieved contexts.                             | Score between 0.0 and 1.0.                                |
-| `rag`                  | `RunFaithfulness`                              | LLM-based judgment of whether the response is faithful to the retrieved contexts.                      | Score between 0.0 and 1.0.                                |
-| `rag`                  | `RunResponseRelevancy`                         | Measures how well the response answers the original query using LLM + embeddings.                      | Score between 0.0 and 1.0.                                |
+| `similarity`           | `RunStringPresenceEvaluator`                            | Binary evaluator for substring presence.                                                               | 1.0 if found, 0.0 if not.                                 |
+| `similarity`           | `RunExactMatchEvaluator`                                | Binary evaluator for exact match.                                                                      | 1.0 if identical, 0.0 if not.                             |
+| `rag`                  | `RunLLMContextPrecisionWithReferenceEvaluator`          | Uses LLM to judge how useful retrieved contexts are relative to a reference answer.                    | Score between 0.0 and 1.0.                                |
+| `rag`                  | `RunNonLLMContextPrecisionWithReferenceEvaluator`       | String-based precision comparing retrieved and reference contexts.                                     | Score between 0.0 and 1.0.                                |
+| `rag`                  | `RunLLMContextRecallEvaluator`                          | LLM-based recall judging how much reference answer is covered by retrieved contexts.                   | Score between 0.0 and 1.0.                                |
+| `rag`                  | `RunNonLLMContextRecallEvaluator`                       | String-similarity based recall comparing reference and retrieved contexts.                             | Score between 0.0 and 1.0.                                |
+| `rag`                  | `RunFaithfulnessEvaluator`                              | LLM-based judgment of whether the response is faithful to the retrieved contexts.                      | Score between 0.0 and 1.0.                                |
+| `rag`                  | `RunResponseRelevancyEvaluator`                         | Measures how well the response answers the original query using LLM + embeddings.                      | Score between 0.0 and 1.0.                                |
 | `sentiment`            | `RunSentimentEvaluatorAgainstExpectedScore`    | Compares the emotional tone (positive, neutral, negative) of the response against an expected sentiment. | Score between -1 (very negative) and 1 (very positive).   |
 | `sentiment`            | `RunSentimentEvaluatorAgainstReferences`  | Compares the emotional tone of the response against a list of golden standard responses.               | Score between -1 (very negative) and 1 (very positive).   |
 | `bias`                 | `RunBiasEvaluatorAgainstExpectedScore`         | Compare the responses potential social, cultural, or political bias against an expected level of bias.  | Score between 0 (neutral) and 1 (biased).                 |
@@ -201,8 +201,8 @@ flowchart TD
 
     B1 --> C{Evaluation Method?}
     
-    C -->|String Match| C1[RunExactMatch\n- Full match required\n- Use when response must be identical]
-    C -->|String Presence| C2[RunStringPresence\n- Ensures key phrase is present\n- Use when response must mention a fact]
+    C -->|String Match| C1[RunExactMatchEvaluator\n- Full match required\n- Use when response must be identical]
+    C -->|String Presence| C2[RunStringPresenceEvaluator\n- Ensures key phrase is present\n- Use when response must mention a fact]
     C -->|Word-Based| C3[RunF1ScoreEvaluator\n- Same words in any order\n- Use when phrasing differs but content is correct]
     C -->|n-gram| C4{Which n-gram method?\n n-gram = word sequences of n length}
     C -->|String Distance| C5[RunNonLLMStringSimilarity\n- Same words, slightly reordered or modified\n- Use for fuzzy comparison]
@@ -231,13 +231,13 @@ flowchart
 
     %% --- Context Precision Decision ---
     B1 --> B1a[Do you need deeper\nsemantic judgment?]
-    B1a -->|Yes| B1b[RunLLMContextPrecisionWithReference\n\nLLM-based relevance\nHigh cost, more accurate]
-    B1a -->|No| B1c[RunNonLLMContextPrecisionWithReference\n\nString-based relevance\nFast, lower cost]
+    B1a -->|Yes| B1b[RunLLMContextPrecisionWithReferenceEvaluator\n\nLLM-based relevance\nHigh cost, more accurate]
+    B1a -->|No| B1c[RunNonLLMContextPrecisionWithReferenceEvaluator\n\nString-based relevance\nFast, lower cost]
 
     %% --- Context Recall Decision ---
     B2 --> B2a[Do you need deeper\nsemantic judgment?]
-    B2a -->|Yes| B2b[RunLLMContextRecall\n\nLLM checks for full\ncoverage of ground truth]
-    B2a -->|No| B2c[RunNonLLMContextRecall\n\nString comparison to verify\nrecall of key facts]
+    B2a -->|Yes| B2b[RunLLMContextRecallEvaluator\n\nLLM checks for full\ncoverage of ground truth]
+    B2a -->|No| B2c[RunNonLLMContextRecallEvaluator\n\nString comparison to verify\nrecall of key facts]
 
     %% --- Generation Metrics ---
     C --> C1[Faithfulness\n\nIs every claim in the response\ngrounded in the retrieved context?\n\nRunFaithfulness\n\nUse to detect hallucinations or\nunsupported claims]

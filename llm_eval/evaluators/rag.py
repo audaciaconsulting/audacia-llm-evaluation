@@ -17,7 +17,7 @@ from llm_eval.tools.model_tools import (
 )
 
 
-class RunLLMContextPrecisionWithReference(RagasBaseEvaluator):
+class RunLLMContextPrecisionWithReferenceEvaluator(RagasBaseEvaluator):
     """
     Evaluation Class: RAG
     Evaluation Method: LLM
@@ -61,7 +61,7 @@ class RunLLMContextPrecisionWithReference(RagasBaseEvaluator):
         )
 
 
-class RunNonLLMContextPrecisionWithReference(RagasBaseEvaluator):
+class RunNonLLMContextPrecisionWithReferenceEvaluator(RagasBaseEvaluator):
     """
     Evaluation Class: RAG
     Evaluation Method: String Similarity
@@ -95,7 +95,7 @@ class RunNonLLMContextPrecisionWithReference(RagasBaseEvaluator):
         )
 
 
-class RunLLMContextRecall(RagasBaseEvaluator):
+class RunLLMContextRecallEvaluator(RagasBaseEvaluator):
     """
     Evaluation Class: RAG
     Evaluation Method: LLM
@@ -142,7 +142,7 @@ class RunLLMContextRecall(RagasBaseEvaluator):
         )
 
 
-class RunNonLLMContextRecall(RagasBaseEvaluator):
+class RunNonLLMContextRecallEvaluator(RagasBaseEvaluator):
     """
     Evaluation Class: RAG
     Evaluation Method: String similarity
@@ -178,7 +178,7 @@ class RunNonLLMContextRecall(RagasBaseEvaluator):
         )
 
 
-class RunFaithfulness(RagasBaseEvaluator):
+class RunFaithfulnessEvaluator(RagasBaseEvaluator):
     """
     Evaluation Class: RAG
     Evaluation Method: LLM
@@ -224,7 +224,7 @@ class RunFaithfulness(RagasBaseEvaluator):
         )
 
 
-class RunResponseRelevancy(RagasBaseEvaluator):
+class RunResponseRelevancyEvaluator(RagasBaseEvaluator):
     """
     Evaluation Class: RAG
     Evaluation Method: LLM + Embeddings
