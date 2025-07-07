@@ -50,6 +50,8 @@ class RunBiasEvaluatorAgainstReferences(TransformerRunEvaluator):
     range defined by the statistical distribution (mean ± scaled standard deviation) of the
     golden responses.
 
+    For this to work effectively include 10 or more reference responses, 3 is the absolute minimum
+
     Args:
         response (str): The model-generated response to be evaluated.
         golden_standards (list[str]): A list of reference responses considered unbiased or ideal.

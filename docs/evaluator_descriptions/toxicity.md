@@ -59,14 +59,14 @@ You can scale the uncertainty using any positive float, which adjusts how tightl
 
 **Expected Inputs:**
 - `response` - The new response you are evaluating.
-- `golden_standards` - A list of gold-standard, acceptable responses.
+- `references` - A list of gold-standard, acceptable responses.
 - `scale_uncertainty` - A multiplier to adjust how strict or lenient the tolerance window is.
 
 **Results Output:**
 - `toxicity` - The calculated toxicity score of the response.
 - `response` - The evaluated output.
-- `golden_standard_responses` - The gold responses used as references.
-- `golden_standard_scores` - Toxicity scores of each golden response.
+- `references` - The gold responses used as references.
+- `reference_scores` - Toxicity scores of each golden response.
 - `mean_score` - Mean toxicity of the golden responses.
 - `calculated_uncertainty` - Standard deviation of the golden scores.
 - `toxicity_result` - The outcome (`pass` or `fail`) based on statistical comparison.
