@@ -16,15 +16,15 @@ Each metric outputs a **numerical score between 0 and 1**, with a configurable t
 
 | Evaluator                                | Retrieval/Generation | Method         | Granularity | Measures                     |
 |------------------------------------------|-----------------------|----------------|-------------|------------------------------|
-| RunLLMContextPrecisionWithReference      | Retrieval             | LLM            | High        | Context match to reference   |
-| RunNonLLMContextPrecisionWithReference   | Retrieval             | String Sim.    | Low         | Context text overlap         |
-| RunLLMContextRecall                      | Retrieval             | LLM            | High        | Recall vs. answer coverage   |
-| RunNonLLMContextRecall                   | Retrieval             | String Sim.    | High        | Reference context coverage   |
-| RunFaithfulness                          | Generation            | LLM            | High        | Truthfulness to context      |
-| RunResponseRelevancy                     | Generation            | LLM + Embed    | High        | Focus and alignment to query |
+| RunLLMContextPrecisionWithReferenceEvaluator      | Retrieval             | LLM            | High        | Context match to reference   |
+| RunNonLLMContextPrecisionWithReferenceEvaluator   | Retrieval             | String Sim.    | Low         | Context text overlap         |
+| RunLLMContextRecallEvaluator                      | Retrieval             | LLM            | High        | Recall vs. answer coverage   |
+| RunNonLLMContextRecallEvaluator                   | Retrieval             | String Sim.    | High        | Reference context coverage   |
+| RunFaithfulnessEvaluator                          | Generation            | LLM            | High        | Truthfulness to context      |
+| RunResponseRelevancyEvaluator                     | Generation            | LLM + Embed    | High        | Focus and alignment to query |
 
 
-### 1. RunLLMContextPrecisionWithReference
+### 1. RunLLMContextPrecisionWithReferenceEvaluator
 
 Assesses how well the retrieved contexts align with a reference answer. This precision score uses an LLM to evaluate if top-ranked contexts are actually useful for answering the query.
 
@@ -44,7 +44,7 @@ Assesses how well the retrieved contexts align with a reference answer. This pre
 
 ---
 
-### 2. RunNonLLMContextPrecisionWithReference
+### 2. RunNonLLMContextPrecisionWithReferenceEvaluator
 
 Computes how well the retrieved contexts match a reference set, using string similarity instead of LLMs.
 
@@ -63,7 +63,7 @@ Computes how well the retrieved contexts match a reference set, using string sim
 
 ---
 
-### 3. RunLLMContextRecall
+### 3. RunLLMContextRecallEvaluator
 
 Evaluates how much of the reference answer is covered by the retrieved contexts using an LLM.
 
@@ -84,7 +84,7 @@ Evaluates how much of the reference answer is covered by the retrieved contexts 
 
 ---
 
-### 4. RunNonLLMContextRecall
+### 4. RunNonLLMContextRecallEvaluator
 
 Measures recall using similarity-based checks between retrieved and reference contexts.
 
@@ -103,7 +103,7 @@ Measures recall using similarity-based checks between retrieved and reference co
 
 ---
 
-### 5. RunFaithfulness
+### 5. RunFaithfulnessEvaluator
 
 Checks whether the generated response is faithful to the retrieved contexts using LLM entailment reasoning.
 
@@ -123,7 +123,7 @@ Checks whether the generated response is faithful to the retrieved contexts usin
 
 ---
 
-### 6. RunResponseRelevancy
+### 6. RunResponseRelevancyEvaluator
 
 Evaluates how well the generated response addresses the original query. Uses LLM + embeddings to score alignment.
 

@@ -269,7 +269,7 @@ class RunF1ScoreEvaluator(BaseScoreEvaluator):
         )
 
 
-class RunSemanticSimilarity(RagasBaseEvaluator):
+class RunSemanticSimilarityEvaluator(RagasBaseEvaluator):
     """
     Evaluation Class: Similarity
     Evaluation Method: Embedding/Cosine Similarity
@@ -311,7 +311,7 @@ class RunSemanticSimilarity(RagasBaseEvaluator):
         )
 
 
-class RunNonLLMStringSimilarity(RagasBaseEvaluator):  # TODO add distance measures param
+class RunNonLLMStringSimilarityEvaluator(RagasBaseEvaluator):  # TODO add distance measures param
     """
     Evaluation Class: RunNonLLMStringSimilarity
     Evaluation Method: String Distance
@@ -336,7 +336,7 @@ class RunNonLLMStringSimilarity(RagasBaseEvaluator):  # TODO add distance measur
         )
 
 
-class RunStringPresence(RagasBaseEvaluator):
+class RunStringPresenceEvaluator(RagasBaseEvaluator):
     """
     Evaluation Class: Similarity
     Evaluation Method: String
@@ -360,7 +360,7 @@ class RunStringPresence(RagasBaseEvaluator):
         )
 
 
-class RunExactMatch(RagasBaseEvaluator):
+class RunExactMatchEvaluator(RagasBaseEvaluator):
     """
     Evaluation Class: Similarity
     Evaluation Method: Srting
