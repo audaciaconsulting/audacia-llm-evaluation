@@ -70,7 +70,7 @@ response = "I absolutely love this product!"
 expected_score = 0.65
 allowed_uncertainty = 0.05
 
-evaluator = RunSentimentEvaluator(
+evaluator = RunSentimentEvaluatorAgainstExpectedScore(
     response=response, 
     expected_score=expected_score, 
     allowed_uncertainty=allowed_uncertainty
@@ -145,11 +145,11 @@ The table below summarises each evaluator in the Audacia LLM Evaluation Tool, gr
 | `rag`                  | `RunFaithfulness`                              | LLM-based judgment of whether the response is faithful to the retrieved contexts.                      | Score between 0.0 and 1.0.                                |
 | `rag`                  | `RunResponseRelevancy`                         | Measures how well the response answers the original query using LLM + embeddings.                      | Score between 0.0 and 1.0.                                |
 | `sentiment`            | `RunSentimentEvaluatorAgainstExpectedScore`    | Compares the emotional tone (positive, neutral, negative) of the response against an expected sentiment. | Score between -1 (very negative) and 1 (very positive).   |
-| `sentiment`            | `RunSentimentEvaluatorAgainstGoldenStandards`  | Compares the emotional tone of the response against a list of golden standard responses.               | Score between -1 (very negative) and 1 (very positive).   |
+| `sentiment`            | `RunSentimentEvaluatorAgainstReferences`  | Compares the emotional tone of the response against a list of golden standard responses.               | Score between -1 (very negative) and 1 (very positive).   |
 | `bias`                 | `RunBiasEvaluatorAgainstExpectedScore`         | Compare the responses potential social, cultural, or political bias against an expected level of bias.  | Score between 0 (neutral) and 1 (biased).                 |
-| `bias`                 | `RunBiasEvaluatorAgainstGoldenStandards`       | Compare the responses potential social, cultural, or political bias against golden standard responses.  | Score between 0 (neutral) and 1 (biased).                 |
+| `bias`                 | `RunBiasEvaluatorAgainstReferences`       | Compare the responses potential social, cultural, or political bias against golden standard responses.  | Score between 0 (neutral) and 1 (biased).                 |
 | `toxicity`             | `RunToxicityEvaluatorAgainstExpectedScore`     | Compare the toxicity (offensive or abusive language) in the response against an expected level of toxicity. | Score between 0 (neutral) and 1 (toxic).                |
-| `toxicity`             | `RunToxicityEvaluatorAgainstGoldenStandards`     | Compare the toxicity in the response against a list of golden standards.                             | Score between 0 (neutral) and 1 (toxic).                |
+| `toxicity`             | `RunToxicityEvaluatorAgainstReferences`     | Compare the toxicity in the response against a list of golden standards.                             | Score between 0 (neutral) and 1 (toxic).                |
 | `format`               | `RunCustomResponseEvaluator`                   | Validates whether the LLM output is in a given format passed to the evaluator.                         | Detected format of the response.                           |
 | `format`               | `RunJsonResponseEvaluator`                     | Validates whether the LLM output is in a valid JSON format.                                            | Detected format of the response.                           |
 
@@ -250,7 +250,7 @@ graph TD
   A["Are you evaluating emotional tone or sentiment?"] --> B1["Do you know the expected sentiment score?"]
   B1 --> C1["Yes"] --> D1["Use RunSentimentEvaluatorAgainstExpectedScore"]
   B1 --> C2["No"] --> B2["Do you have golden responses with the right tone?"]
-  B2 --> C3["Yes"] --> D2["Use RunSentimentEvaluatorAgainstGoldenStandards"]
+  B2 --> C3["Yes"] --> D2["Use RunSentimentEvaluatorAgainstReferences"]
 ```
 
 **I'm comparing the bias of my responses...**
@@ -259,7 +259,7 @@ graph TD
   A["Are you checking for cultural, political, or social bias?"] --> B1["Do you know the maximum acceptable bias score?"]
   B1 --> C1["Yes"] --> D1["Use RunBiasEvaluatorAgainstExpectedScore"]
   B1 --> C2["No"] --> B2["Do you have low-bias golden responses to compare with?"]
-  B2 --> C3["Yes"] --> D2["Use RunBiasEvaluatorAgainstGoldenStandards"]
+  B2 --> C3["Yes"] --> D2["Use RunBiasEvaluatorAgainstReferences"]
 ```
 
 **I'm comparing the toxicity of my responses...**
@@ -268,7 +268,7 @@ graph TD
   A["Are you checking for toxicity or harmful language?"] --> B1["Do you have a known toxicity threshold?"]
   B1 --> C1["Yes"] --> D1["Use RunToxicityEvaluatorAgainstExpectedScore"]
   B1 --> C2["No"] --> B2["Do you have safe reference responses to compare with?"]
-  B2 --> C3["Yes"] --> D2["Use RunToxicityEvaluatorAgainstGoldenStandards"]
+  B2 --> C3["Yes"] --> D2["Use RunToxicityEvaluatorAgainstReferences"]
 ```
 
 **I want to check the output format consistency of my responses...**

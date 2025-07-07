@@ -2,7 +2,7 @@ import pytest
 
 from llm_eval.evaluators.sentiment import (
     RunSentimentEvaluatorAgainstExpectedScore,
-    RunSentimentEvaluatorAgainstGoldenStandards,
+    RunSentimentEvaluatorAgainstReferences,
 )
 
 GOLDEN_STANDARDS = [
@@ -98,21 +98,20 @@ def test_evaluate_sentiment_against_known_score(simple_sentiment_case_):
 def test_evaluate_sentiment_against_golden_standards():
     response_text = "Oh wow, this is the best product I've ever received! You have made live worth living now!"
 
-    result = RunSentimentEvaluatorAgainstGoldenStandards(
-        response=response_text, golden_standards=GOLDEN_STANDARDS, scale_uncertainty=3
-    )()  # Scale to 3 standard deviations - acceptable
+    result = RunSentimentEvaluatorAgainstReferences(response=response_text, references=GOLDEN_STANDARDS,
+                                                    scale_uncertainty=3)()  # Scale to 3 standard deviations - acceptable
 
     assert all(
         key in result
         for key in [
             "sentiment",
             "response",
-            "golden_standard_responses",
-            "golden_standard_scores",
+            "references",
+            "reference_scores",
             "mean_score",
             "calculated_uncertainty",
             "sentiment_result",
         ]
     )
-    assert result["golden_standard_responses"] == GOLDEN_STANDARDS
+    assert result["references"] == GOLDEN_STANDARDS
     assert result["sentiment_result"] == "pass"

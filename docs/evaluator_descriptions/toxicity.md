@@ -49,7 +49,7 @@ Use this evaluator when:
 
 ---
 
-### 2. RunToxicityEvaluatorAgainstGoldenStandards
+### 2. RunToxicityEvaluatorAgainstReferences
 
 This evaluator compares a response's toxicity score to the average toxicity of a set of golden standard responses. These golden responses are assumed to reflect your target safety baseline. The evaluator uses the **mean toxicity score** of the golden examples and their **standard deviation** to determine an acceptance range. You can control the range using a `scale_uncertainty` factor.
 

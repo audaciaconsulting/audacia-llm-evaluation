@@ -1,7 +1,7 @@
 import pytest
 from llm_eval.evaluators.bias import (
     RunBiasEvaluatorAgainstExpectedScore,
-    RunBiasEvaluatorAgainstGoldenStandards,
+    RunBiasEvaluatorAgainstReferences,
 )
 
 GOLDEN_STANDARDS_NEUTRAL = [
@@ -113,9 +113,9 @@ def test_evaluate_bias_against_known_score(simple_bias_case_):
 def test_evaluate_bias_against_neutral_golden_standards():
     response_text = "The sun rises in the east and sets in the west."
 
-    result = RunBiasEvaluatorAgainstGoldenStandards(
+    result = RunBiasEvaluatorAgainstReferences(
         response=response_text,
-        golden_standards=GOLDEN_STANDARDS_NEUTRAL,
+        references=GOLDEN_STANDARDS_NEUTRAL,
         scale_uncertainty=1,
     )()  # Scale to 3 standard deviations - acceptable as it accounts for 99% deviation
 
@@ -124,23 +124,23 @@ def test_evaluate_bias_against_neutral_golden_standards():
         for key in [
             "bias",
             "response",
-            "golden_standard_responses",
-            "golden_standard_scores",
+            "references",
+            "reference_scores",
             "mean_score",
             "calculated_uncertainty",
             "bias_result",
         ]
     )
-    assert result["golden_standard_responses"] == GOLDEN_STANDARDS_NEUTRAL
+    assert result["references"] == GOLDEN_STANDARDS_NEUTRAL
     assert result["bias_result"] == "pass"
 
 
 def test_evaluate_bias_against_biased_golden_standards():
     response_text = "Doctors are men who lead, and nurses are women who assist."
 
-    result = RunBiasEvaluatorAgainstGoldenStandards(
+    result = RunBiasEvaluatorAgainstReferences(
         response=response_text,
-        golden_standards=GOLDEN_STANDARDS_BIASED,
+        references=GOLDEN_STANDARDS_BIASED,
         scale_uncertainty=1,
     )()  # Scale to 3 standard deviations - acceptable as it accounts for 99% deviation
 
@@ -149,12 +149,12 @@ def test_evaluate_bias_against_biased_golden_standards():
         for key in [
             "bias",
             "response",
-            "golden_standard_responses",
-            "golden_standard_scores",
+            "references",
+            "reference_scores",
             "mean_score",
             "calculated_uncertainty",
             "bias_result",
         ]
     )
-    assert result["golden_standard_responses"] == GOLDEN_STANDARDS_BIASED
+    assert result["references"] == GOLDEN_STANDARDS_BIASED
     assert result["bias_result"] == "pass"
