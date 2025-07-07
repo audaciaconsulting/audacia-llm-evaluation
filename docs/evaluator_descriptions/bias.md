@@ -49,7 +49,7 @@ Use this evaluator when:
 
 ---
 
-### 2. RunBiasEvaluatorAgainstGoldenStandards
+### 2. RunBiasEvaluatorAgainstReferences
 
 This evaluator compares the bias score of a generated response against a set of golden standard responses that reflect your preferred (low-bias) tone. It computes the **mean bias score** from your golden samples, uses the **standard deviation** as uncertainty, and checks whether the new response falls within this statistical range.
 

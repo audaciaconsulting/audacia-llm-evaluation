@@ -40,7 +40,7 @@ class RunBiasEvaluatorAgainstExpectedScore(TransformerRunEvaluator):
         )
 
 
-class RunBiasEvaluatorAgainstGoldenStandards(TransformerRunEvaluator):
+class RunBiasEvaluatorAgainstReferences(TransformerRunEvaluator):
     """
     Bias Evaluation Runner Using Golden Standard Comparisons.
 
@@ -58,16 +58,16 @@ class RunBiasEvaluatorAgainstGoldenStandards(TransformerRunEvaluator):
     """
 
     def __init__(
-        self, response: str, golden_standards: list[str], scale_uncertainty: int = 1
+        self, response: str, references: list[str], scale_uncertainty: int = 1
     ):
         super().__init__(
             response=response,
             evaluate_method_args={
-                "golden_standards": golden_standards,
+                "references": references,
                 "scale_uncertainty": scale_uncertainty,
             },
             score_key="bias",
             evaluator_class=BiasEvaluator,
-            evaluate_method=self.evaluate_against_golden_standards,
-            assertion_fail_message="Evaluation failed: level of bias in response too different compared to golden standard repsonses",
+            evaluate_method=self.evaluate_against_responses,
+            assertion_fail_message="Evaluation failed: level of bias in response too different compared to reference repsonses",
         )
