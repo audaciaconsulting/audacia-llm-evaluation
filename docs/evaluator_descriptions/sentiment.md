@@ -60,7 +60,7 @@ Use this evaluator when:
 - ✅ Checking that a product FAQ generator remains neutral (expected_score = 0.0) across different inputs.
 - ❌ Not ideal when you don’t know the precise sentiment score you want — better to use golden responses in that case.
 
-### 2. RunSentimentEvaluatorAgainstGoldenStandards
+### 2. RunSentimentEvaluatorAgainstReferences
 
 This specific evaluator is used for calculating a sentiment score for an LLM response, and then comparing it with a list of "golden standard" responses. The purpose of this is that you have LLM responses that capture the sentiment you are trying to currently capture, and you want to use them to evaluate your current response without explicitly knowing a score beforehand.
 

@@ -39,7 +39,7 @@ def test_run_similarity_evaluator_should_pass(
     evaluator = RunSimilarityEvaluator(
         query=query,
         response=response,
-        ground_truth=ground_truth,
+        reference=ground_truth,
         threshold=threshold,
         model_config=model_config,
     )
@@ -80,7 +80,7 @@ def test_run_similarity_evaluator_should_fail(
         evaluator = RunSimilarityEvaluator(
             query=query,
             response=response,
-            ground_truth=ground_truth,
+            reference=ground_truth,
             threshold=threshold,
             model_config=model_config,
         )
