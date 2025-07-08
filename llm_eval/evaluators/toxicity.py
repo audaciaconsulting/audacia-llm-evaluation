@@ -42,17 +42,21 @@ class RunToxicityEvaluatorAgainstExpectedScore(TransformerRunEvaluator):
 
 class RunToxicityEvaluatorAgainstReferences(TransformerRunEvaluator):
     """
-    Evaluation runner for toxicity classification in LLM responses.
+    Toxicity Evaluation Runner Using Golden Standard Comparisons.
 
-    Evaluates whether a given response exhibits toxic content, and validates the
-    classification score against a known value or statistical standard.
+    This evaluator applies a transformer-based `ToxicityEvaluator` to assess the toxicity of a given
+    response and compares the resulting score against a set of golden standard responses.
+    It determines pass/fail by checking if the response's toxicity score falls within an acceptable
+    range defined by the statistical distribution (mean ± scaled standard deviation) of the
+    golden responses.
 
-    Inherits from:
-        TransformerRunEvaluator
+    For this to work effectively include 10 or more reference responses, 3 is the absolute minimum
 
-    Properties:
-        evaluator_class: Returns the ToxicityEvaluator class.
-        score_key: Uses "toxicity" as the key in the result dictionary.
+    Args:
+        response (str): The model-generated response to be evaluated.
+        golden_standards (list[str]): A list of reference responses with no or ideal toxicity.
+        scale_uncertainty (int, optional): Scaling factor for standard deviation used to calculate
+            the tolerance range. Defaults to 1.
     """
 
     def __init__(
