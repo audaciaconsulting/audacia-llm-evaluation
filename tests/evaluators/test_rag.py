@@ -1,12 +1,12 @@
 import pytest
 
 from llm_eval.evaluators.rag import (
-    RunLLMContextPrecisionWithReference,
-    RunLLMContextRecall,
-    RunNonLLMContextPrecisionWithReference,
-    RunNonLLMContextRecall,
-    RunFaithfulness,
-    RunResponseRelevancy,
+    RunLLMContextPrecisionWithReferenceEvaluator,
+    RunLLMContextRecallEvaluator,
+    RunNonLLMContextPrecisionWithReferenceEvaluator,
+    RunNonLLMContextRecallEvaluator,
+    RunFaithfulnessEvaluator,
+    RunResponseRelevancyEvaluator,
 )
 
 
@@ -17,7 +17,7 @@ async def test_llm_context_precision_with_reference_passes(
     retrieved_contexts=["Paris is the location of the Eiffel Tower"],
     threshold=0.9,
 ):
-    await RunLLMContextPrecisionWithReference(
+    await RunLLMContextPrecisionWithReferenceEvaluator(
         user_input, reference, retrieved_contexts, threshold
     ).assert_result()
 
@@ -29,7 +29,7 @@ async def test_llm_context_precision_with_reference_output(
     retrieved_contexts=["Paris is the location of the Eiffel Tower"],
     threshold=0.9,
 ):
-    evaluator = RunLLMContextPrecisionWithReference(
+    evaluator = RunLLMContextPrecisionWithReferenceEvaluator(
         user_input, reference, retrieved_contexts, threshold
     )
     result = await evaluator()
@@ -58,7 +58,7 @@ async def test_llm_context_precision_with_reference_fails(
     threshold=0.6,
 ):
     with pytest.raises(AssertionError):
-        await RunLLMContextPrecisionWithReference(
+        await RunLLMContextPrecisionWithReferenceEvaluator(
             user_input, reference, retrieved_contexts, threshold
         ).assert_result()
 
@@ -72,7 +72,7 @@ async def test_non_llm_context_precision_with_reference_passes(
     ],
     threshold=0.8,
 ):
-    await RunNonLLMContextPrecisionWithReference(
+    await RunNonLLMContextPrecisionWithReferenceEvaluator(
         retrieved_contexts, reference_contexts, threshold
     ).assert_result()
 
@@ -86,7 +86,7 @@ async def test_non_llm_context_precision_with_reference_output(
     ],
     threshold=0.8,
 ):
-    evaluator = RunNonLLMContextPrecisionWithReference(
+    evaluator = RunNonLLMContextPrecisionWithReferenceEvaluator(
         retrieved_contexts, reference_contexts, threshold
     )
     result = await evaluator()
@@ -113,7 +113,7 @@ async def test_non_llm_context_precision_with_reference_fails(
     threshold=0.8,
 ):
     with pytest.raises(AssertionError):
-        await RunNonLLMContextPrecisionWithReference(
+        await RunNonLLMContextPrecisionWithReferenceEvaluator(
             retrieved_contexts, reference_contexts, threshold
         ).assert_result()
 
@@ -128,7 +128,7 @@ async def test_llm_context_recall_passes(
     ],
     threshold=0.8,
 ):
-    await RunLLMContextRecall(
+    await RunLLMContextRecallEvaluator(
         user_input=user_input,
         response=response,
         reference=reference,
@@ -147,7 +147,7 @@ async def test_llm_context_recall_output(
     ],
     threshold=0.8,
 ):
-    evaluator = RunLLMContextRecall(
+    evaluator = RunLLMContextRecallEvaluator(
         user_input=user_input,
         response=response,
         reference=reference,
@@ -179,7 +179,7 @@ async def test_llm_context_recall_fails(
     threshold=0.8,
 ):
     with pytest.raises(AssertionError):
-        await RunLLMContextRecall(
+        await RunLLMContextRecallEvaluator(
             user_input=user_input,
             response=response,
             reference=reference,
@@ -197,7 +197,7 @@ async def test_non_llm_context_recall_passes(
     ],
     threshold=0.5,
 ):
-    await RunNonLLMContextRecall(
+    await RunNonLLMContextRecallEvaluator(
         retrieved_contexts=retrieved_contexts,
         reference_contexts=reference_contexts,
         threshold=threshold,
@@ -213,7 +213,7 @@ async def test_non_llm_context_recall_output(
     ],
     threshold=0.5,
 ):
-    evaluator = RunNonLLMContextRecall(
+    evaluator = RunNonLLMContextRecallEvaluator(
         retrieved_contexts=retrieved_contexts,
         reference_contexts=reference_contexts,
         threshold=threshold,
@@ -242,7 +242,7 @@ async def test_non_llm_context_recall_fails(
     threshold=0.6,
 ):
     with pytest.raises(AssertionError):
-        await RunNonLLMContextRecall(
+        await RunNonLLMContextRecallEvaluator(
             retrieved_contexts=retrieved_contexts,
             reference_contexts=reference_contexts,
             threshold=threshold,
@@ -258,7 +258,7 @@ async def test_run_faithfulness_passes(
     ],
     threshold=0.9,
 ):
-    await RunFaithfulness(
+    await RunFaithfulnessEvaluator(
         user_input=user_input,
         response=response,
         retrieved_contexts=retrieved_contexts,
@@ -275,7 +275,7 @@ async def test_run_faithfulness_output(
     ],
     threshold=0.9,
 ):
-    evaluator = RunFaithfulness(
+    evaluator = RunFaithfulnessEvaluator(
         user_input=user_input,
         response=response,
         retrieved_contexts=retrieved_contexts,
@@ -306,7 +306,7 @@ async def test_run_faithfulness_fails(
     threshold=0.9,
 ):
     with pytest.raises(AssertionError):
-        await RunFaithfulness(
+        await RunFaithfulnessEvaluator(
             user_input=user_input,
             response=response,
             retrieved_contexts=retrieved_contexts,
@@ -320,7 +320,7 @@ async def test_run_response_relevancy_passes(
     response="The first superbowl was held on Jan 15, 1967",
     threshold=0.9,
 ):
-    await RunResponseRelevancy(
+    await RunResponseRelevancyEvaluator(
         user_input=user_input, response=response, threshold=threshold
     ).assert_result()
 
@@ -331,7 +331,7 @@ async def test_run_response_relevancy_output(
     response="The first superbowl was held on Jan 15, 1967",
     threshold=0.9,
 ):
-    evaluator = RunResponseRelevancy(
+    evaluator = RunResponseRelevancyEvaluator(
         user_input=user_input, response=response, threshold=threshold
     )
     result = await evaluator()
@@ -355,6 +355,6 @@ async def test_run_response_relevancy_fails(
     threshold=0.7,
 ):
     with pytest.raises(AssertionError):
-        await RunResponseRelevancy(
+        await RunResponseRelevancyEvaluator(
             user_input=user_input, response=response, threshold=threshold
         ).assert_result()

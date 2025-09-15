@@ -70,7 +70,7 @@ response = "I absolutely love this product!"
 expected_score = 0.65
 allowed_uncertainty = 0.05
 
-evaluator = RunSentimentEvaluator(
+evaluator = RunSentimentEvaluatorAgainstExpectedScore(
     response=response, 
     expected_score=expected_score, 
     allowed_uncertainty=allowed_uncertainty
@@ -136,20 +136,20 @@ The table below summarises each evaluator in the Audacia LLM Evaluation Tool, gr
 | `similarity`           | `RunRougeScoreEvaluator`                       | ROUGE-L F1 score using longest common subsequence.                                                     | Score between 0.0 and 1.0.                                |
 | `similarity`           | `RunF1ScoreEvaluator`                          | Token-level precision and recall.                                                                      | Score between 0.0 and 1.0.                                |
 | `similarity`           | `RunNonLLMStringSimilarity`                    | Uses string distance metrics like Levenshtein.                                                         | Score between 0.0 and 1.0.                                |
-| `similarity`           | `RunStringPresence`                            | Binary evaluator for substring presence.                                                               | 1.0 if found, 0.0 if not.                                 |
-| `similarity`           | `RunExactMatch`                                | Binary evaluator for exact match.                                                                      | 1.0 if identical, 0.0 if not.                             |
-| `rag`                  | `RunLLMContextPrecisionWithReference`          | Uses LLM to judge how useful retrieved contexts are relative to a reference answer.                    | Score between 0.0 and 1.0.                                |
-| `rag`                  | `RunNonLLMContextPrecisionWithReference`       | String-based precision comparing retrieved and reference contexts.                                     | Score between 0.0 and 1.0.                                |
-| `rag`                  | `RunLLMContextRecall`                          | LLM-based recall judging how much reference answer is covered by retrieved contexts.                   | Score between 0.0 and 1.0.                                |
-| `rag`                  | `RunNonLLMContextRecall`                       | String-similarity based recall comparing reference and retrieved contexts.                             | Score between 0.0 and 1.0.                                |
-| `rag`                  | `RunFaithfulness`                              | LLM-based judgment of whether the response is faithful to the retrieved contexts.                      | Score between 0.0 and 1.0.                                |
-| `rag`                  | `RunResponseRelevancy`                         | Measures how well the response answers the original query using LLM + embeddings.                      | Score between 0.0 and 1.0.                                |
+| `similarity`           | `RunStringPresenceEvaluator`                            | Binary evaluator for substring presence.                                                               | 1.0 if found, 0.0 if not.                                 |
+| `similarity`           | `RunExactMatchEvaluator`                                | Binary evaluator for exact match.                                                                      | 1.0 if identical, 0.0 if not.                             |
+| `rag`                  | `RunLLMContextPrecisionWithReferenceEvaluator`          | Uses LLM to judge how useful retrieved contexts are relative to a reference answer.                    | Score between 0.0 and 1.0.                                |
+| `rag`                  | `RunNonLLMContextPrecisionWithReferenceEvaluator`       | String-based precision comparing retrieved and reference contexts.                                     | Score between 0.0 and 1.0.                                |
+| `rag`                  | `RunLLMContextRecallEvaluator`                          | LLM-based recall judging how much reference answer is covered by retrieved contexts.                   | Score between 0.0 and 1.0.                                |
+| `rag`                  | `RunNonLLMContextRecallEvaluator`                       | String-similarity based recall comparing reference and retrieved contexts.                             | Score between 0.0 and 1.0.                                |
+| `rag`                  | `RunFaithfulnessEvaluator`                              | LLM-based judgment of whether the response is faithful to the retrieved contexts.                      | Score between 0.0 and 1.0.                                |
+| `rag`                  | `RunResponseRelevancyEvaluator`                         | Measures how well the response answers the original query using LLM + embeddings.                      | Score between 0.0 and 1.0.                                |
 | `sentiment`            | `RunSentimentEvaluatorAgainstExpectedScore`    | Compares the emotional tone (positive, neutral, negative) of the response against an expected sentiment. | Score between -1 (very negative) and 1 (very positive).   |
-| `sentiment`            | `RunSentimentEvaluatorAgainstGoldenStandards`  | Compares the emotional tone of the response against a list of golden standard responses.               | Score between -1 (very negative) and 1 (very positive).   |
+| `sentiment`            | `RunSentimentEvaluatorAgainstReferences`  | Compares the emotional tone of the response against a list of golden standard responses.               | Score between -1 (very negative) and 1 (very positive).   |
 | `bias`                 | `RunBiasEvaluatorAgainstExpectedScore`         | Compare the responses potential social, cultural, or political bias against an expected level of bias.  | Score between 0 (neutral) and 1 (biased).                 |
-| `bias`                 | `RunBiasEvaluatorAgainstGoldenStandards`       | Compare the responses potential social, cultural, or political bias against golden standard responses.  | Score between 0 (neutral) and 1 (biased).                 |
+| `bias`                 | `RunBiasEvaluatorAgainstReferences`       | Compare the responses potential social, cultural, or political bias against golden standard responses.  | Score between 0 (neutral) and 1 (biased).                 |
 | `toxicity`             | `RunToxicityEvaluatorAgainstExpectedScore`     | Compare the toxicity (offensive or abusive language) in the response against an expected level of toxicity. | Score between 0 (neutral) and 1 (toxic).                |
-| `toxicity`             | `RunToxicityEvaluatorAgainstGoldenStandards`     | Compare the toxicity in the response against a list of golden standards.                             | Score between 0 (neutral) and 1 (toxic).                |
+| `toxicity`             | `RunToxicityEvaluatorAgainstReferences`     | Compare the toxicity in the response against a list of golden standards.                             | Score between 0 (neutral) and 1 (toxic).                |
 | `format`               | `RunCustomResponseEvaluator`                   | Validates whether the LLM output is in a given format passed to the evaluator.                         | Detected format of the response.                           |
 | `format`               | `RunJsonResponseEvaluator`                     | Validates whether the LLM output is in a valid JSON format.                                            | Detected format of the response.                           |
 
@@ -201,8 +201,8 @@ flowchart TD
 
     B1 --> C{Evaluation Method?}
     
-    C -->|String Match| C1[RunExactMatch\n- Full match required\n- Use when response must be identical]
-    C -->|String Presence| C2[RunStringPresence\n- Ensures key phrase is present\n- Use when response must mention a fact]
+    C -->|String Match| C1[RunExactMatchEvaluator\n- Full match required\n- Use when response must be identical]
+    C -->|String Presence| C2[RunStringPresenceEvaluator\n- Ensures key phrase is present\n- Use when response must mention a fact]
     C -->|Word-Based| C3[RunF1ScoreEvaluator\n- Same words in any order\n- Use when phrasing differs but content is correct]
     C -->|n-gram| C4{Which n-gram method?\n n-gram = word sequences of n length}
     C -->|String Distance| C5[RunNonLLMStringSimilarity\n- Same words, slightly reordered or modified\n- Use for fuzzy comparison]
@@ -231,13 +231,13 @@ flowchart
 
     %% --- Context Precision Decision ---
     B1 --> B1a[Do you need deeper\nsemantic judgment?]
-    B1a -->|Yes| B1b[RunLLMContextPrecisionWithReference\n\nLLM-based relevance\nHigh cost, more accurate]
-    B1a -->|No| B1c[RunNonLLMContextPrecisionWithReference\n\nString-based relevance\nFast, lower cost]
+    B1a -->|Yes| B1b[RunLLMContextPrecisionWithReferenceEvaluator\n\nLLM-based relevance\nHigh cost, more accurate]
+    B1a -->|No| B1c[RunNonLLMContextPrecisionWithReferenceEvaluator\n\nString-based relevance\nFast, lower cost]
 
     %% --- Context Recall Decision ---
     B2 --> B2a[Do you need deeper\nsemantic judgment?]
-    B2a -->|Yes| B2b[RunLLMContextRecall\n\nLLM checks for full\ncoverage of ground truth]
-    B2a -->|No| B2c[RunNonLLMContextRecall\n\nString comparison to verify\nrecall of key facts]
+    B2a -->|Yes| B2b[RunLLMContextRecallEvaluator\n\nLLM checks for full\ncoverage of ground truth]
+    B2a -->|No| B2c[RunNonLLMContextRecallEvaluator\n\nString comparison to verify\nrecall of key facts]
 
     %% --- Generation Metrics ---
     C --> C1[Faithfulness\n\nIs every claim in the response\ngrounded in the retrieved context?\n\nRunFaithfulness\n\nUse to detect hallucinations or\nunsupported claims]
@@ -250,7 +250,7 @@ graph TD
   A["Are you evaluating emotional tone or sentiment?"] --> B1["Do you know the expected sentiment score?"]
   B1 --> C1["Yes"] --> D1["Use RunSentimentEvaluatorAgainstExpectedScore"]
   B1 --> C2["No"] --> B2["Do you have golden responses with the right tone?"]
-  B2 --> C3["Yes"] --> D2["Use RunSentimentEvaluatorAgainstGoldenStandards"]
+  B2 --> C3["Yes"] --> D2["Use RunSentimentEvaluatorAgainstReferences"]
 ```
 
 **I'm comparing the bias of my responses...**
@@ -259,7 +259,7 @@ graph TD
   A["Are you checking for cultural, political, or social bias?"] --> B1["Do you know the maximum acceptable bias score?"]
   B1 --> C1["Yes"] --> D1["Use RunBiasEvaluatorAgainstExpectedScore"]
   B1 --> C2["No"] --> B2["Do you have low-bias golden responses to compare with?"]
-  B2 --> C3["Yes"] --> D2["Use RunBiasEvaluatorAgainstGoldenStandards"]
+  B2 --> C3["Yes"] --> D2["Use RunBiasEvaluatorAgainstReferences"]
 ```
 
 **I'm comparing the toxicity of my responses...**
@@ -268,7 +268,7 @@ graph TD
   A["Are you checking for toxicity or harmful language?"] --> B1["Do you have a known toxicity threshold?"]
   B1 --> C1["Yes"] --> D1["Use RunToxicityEvaluatorAgainstExpectedScore"]
   B1 --> C2["No"] --> B2["Do you have safe reference responses to compare with?"]
-  B2 --> C3["Yes"] --> D2["Use RunToxicityEvaluatorAgainstGoldenStandards"]
+  B2 --> C3["Yes"] --> D2["Use RunToxicityEvaluatorAgainstReferences"]
 ```
 
 **I want to check the output format consistency of my responses...**

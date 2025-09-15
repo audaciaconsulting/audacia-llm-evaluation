@@ -60,7 +60,7 @@ Use this evaluator when:
 - ✅ Checking that a product FAQ generator remains neutral (expected_score = 0.0) across different inputs.
 - ❌ Not ideal when you don’t know the precise sentiment score you want — better to use golden responses in that case.
 
-### 2. RunSentimentEvaluatorAgainstGoldenStandards
+### 2. RunSentimentEvaluatorAgainstReferences
 
 This specific evaluator is used for calculating a sentiment score for an LLM response, and then comparing it with a list of "golden standard" responses. The purpose of this is that you have LLM responses that capture the sentiment you are trying to currently capture, and you want to use them to evaluate your current response without explicitly knowing a score beforehand.
 
@@ -70,14 +70,14 @@ You can scale the uncertainty using any positive float, which adjusts how tightl
 
 **Expected Inputs:**
 - `response` - This is the LLM response you are evaluating as a string.
-- `golden_standards` - This is the list of strings making up your golden standard responses.
+- `references` - This is the list of strings making up your golden standard responses. Ideally 10+ but a minimum of 3 for uncertainty to be calculated.
 - `scale_uncertainty` - This is the uncertainty in the expected score you will allow.
 
 **Results Output:**
 - `sentiment` - The calculated sentiment of the LLM response.
 - `response` - The LLM response passed to the evaluator.
-- `golden_standard_responses` - The golden standards used to calculated the mean score and the uncertainty.
-- `golden_standard_scores` - The individual sentiment scores for each of the golden standards.
+- `references` - The golden standards used to calculated the mean score and the uncertainty.
+- `reference_scores` - The individual sentiment scores for each of the golden standards.
 - `mean_score` - The calculated mean sentiment score of the golden standards.
 - `calculated_uncertainty` - The standard deviation uncertainty of the golden standard scores.
 - `sentiment_result` - The result of the comparison test, either `pass`/`fail`

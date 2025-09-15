@@ -49,7 +49,7 @@ Use this evaluator when:
 
 ---
 
-### 2. RunBiasEvaluatorAgainstGoldenStandards
+### 2. RunBiasEvaluatorAgainstReferences
 
 This evaluator compares the bias score of a generated response against a set of golden standard responses that reflect your preferred (low-bias) tone. It computes the **mean bias score** from your golden samples, uses the **standard deviation** as uncertainty, and checks whether the new response falls within this statistical range.
 
@@ -59,14 +59,14 @@ You can scale the uncertainty using any positive float, which adjusts how tightl
 
 **Expected Inputs:**
 - `response` - The new LLM output to evaluate.
-- `golden_standards` - A list of ideal, low-bias outputs used as the benchmark.
+- `references` - A list of ideal, low-bias outputs used as the benchmark. Ideally would be 10+ but expect a minimum of 3 otherwise uncertainty cannot be calculated.
 - `scale_uncertainty` - A multiplier to control strictness around the golden mean score.
 
 **Results Output:**
 - `bias` - The calculated bias score of the new response.
 - `response` - The evaluated LLM response.
-- `golden_standard_responses` - The golden examples used for comparison.
-- `golden_standard_scores` - Individual bias scores for each golden response.
+- `references` - The golden examples used for comparison.
+- `reference_scores` - Individual bias scores for each golden response.
 - `mean_score` - Average bias score of the golden standards.
 - `calculated_uncertainty` - The standard deviation across golden scores.
 - `bias_result` - Whether the response passed (`pass`) or exceeded the acceptable range (`fail`).

@@ -6,7 +6,7 @@ Similarity evaluators quantify how closely a model-generated response aligns wit
 They help assess both the lexical overlap and the semantic closeness between outputs, using a mix of word-level, string-level, n-gram (sequence of n words), and embedding-based methods.
 
 ## How They Work
-Each evaluator compares a `response` with a `reference` (or `ground_truth`) using a specific similarity metric. Some rely on classical methods (BLEU, ROUGE), others use embeddings for semantic comparison, and some apply binary or string distance-based techniques.
+Each evaluator compares a `response` with a `reference` using a specific similarity metric. Some rely on classical methods (BLEU, ROUGE), others use embeddings for semantic comparison, and some apply binary or string distance-based techniques.
 
 Results are typically numerical scores with configurable thresholds to decide pass/fail. Some binary methods produce only 0.0/1.0.
 
@@ -24,8 +24,8 @@ Results are typically numerical scores with configurable thresholds to decide pa
 | RunRougeScoreEvaluator       | n-gram            | Low         | Summary-level similarity (F1)              |
 | RunF1ScoreEvaluator          | Word              | Low         | Precision and recall                       |
 | RunNonLLMStringSimilarity    | String Distance   | Low         | String distance metrics (e.g. Levenshtein) |
-| RunStringPresence            | String Match      | Low         | Binary presence of reference               |
-| RunExactMatch                | String Match      | Low         | Exact match detection                      |
+| RunStringPresenceEvaluator            | String Match      | Low         | Binary presence of reference               |
+| RunExactMatchEvaluator                | String Match      | Low         | Exact match detection                      |
 
 ---
 
@@ -36,7 +36,7 @@ Uses sentence embeddings to score similarity between the model's output and the 
 **Expected Inputs:**
 - `query` – Context prompt to frame the comparison.
 - `response` – Model-generated text.
-- `ground_truth` – Reference text to compare against.
+- `reference` – Reference text to compare against.
 - `threshold` – Minimum score (1.0–5.0) to pass.
 
 **Results Output:**
@@ -74,7 +74,7 @@ Leverages METEOR to account for synonyms, stemming, and order in scoring.
 
 **Expected Inputs:**
 - `response` – Generated text.
-- `ground_truth` – Reference text.
+- `reference` – Reference text.
 - `threshold` – METEOR threshold (0.0–1.0).
 
 **Results Output:**
@@ -92,7 +92,7 @@ Computes BLEU score based on n-gram overlap.
 
 **Expected Inputs:**
 - `response` – Generated sentence.
-- `ground_truth` – Reference sentence.
+- `reference` – Reference sentence.
 - `threshold` – BLEU score threshold (0.0–1.0).
 
 **Results Output:**
@@ -110,7 +110,7 @@ GLEU balances precision and recall for n-gram matching.
 
 **Expected Inputs:**
 - `response` – Model output.
-- `ground_truth` – Gold standard response.
+- `reference` – Gold standard response.
 - `threshold` – GLEU threshold (0.0–1.0).
 
 **Results Output:**
@@ -128,7 +128,7 @@ Uses ROUGE-L (longest common subsequence) to compute F1 scores.
 
 **Expected Inputs:**
 - `response` – Generated summary or sentence.
-- `ground_truth` – Reference text.
+- `reference` – Reference text.
 - `threshold` – ROUGE-L F1 threshold (0.0–1.0).
 
 **Results Output:**
@@ -146,7 +146,7 @@ Word-level comparison using harmonic mean of precision and recall.
 
 **Expected Inputs:**
 - `response` – Model output.
-- `ground_truth` – Reference string.
+- `reference` – Reference string.
 - `threshold` – F1 score threshold (0.0–1.0).
 
 **Results Output:**
@@ -176,7 +176,7 @@ Uses string distance metrics (e.g., Levenshtein, Jaro) for similarity.
 
 ---
 
-### 9. RunStringPresence
+### 9. RunStringPresenceEvaluator
 
 Binary check for whether reference string is present in response.
 
@@ -193,7 +193,7 @@ Binary check for whether reference string is present in response.
 
 ---
 
-### 10. RunExactMatch
+### 10. RunExactMatchEvaluator
 
 Binary evaluator for full-string equality.
 

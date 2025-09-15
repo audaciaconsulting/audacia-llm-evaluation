@@ -54,7 +54,7 @@ class RunSimilarityEvaluator:
     Attributes:
         query (str): The input query or prompt providing context for comparison.
         response (str): The model-generated response to evaluate.
-        ground_truth (str): The expected correct response or reference text.
+        reference (str): The expected correct response or reference text.
         threshold (float): The minimum similarity score required to pass the evaluation, ranging from 1.0 to 5.0.
         model_config (Optional[AzureOpenAIModelConfiguration]): Configuration for the LLM used in evaluation.
     """
@@ -64,13 +64,13 @@ class RunSimilarityEvaluator:
         self,
         query: str,
         response: str,
-        ground_truth: str,
+        reference: str,
         threshold: float,
         model_config: Optional[AzureOpenAIModelConfiguration],
     ):
         self.query = query
         self.response = response
-        self.ground_truth = ground_truth
+        self.reference = reference
         self.threshold = threshold
         self.model_config = model_config or get_azure_ai_evaluation_model_config()
 
@@ -84,10 +84,10 @@ class RunSimilarityEvaluator:
         result =  evaluator(
             query=self.query,
             response=self.response,
-            ground_truth=self.ground_truth,
+            ground_truth=self.reference,
         )
 
-        result.update({'query': self.query, 'response': self.response, 'ground_truth': self.ground_truth})
+        result.update({'query': self.query, 'response': self.response, 'reference': self.reference})
 
         logger.info(format_dict_log(dictionary=result))
 
@@ -97,7 +97,6 @@ class RunSimilarityEvaluator:
         result = self()
         if result.get("similarity_result") == "fail":
             raise AssertionError("Similarity evaluation failed against ground truth")
-
 
 
 class RunMeteorScoreEvaluator(BaseScoreEvaluator):
@@ -115,15 +114,15 @@ class RunMeteorScoreEvaluator(BaseScoreEvaluator):
 
     Attributes:
         response (str): The generated text.
-        ground_truth (str): The reference text.
+        reference (str): The reference text.
         threshold (float): METEOR score threshold (0.0 to 1.0).
     """
 
-    def __init__(self, response: str, ground_truth: str, threshold: float):
+    def __init__(self, response: str, reference: str, threshold: float):
         evaluator = MeteorScoreEvaluator(threshold=threshold)
         super().__init__(
             response,
-            ground_truth,
+            reference,
             threshold,
             result_key="meteor_result",
             evaluator=evaluator,
@@ -143,15 +142,15 @@ class RunBleuScoreEvaluator(BaseScoreEvaluator):
 
      Attributes:
          response (str): The generated text.
-         ground_truth (str): The reference text.
+         reference (str): The reference text.
          threshold (float): BLEU score threshold (0.0 to 1.0).
     """
 
-    def __init__(self, response: str, ground_truth: str, threshold: float):
+    def __init__(self, response: str, reference: str, threshold: float):
         evaluator = BleuScoreEvaluator(threshold=threshold)
         super().__init__(
             response,
-            ground_truth,
+            reference,
             threshold,
             result_key="bleu_result",
             evaluator=evaluator,
@@ -172,15 +171,15 @@ class RunGleuScoreEvaluator(BaseScoreEvaluator):
 
     Attributes:
         response (str): The generated text.
-        ground_truth (str): The reference text.
+        reference (str): The reference text.
         threshold (float): GLEU score threshold (0.0 to 1.0).
     """
 
-    def __init__(self, response: str, ground_truth: str, threshold: float):
+    def __init__(self, response: str, reference: str, threshold: float):
         evaluator = GleuScoreEvaluator(threshold=threshold)
         super().__init__(
             response,
-            ground_truth,
+            reference,
             threshold,
             result_key="gleu_result",
             evaluator=evaluator,
@@ -203,11 +202,11 @@ class RunRougeScoreEvaluator(BaseScoreEvaluator):
 
     Attributes:
         response (str): The generated text.
-        ground_truth (str): The reference text.
+        reference (str): The reference text.
         threshold (float): Threshold for F1 score (0.0 to 1.0).
     """
 
-    def __init__(self, response: str, ground_truth: str, threshold: float):
+    def __init__(self, response: str, reference: str, threshold: float):
         evaluator = RougeScoreEvaluator(
             rouge_type=RougeType.ROUGE_L,
             precision_threshold=threshold,
@@ -216,7 +215,7 @@ class RunRougeScoreEvaluator(BaseScoreEvaluator):
         )
         super().__init__(
             response,
-            ground_truth,
+            reference,
             threshold,
             result_key="rouge_f1_score_result",
             evaluator=evaluator,
@@ -242,15 +241,15 @@ class RunF1ScoreEvaluator(BaseScoreEvaluator):
 
     Attributes:
         response (str): The model-generated response to evaluate.
-        ground_truth (str): The correct answer or reference string.
+        reference (str): The correct answer or reference string.
         threshold (float): The F1 score threshold to determine a pass/fail outcome. Must be between 0 and 1.
     """
 
-    def __init__(self, response: str, ground_truth: str, threshold: float):
+    def __init__(self, response: str, reference: str, threshold: float):
         evaluator = F1ScoreEvaluator(threshold=threshold)
         super().__init__(
             response,
-            ground_truth,
+            reference,
             threshold,
             result_key="f1_result",
             evaluator=evaluator,
@@ -258,7 +257,7 @@ class RunF1ScoreEvaluator(BaseScoreEvaluator):
         )
 
 
-class RunSemanticSimilarity(RagasBaseEvaluator):
+class RunSemanticSimilarityEvaluator(RagasBaseEvaluator):
     """
     Evaluation Class: Similarity
     Evaluation Method: Embedding/Cosine Similarity
@@ -300,7 +299,7 @@ class RunSemanticSimilarity(RagasBaseEvaluator):
         )
 
 
-class RunNonLLMStringSimilarity(RagasBaseEvaluator):  # TODO add distance measures param
+class RunNonLLMStringSimilarityEvaluator(RagasBaseEvaluator):  # TODO add distance measures param
     """
     Evaluation Class: RunNonLLMStringSimilarity
     Evaluation Method: String Distance
@@ -325,7 +324,7 @@ class RunNonLLMStringSimilarity(RagasBaseEvaluator):  # TODO add distance measur
         )
 
 
-class RunStringPresence(RagasBaseEvaluator):
+class RunStringPresenceEvaluator(RagasBaseEvaluator):
     """
     Evaluation Class: Similarity
     Evaluation Method: String
@@ -349,7 +348,7 @@ class RunStringPresence(RagasBaseEvaluator):
         )
 
 
-class RunExactMatch(RagasBaseEvaluator):
+class RunExactMatchEvaluator(RagasBaseEvaluator):
     """
     Evaluation Class: Similarity
     Evaluation Method: Srting

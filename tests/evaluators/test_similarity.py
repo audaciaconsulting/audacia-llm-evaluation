@@ -5,15 +5,15 @@ import pytest
 from llm_eval.evaluators.similarity import (
     AzureOpenAIModelConfiguration,
     RunBleuScoreEvaluator,
-    RunExactMatch,
+    RunExactMatchEvaluator,
     RunF1ScoreEvaluator,
     RunGleuScoreEvaluator,
     RunMeteorScoreEvaluator,
-    RunNonLLMStringSimilarity,
+    RunNonLLMStringSimilarityEvaluator,
     RunRougeScoreEvaluator,
-    RunSemanticSimilarity,
+    RunSemanticSimilarityEvaluator,
     RunSimilarityEvaluator,
-    RunStringPresence,
+    RunStringPresenceEvaluator,
 )
 
 
@@ -39,7 +39,7 @@ def test_run_similarity_evaluator_should_pass(
     evaluator = RunSimilarityEvaluator(
         query=query,
         response=response,
-        ground_truth=ground_truth,
+        reference=ground_truth,
         threshold=threshold,
         model_config=model_config,
     )
@@ -80,7 +80,7 @@ def test_run_similarity_evaluator_should_fail(
         evaluator = RunSimilarityEvaluator(
             query=query,
             response=response,
-            ground_truth=ground_truth,
+            reference=ground_truth,
             threshold=threshold,
             model_config=model_config,
         )
@@ -264,7 +264,7 @@ async def test_run_non_llm_string_similarity_passes(
     reference="Marie Curie was born in Warsaw.",
     threshold=0.8,
 ):
-    evaluator = RunNonLLMStringSimilarity(response, reference, threshold)
+    evaluator = RunNonLLMStringSimilarityEvaluator(response, reference, threshold)
     result = await evaluator()
     await evaluator.assert_result()
     assert all(
@@ -286,7 +286,7 @@ async def test_run_non_llm_string_similarity_fails(
     threshold=0.5,
 ):
     with pytest.raises(AssertionError):
-        await RunNonLLMStringSimilarity(response, reference, threshold).assert_result()
+        await RunNonLLMStringSimilarityEvaluator(response, reference, threshold).assert_result()
 
 
 @pytest.mark.asyncio
@@ -295,7 +295,7 @@ async def test_run_embedding_similarity_passes(
     reference="Albert Einstein's theory of relativity revolutionized our understanding of the universe.",
     threshold=0.8,
 ):
-    evaluator = RunSemanticSimilarity(response, reference, threshold)
+    evaluator = RunSemanticSimilarityEvaluator(response, reference, threshold)
     result = await evaluator()
     await evaluator.assert_result()
     assert all(
@@ -317,7 +317,7 @@ async def test_run_embedding_similarity_fails(
     threshold=0.5,
 ):
     with pytest.raises(AssertionError):
-        await RunSemanticSimilarity(response, reference, threshold).assert_result()
+        await RunSemanticSimilarityEvaluator(response, reference, threshold).assert_result()
 
 
 @pytest.mark.asyncio
@@ -325,7 +325,7 @@ async def test_run_string_presence_passes(
     response="Einstein's groundbreaking theory of relativity transformed our comprehension of the cosmos",
     reference="relativity",
 ):
-    evaluator = RunStringPresence(response, reference)
+    evaluator = RunStringPresenceEvaluator(response, reference)
     result = await evaluator()
     await evaluator.assert_result()
     assert all(
@@ -346,7 +346,7 @@ async def test_run_string_presence_fails(
     reference="Newton",
 ):
     with pytest.raises(AssertionError):
-        await RunStringPresence(response, reference).assert_result()
+        await RunStringPresenceEvaluator(response, reference).assert_result()
 
 
 @pytest.mark.asyncio
@@ -354,7 +354,7 @@ async def test_run_exact_match_passes(
     response="Marie Curie was born in Warsaw.",
     reference="Marie Curie was born in Warsaw.",
 ):
-    evaluator = RunExactMatch(response, reference)
+    evaluator = RunExactMatchEvaluator(response, reference)
     result = await evaluator()
     await evaluator.assert_result()
     assert all(
@@ -375,4 +375,4 @@ async def test_run_exact_match_fails(
     reference="Marie Curie was born in Warsaw.",
 ):
     with pytest.raises(AssertionError):
-        await RunExactMatch(response, reference).assert_result()
+        await RunExactMatchEvaluator(response, reference).assert_result()

@@ -1,7 +1,7 @@
 import pytest
 from llm_eval.evaluators.toxicity import (
     RunToxicityEvaluatorAgainstExpectedScore,
-    RunToxicityEvaluatorAgainstGoldenStandards,
+    RunToxicityEvaluatorAgainstReferences,
 )
 
 GOLDEN_STANDARDS_NEUTRAL = [
@@ -100,48 +100,42 @@ def test_evaluate_toxicity_against_known_score(simple_toxicity_case_):
 def test_evaluate_toxicity_against_neutral_golden_standards():
     response_text = "The sun rises in the east and sets in the west."
 
-    result = RunToxicityEvaluatorAgainstGoldenStandards(
-        response=response_text,
-        golden_standards=GOLDEN_STANDARDS_NEUTRAL,
-        scale_uncertainty=3,
-    )()  # Scale to 3 standard deviations - acceptable as it accounts for 99% deviation
+    result = RunToxicityEvaluatorAgainstReferences(response=response_text, references=GOLDEN_STANDARDS_NEUTRAL,
+                                                   scale_uncertainty=3)()  # Scale to 3 standard deviations - acceptable as it accounts for 99% deviation
 
     assert all(
         key in result
         for key in [
             "toxicity",
             "response",
-            "golden_standard_responses",
-            "golden_standard_scores",
+            "references",
+            "reference_scores",
             "mean_score",
             "calculated_uncertainty",
             "toxicity_result",
         ]
     )
-    assert result["golden_standard_responses"] == GOLDEN_STANDARDS_NEUTRAL
+    assert result["references"] == GOLDEN_STANDARDS_NEUTRAL
     assert result["toxicity_result"] == "pass"
 
 
 def test_evaluate_toxicity_against_biased_golden_standards():
     response_text = "You're a worthless piece of trash and everyone hates you."
 
-    result = RunToxicityEvaluatorAgainstGoldenStandards(
-        response=response_text,
-        golden_standards=GOLDEN_STANDARDS_TOXIC,
-        scale_uncertainty=3,
-    )()  # Scale to 3 standard deviations - acceptable as it accounts for 99% deviation
+    result = RunToxicityEvaluatorAgainstReferences(response=response_text, references=GOLDEN_STANDARDS_TOXIC,
+                                                   scale_uncertainty=3)()  # Scale to 3 standard deviations - acceptable as it accounts for 99% deviation
 
     assert all(
         key in result
         for key in [
             "toxicity",
             "response",
-            "golden_standard_responses",
-            "golden_standard_scores",
+            "references",
+            "reference_scores",
             "mean_score",
             "calculated_uncertainty",
             "toxicity_result",
         ]
     )
-    assert result["golden_standard_responses"] == GOLDEN_STANDARDS_TOXIC
+    assert result["references"] == GOLDEN_STANDARDS_TOXIC
     assert result["toxicity_result"] == "pass"
