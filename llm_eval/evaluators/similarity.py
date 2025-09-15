@@ -81,34 +81,22 @@ class RunSimilarityEvaluator:
         evaluator = SimilarityEvaluator(
             model_config=self.model_config, threshold=self.threshold
         )
-        return evaluator(
+        result =  evaluator(
             query=self.query,
             response=self.response,
             ground_truth=self.reference,
         )
 
+        result.update({'query': self.query, 'response': self.response, 'reference': self.reference})
+
+        logger.info(format_dict_log(dictionary=result))
+
+        return result
+
     def assert_result(self):
         result = self()
         if result.get("similarity_result") == "fail":
             raise AssertionError("Similarity evaluation failed against ground truth")
-
-    def evaluate(self, assert_result: bool = False):
-        result = self()
-
-        result.update(
-            {
-                "query": self.query,
-                "response": self.response,
-                "reference": self.reference,
-            }
-        )
-
-        logger.info(format_dict_log(dictionary=result))
-
-        if assert_result:
-            assert result["similarity_result"] == "pass"
-
-        return result
 
 
 class RunMeteorScoreEvaluator(BaseScoreEvaluator):
