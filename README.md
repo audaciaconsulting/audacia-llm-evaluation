@@ -376,7 +376,7 @@ Launch the propmtfoo UI `npm promptfoo view`. Click `Create` > `Red Team` > Fill
 
 Generate the red team config file containing the generated prompts `npx promptfoo redteam generate --config ai_red_teaming/{your promptfoo config}.yaml --output ai_red_teaming/redteam.yaml`  
 
-<i><h5>[Optional: Self Deployed LLM for Prompt Generation</h5>
+<i><h5>>>>>>>>>>>Optional: Self Deployed LLM for Prompt Generation</h5>
 By default prompts are generated remotely by Promptfoos fine tuned LLMs. Some of the plugins can be used to generate prompts using a self deployed LLM. You can check which plugins support this https://www.promptfoo.dev/docs/red-team/plugins/. 
 
 To use a self deployed LLM for prompt generation you will need to set the following variables in the .env and run `set -a; source .env; set +a`
@@ -387,7 +387,7 @@ PROMPTFOO_AZURE_API_HOST={{Endpoint for the cognitive deployment used for prompt
 PROMPTFOO_AZURE_DEPLOYMENT={{Deployment name for the cognitive deployment used for prompt generation}}
 ```
 
-Next, populate the the `provider` section in the config file `envsubst < ai_red_teaming/promptfooconfig.yaml > ai_red_teaming/promptfooconfig.filled.yaml`. Use the filled config file to generate the red team config.</i>]
+Next, populate the the `provider` section in the config file `envsubst < ai_red_teaming/promptfooconfig.yaml > ai_red_teaming/promptfooconfig.filled.yaml`. Use the filled config file to generate the red team config <b><<<<<<<<<<</b></i>
 
 #### Running the red team evaluations
 `npx promptfoo redteam eval --config ai_red_teaming/redteam.yaml --output ai_red_teaming/results.json`  
