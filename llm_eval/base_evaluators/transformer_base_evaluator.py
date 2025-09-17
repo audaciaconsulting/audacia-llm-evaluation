@@ -2,6 +2,8 @@ import logging
 from statistics import mean, stdev
 from typing import List
 
+from llm_eval.tools.utils import format_dict_log
+
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
@@ -102,6 +104,8 @@ class TransformerRunEvaluator:
             }
         )
 
+        logger.info(format_dict_log(dictionary=self.result))
+
         return self.result
 
     def evaluate_against_responses(
@@ -142,4 +146,6 @@ class TransformerRunEvaluator:
                 f"{self.score_key}_result": "pass" if pass_state else "fail",
             }
         )
+
+        logger.info(format_dict_log(dictionary=self.result))
         return self.result

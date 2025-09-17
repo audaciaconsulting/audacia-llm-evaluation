@@ -118,12 +118,6 @@ The Audacia LLM Evaluation Tool focuses on six key areas of LLM evaluation. In s
 - [Format Consistency](docs/evaluator_descriptions/format.md) — Checks if the response is in the correct structure or JSON format.
 
 ## 🔍 Tool Overview
-
-Each `evaluation_tool` belongs to an and `evaluator_area`, and can be accessed via:
-```python
-from llm_eval.evaluators.evaluator_area import evaluation_tool
-```
-
 The table below summarises each evaluator in the Audacia LLM Evaluation Tool, grouped by their target area and purpose:
 
 | Evaluator Area         | Evaluation Tool                                | Description                                                                                            | Basic Output                                              |
