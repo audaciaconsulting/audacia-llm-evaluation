@@ -279,7 +279,7 @@ graph TD
   B1 --> C2["No"] --> B2["Should the output match a specific Python type (e.g., list, dict)?"]
   B2 --> C3["Yes"] --> D2["Use RunCustomResponseEvaluator"]
 ```
-## ⚔️ AI Red Teaming
+## ⚔️ 2. AI Red Teaming
 
 This section provides information on tools to evaluate and stress-test Large Language Models (LLMs) using red teaming and using Promptfoo to run red team evaluations.
 
