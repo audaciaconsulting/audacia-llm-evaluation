@@ -3,6 +3,20 @@ The **Audacia LLM Evaluation Repo** is comprised of two main components:
 1. **LLM Evaluation Tool**: A Python package for evaluating Large Language Model (LLM) outputs using various evaluators.
 2. **AI Red Teaming**: A framework for automated red teaming of LLMs using Promptfoo.
 
+## Table of Contents
+- [🧠 Introduction](#-introduction)
+  - [1. LLM Evaluation Tool](#1-llm-evaluation-tool)
+    - [🚀 Getting Started](#-getting-started)
+    - [🛠️ Usage Guide](#-usage-guide)
+    - [🧪 Evaluators](#-evaluators)
+    - [📐 Which Tool To Use?](#-which-tool-to-use)
+  - [⚔️ 2. AI Red Teaming](#-2-ai-red-teaming)
+    - [🔴 Red Teaming](#-red-teaming)
+    - [⚠️ LLM Risk Categories](#-llm-risk-categories)
+    - [🧪 Red Teaming Techniques](#-red-teaming-techniques)
+    - [⚙️ Promptfoo](#-promptfoo)
+    - [🛠️ Running Promptfoo for Red Teaming](#-running-promptfoo-for-red-teaming)
+
 ## 1. LLM Evaluation Tool
 
 The **Audacia LLM Evaluation Repo** is a Python package designed to streamline the evaluation of Large Language Model (LLM) outputs. It offers a suite of modular evaluators that assess various aspects of LLM responses, including similarity, retrieval accuracy, sentiment, bias, toxicity, and format consistency.
