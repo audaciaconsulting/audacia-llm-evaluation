@@ -124,7 +124,7 @@ The Tool Overview table below flags which evaluators need to be awaited.
 
 ##### 4. Using the Evaluation Assert
 
-Every evaluator exposes `assert_result`. Call it directly for synchronous tools or `await` it when the evaluator is asynchronous:
+You can call the evaluator with an assertion using `assert_result`. Call it directly for synchronous tools or `await` it when the evaluator is asynchronous:
 
 ```python
 # Sync usage inside a standard test
