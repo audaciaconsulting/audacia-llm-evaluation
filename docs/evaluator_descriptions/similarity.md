@@ -168,8 +168,8 @@ Uses string distance metrics (e.g., Levenshtein, Jaro) for similarity.
 - `threshold` – Score threshold (0.0–1.0).
 
 **Results Output:**
-- `non_llm_string_similarity` – Score.
-- `non_llm_string_similarity_result` – `pass`/`fail`.
+- `non_llmstring_similarity` – Score.
+- `non_llmstring_similarity_result` – `pass`/`fail`.
 
 **Use When:**
 - You prefer character-level distance metrics over semantics.
