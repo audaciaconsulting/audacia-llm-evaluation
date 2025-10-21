@@ -46,6 +46,18 @@ This package currently supports python versions:
 - 3.11
 - 3.12
 
+To install as a package in a uv python environment:
+  ```bash
+  # Install the package from https:
+  uv add git+https://github.com/audaciaconsulting/audacia-llm-evaluation.git
+  ```
+
+- Install a specific release by pinning the Git tag:
+  ```bash
+  uv add git+https://github.com/audaciaconsulting/audacia-llm-evaluation.git@v0.1.0
+  ```
+  See the [GitHub Releases](https://github.com/audaciaconsulting/audacia-llm-evaluation/releases) page for the latest tags and changelog notes.
+
 To install via cloning the repository:
 ```bash
 # Clone the repository
@@ -53,20 +65,8 @@ git clone https://github.com/audaciaconsulting/audacia-llm-evaluation.git
 cd audacia-llm-evaluation
 
 # Install the package in editable mode
-uv sync -e .
+uv sync
 ``` 
-
-To install directly from github:
-  ```bash
-  # Install the package from https:
-  uv add git+https://github.com/audaciaconsulting/audacia-llm-evaluation.git
-  ```
-
-Install a specific release by pinning the Git tag:
-  ```bash
-  uv add git+https://github.com/audaciaconsulting/audacia-llm-evaluation.git@v0.1.0
-  ```
-- See the [GitHub Releases](https://github.com/audaciaconsulting/audacia-llm-evaluation/releases) page for the latest tags and changelog notes.
 
 #### 🛠️ Usage Guide
 
