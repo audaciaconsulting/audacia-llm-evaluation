@@ -443,15 +443,6 @@ Next, populate the the `provider` section in the config file `envsubst < ai_red_
 
 View the results in the UI `npx promptfoo view` or the output json file `ai_red_teaming/results.json`
 
-# Things to do...
-* Complete extensive user testing
-* Test with python version 3.10 and 3.13
-* Supress or deal with warnings
-* Test with "basics" version of OpenAI API
-* are there input range checks where applicable?
-* RunSimilarityEvaluator os 1-5 scale, could change to 0-1
-* 
-
 
 
 
