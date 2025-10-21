@@ -3,6 +3,20 @@ The **Audacia LLM Evaluation Repo** is comprised of two main components:
 1. **LLM Evaluation Tool**: A Python package for evaluating Large Language Model (LLM) outputs using various evaluators.
 2. **AI Red Teaming**: A framework for automated red teaming of LLMs using Promptfoo.
 
+## Table of Contents
+- [🧠 Introduction](#-introduction)
+  - [1. LLM Evaluation Tool](#1-llm-evaluation-tool)
+    - [🚀 Getting Started](#-getting-started)
+    - [🛠️ Usage Guide](#-usage-guide)
+    - [🧪 Evaluators](#-evaluators)
+    - [📐 Which Tool To Use?](#-which-tool-to-use)
+  - [⚔️ 2. AI Red Teaming](#-2-ai-red-teaming)
+    - [🔴 Red Teaming](#-red-teaming)
+    - [⚠️ LLM Risk Categories](#-llm-risk-categories)
+    - [🧪 Red Teaming Techniques](#-red-teaming-techniques)
+    - [⚙️ Promptfoo](#-promptfoo)
+    - [🛠️ Running Promptfoo for Red Teaming](#-running-promptfoo-for-red-teaming)
+
 ## 1. LLM Evaluation Tool
 
 The **Audacia LLM Evaluation Repo** is a Python package designed to streamline the evaluation of Large Language Model (LLM) outputs. It offers a suite of modular evaluators that assess various aspects of LLM responses, including similarity, retrieval accuracy, sentiment, bias, toxicity, and format consistency.
@@ -85,29 +99,48 @@ evaluator = RunSentimentEvaluatorAgainstExpectedScore(
 
 ##### 3. Running the Evaluation
 
-Invoke the evaluator to obtain the evaluation score/result:
+Evaluators expose two call styles:
+
+- **Synchronous evaluators** (e.g. sentiment, bias, toxicity, format) return their result immediately.
+- **Asynchronous evaluators** (RAG tools and the Azure/Ragas similarity tools) return a coroutine and must be awaited.
 
 ```python
-result = evaluator()
-print(result)
-# Output: {'sentiment': 0.62, 'result': 'pass'}
+# Synchronous example
+result = RunSentimentEvaluatorAgainstExpectedScore(
+    response="I absolutely love this product!",
+    expected_score=0.65,
+    allowed_uncertainty=0.05,
+)()
+
+# Asynchronous example
+result = await RunRougeScoreEvaluator(
+    response="Marie Curie was born in Warsaw.",
+    reference="Marie Curie was birthed in Warsaw.",
+    threshold=0.3,
+)()
 ```
+
+The Tool Overview table below flags which evaluators need to be awaited.
 
 ##### 4. Using the Evaluation Assert
 
-If you're writing a unit test and you want to call the evaluator assert directly, you can use the `assert_result` method built into each evaluator:
+You can call the evaluator with an assertion using `assert_result`. Call it directly for synchronous tools or `await` it when the evaluator is asynchronous:
 
 ```python
-def test_sentiment_within_expected_range():
-    response = "I absolutely love this product!"
-    expected_score = 0.65
-    allowed_uncertainty = 0.05
-    
-    RunSentimentEvaluator(
-        response=response, 
-        expected_score=expected_score, 
-        allowed_uncertainty=allowed_uncertainty
-    ).assert_result()
+# Sync usage inside a standard test
+RunSentimentEvaluatorAgainstExpectedScore(
+    response="I absolutely love this product!",
+    expected_score=0.65,
+    allowed_uncertainty=0.05,
+).assert_result()
+
+
+# Async usage inside an asyncio-enabled test
+await RunRougeScoreEvaluator(
+    response="Marie Curie was born in Warsaw.",
+    reference="Marie Curie was birthed in Warsaw.",
+    threshold=0.3,
+).assert_result()
 ```
 
 ### 🧪 Evaluators
@@ -126,32 +159,32 @@ The Audacia LLM Evaluation Tool focuses on six key areas of LLM evaluation. In s
 #### 🔍 Tool Overview
 The table below summarises each evaluator in the Audacia LLM Evaluation Tool, grouped by their target area and purpose:
 
-| Evaluator Area         | Evaluation Tool                                | Description                                                                                            | Basic Output                                              |
-|------------------------|------------------------------------------------|--------------------------------------------------------------------------------------------------------|-----------------------------------------------------------|
-| `similarity`           | `RunSimilarityEvaluator`                       | Embedding-based semantic similarity scoring on a 1–5 scale.                                            | Score between 1 and 5.                                    |
-| `similarity`           | `RunSemanticSimilarity`                        | Embedding-based cosine similarity scoring.                                                             | Score between 0.0 and 1.0.                                |
-| `similarity`           | `RunMeteorScoreEvaluator`                      | Uses METEOR metric with synonym and stem matching.                                                     | Score between 0.0 and 1.0.                                |
-| `similarity`           | `RunBleuScoreEvaluator`                        | BLEU score based on n-gram overlap.                                                                    | Score between 0.0 and 1.0.                                |
-| `similarity`           | `RunGleuScoreEvaluator`                        | GLEU score balancing precision and recall.                                                             | Score between 0.0 and 1.0.                                |
-| `similarity`           | `RunRougeScoreEvaluator`                       | ROUGE-L F1 score using longest common subsequence.                                                     | Score between 0.0 and 1.0.                                |
-| `similarity`           | `RunF1ScoreEvaluator`                          | Token-level precision and recall.                                                                      | Score between 0.0 and 1.0.                                |
-| `similarity`           | `RunNonLLMStringSimilarity`                    | Uses string distance metrics like Levenshtein.                                                         | Score between 0.0 and 1.0.                                |
-| `similarity`           | `RunStringPresenceEvaluator`                            | Binary evaluator for substring presence.                                                               | 1.0 if found, 0.0 if not.                                 |
-| `similarity`           | `RunExactMatchEvaluator`                                | Binary evaluator for exact match.                                                                      | 1.0 if identical, 0.0 if not.                             |
-| `rag`                  | `RunLLMContextPrecisionWithReferenceEvaluator`          | Uses LLM to judge how useful retrieved contexts are relative to a reference answer.                    | Score between 0.0 and 1.0.                                |
-| `rag`                  | `RunNonLLMContextPrecisionWithReferenceEvaluator`       | String-based precision comparing retrieved and reference contexts.                                     | Score between 0.0 and 1.0.                                |
-| `rag`                  | `RunLLMContextRecallEvaluator`                          | LLM-based recall judging how much reference answer is covered by retrieved contexts.                   | Score between 0.0 and 1.0.                                |
-| `rag`                  | `RunNonLLMContextRecallEvaluator`                       | String-similarity based recall comparing reference and retrieved contexts.                             | Score between 0.0 and 1.0.                                |
-| `rag`                  | `RunFaithfulnessEvaluator`                              | LLM-based judgment of whether the response is faithful to the retrieved contexts.                      | Score between 0.0 and 1.0.                                |
-| `rag`                  | `RunResponseRelevancyEvaluator`                         | Measures how well the response answers the original query using LLM + embeddings.                      | Score between 0.0 and 1.0.                                |
-| `sentiment`            | `RunSentimentEvaluatorAgainstExpectedScore`    | Compares the emotional tone (positive, neutral, negative) of the response against an expected sentiment. | Score between -1 (very negative) and 1 (very positive).   |
-| `sentiment`            | `RunSentimentEvaluatorAgainstReferences`  | Compares the emotional tone of the response against a list of golden standard responses.               | Score between -1 (very negative) and 1 (very positive).   |
-| `bias`                 | `RunBiasEvaluatorAgainstExpectedScore`         | Compare the responses potential social, cultural, or political bias against an expected level of bias.  | Score between 0 (neutral) and 1 (biased).                 |
-| `bias`                 | `RunBiasEvaluatorAgainstReferences`       | Compare the responses potential social, cultural, or political bias against golden standard responses.  | Score between 0 (neutral) and 1 (biased).                 |
-| `toxicity`             | `RunToxicityEvaluatorAgainstExpectedScore`     | Compare the toxicity (offensive or abusive language) in the response against an expected level of toxicity. | Score between 0 (neutral) and 1 (toxic).                |
-| `toxicity`             | `RunToxicityEvaluatorAgainstReferences`     | Compare the toxicity in the response against a list of golden standards.                             | Score between 0 (neutral) and 1 (toxic).                |
-| `format`               | `RunCustomResponseEvaluator`                   | Validates whether the LLM output is in a given format passed to the evaluator.                         | Detected format of the response.                           |
-| `format`               | `RunJsonResponseEvaluator`                     | Validates whether the LLM output is in a valid JSON format.                                            | Detected format of the response.                           |
+| Evaluator Area         | Evaluation Tool                                | Description                                                                                            | Basic Output                                              | Await? |
+|------------------------|------------------------------------------------|--------------------------------------------------------------------------------------------------------|-----------------------------------------------------------|--------|
+| `similarity`           | [`RunSimilarityEvaluator`](https://github.com/audaciaconsulting/audacia-llm-evaluation/blob/main/llm_eval/evaluators/similarity.py#L36-L117) | Embedding-based semantic similarity scoring on a 1–5 scale.                                            | Score between 1 and 5.                                    | No     |
+| `similarity`           | [`RunSemanticSimilarity`](https://github.com/audaciaconsulting/audacia-llm-evaluation/blob/main/llm_eval/evaluators/similarity.py#L119-L158) | Embedding-based cosine similarity scoring.                                                             | Score between 0.0 and 1.0.                                | Yes    |
+| `similarity`           | [`RunMeteorScoreEvaluator`](https://github.com/audaciaconsulting/audacia-llm-evaluation/blob/main/llm_eval/evaluators/similarity.py#L160-L188) | Uses METEOR metric with synonym and stem matching.                                                     | Score between 0.0 and 1.0.                                | Yes    |
+| `similarity`           | [`RunBleuScoreEvaluator`](https://github.com/audaciaconsulting/audacia-llm-evaluation/blob/main/llm_eval/evaluators/similarity.py#L191-L216) | BLEU score based on n-gram overlap.                                                                    | Score between 0.0 and 1.0.                                | Yes    |
+| `similarity`           | [`RunGleuScoreEvaluator`](https://github.com/audaciaconsulting/audacia-llm-evaluation/blob/main/llm_eval/evaluators/similarity.py#L219-L245) | GLEU score balancing precision and recall.                                                             | Score between 0.0 and 1.0.                                | Yes    |
+| `similarity`           | [`RunRougeScoreEvaluator`](https://github.com/audaciaconsulting/audacia-llm-evaluation/blob/main/llm_eval/evaluators/similarity.py#L248-L281) | ROUGE-L F1 score using longest common subsequence.                                                     | Score between 0.0 and 1.0.                                | Yes    |
+| `similarity`           | [`RunF1ScoreEvaluator`](https://github.com/audaciaconsulting/audacia-llm-evaluation/blob/main/llm_eval/evaluators/similarity.py#L284-L315) | Token-level precision and recall.                                                                      | Score between 0.0 and 1.0.                                | Yes    |
+| `similarity`           | [`RunNonLLMStringSimilarity`](https://github.com/audaciaconsulting/audacia-llm-evaluation/blob/main/llm_eval/evaluators/similarity.py#L318-L340) | Uses string distance metrics like Levenshtein.                                                         | Score between 0.0 and 1.0.                                | Yes    |
+| `similarity`           | [`RunStringPresenceEvaluator`](https://github.com/audaciaconsulting/audacia-llm-evaluation/blob/main/llm_eval/evaluators/similarity.py#L343-L364) | Binary evaluator for substring presence.                                                               | 1.0 if found, 0.0 if not.                                 | Yes    |
+| `similarity`           | [`RunExactMatchEvaluator`](https://github.com/audaciaconsulting/audacia-llm-evaluation/blob/main/llm_eval/evaluators/similarity.py#L367-L388) | Binary evaluator for exact match.                                                                      | 1.0 if identical, 0.0 if not.                             | Yes    |
+| `rag`                  | [`RunLLMContextPrecisionWithReferenceEvaluator`](https://github.com/audaciaconsulting/audacia-llm-evaluation/blob/main/llm_eval/evaluators/rag.py#L20-L61) | Uses LLM to judge how useful retrieved contexts are relative to a reference answer.                    | Score between 0.0 and 1.0.                                | Yes    |
+| `rag`                  | [`RunNonLLMContextPrecisionWithReferenceEvaluator`](https://github.com/audaciaconsulting/audacia-llm-evaluation/blob/main/llm_eval/evaluators/rag.py#L64-L95) | String-based precision comparing retrieved and reference contexts.                                     | Score between 0.0 and 1.0.                                | Yes    |
+| `rag`                  | [`RunLLMContextRecallEvaluator`](https://github.com/audaciaconsulting/audacia-llm-evaluation/blob/main/llm_eval/evaluators/rag.py#L98-L142) | LLM-based recall judging how much reference answer is covered by retrieved contexts.                   | Score between 0.0 and 1.0.                                | Yes    |
+| `rag`                  | [`RunNonLLMContextRecallEvaluator`](https://github.com/audaciaconsulting/audacia-llm-evaluation/blob/main/llm_eval/evaluators/rag.py#L145-L178) | String-similarity based recall comparing reference and retrieved contexts.                             | Score between 0.0 and 1.0.                                | Yes    |
+| `rag`                  | [`RunFaithfulnessEvaluator`](https://github.com/audaciaconsulting/audacia-llm-evaluation/blob/main/llm_eval/evaluators/rag.py#L181-L224) | LLM-based judgment of whether the response is faithful to the retrieved contexts.                      | Score between 0.0 and 1.0.                                | Yes    |
+| `rag`                  | [`RunResponseRelevancyEvaluator`](https://github.com/audaciaconsulting/audacia-llm-evaluation/blob/main/llm_eval/evaluators/rag.py#L227-L271) | Measures how well the response answers the original query using LLM + embeddings.                      | Score between 0.0 and 1.0.                                | Yes    |
+| `sentiment`            | [`RunSentimentEvaluatorAgainstExpectedScore`](https://github.com/audaciaconsulting/audacia-llm-evaluation/blob/main/llm_eval/evaluators/sentiment.py#L12-L40) | Compares the emotional tone (positive, neutral, negative) of the response against an expected sentiment. | Score between -1 (very negative) and 1 (very positive).   | No     |
+| `sentiment`            | [`RunSentimentEvaluatorAgainstReferences`](https://github.com/audaciaconsulting/audacia-llm-evaluation/blob/main/llm_eval/evaluators/sentiment.py#L43-L75) | Compares the emotional tone of the response against a list of golden standard responses.               | Score between -1 (very negative) and 1 (very positive).   | No     |
+| `bias`                 | [`RunBiasEvaluatorAgainstExpectedScore`](https://github.com/audaciaconsulting/audacia-llm-evaluation/blob/main/llm_eval/evaluators/bias.py#L12-L40) | Compare the responses potential social, cultural, or political bias against an expected level of bias.  | Score between 0 (neutral) and 1 (biased).                 | No     |
+| `bias`                 | [`RunBiasEvaluatorAgainstReferences`](https://github.com/audaciaconsulting/audacia-llm-evaluation/blob/main/llm_eval/evaluators/bias.py#L43-L75) | Compare the responses potential social, cultural, or political bias against golden standard responses.  | Score between 0 (neutral) and 1 (biased).                 | No     |
+| `toxicity`             | [`RunToxicityEvaluatorAgainstExpectedScore`](https://github.com/audaciaconsulting/audacia-llm-evaluation/blob/main/llm_eval/evaluators/toxicity.py#L12-L40) | Compare the toxicity (offensive or abusive language) in the response against an expected level of toxicity. | Score between 0 (neutral) and 1 (toxic).                | No     |
+| `toxicity`             | [`RunToxicityEvaluatorAgainstReferences`](https://github.com/audaciaconsulting/audacia-llm-evaluation/blob/main/llm_eval/evaluators/toxicity.py#L43-L74) | Compare the toxicity in the response against a list of golden standards.                             | Score between 0 (neutral) and 1 (toxic).                | No     |
+| `format`               | [`RunCustomResponseEvaluator`](https://github.com/audaciaconsulting/audacia-llm-evaluation/blob/main/llm_eval/evaluators/format.py#L7-L23) | Validates whether the LLM output is in a given format passed to the evaluator.                         | Detected format of the response.                           | No     |
+| `format`               | [`RunJsonResponseEvaluator`](https://github.com/audaciaconsulting/audacia-llm-evaluation/blob/main/llm_eval/evaluators/format.py#L26-L46) | Validates whether the LLM output is in a valid JSON format.                                            | Detected format of the response.                           | No     |
 
 
 ### 📐 Which Tool To Use?

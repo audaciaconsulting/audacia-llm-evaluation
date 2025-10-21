@@ -28,6 +28,8 @@ This method is responsible for performing the evaluation and returning a diction
 - Contain metric values used in evaluation.
 - Include a `{metric}_result` field set to `"pass"` or `"fail"`.
 
+If the underlying metric exposes an asynchronous interface, declare `async def __call__()` and `async def assert_result()`, and make sure the evaluator documentation states that `await` is required. Base classes such as `RagasBaseEvaluator` and `BaseScoreEvaluator` already handle this pattern.
+
 #### Example Return Format
 
 ```json

@@ -10,22 +10,26 @@ Each evaluator compares a `response` with a `reference` using a specific similar
 
 Results are typically numerical scores with configurable thresholds to decide pass/fail. Some binary methods produce only 0.0/1.0.
 
+> **Async usage:** `RunSimilarityEvaluator` is synchronous. Every other similarity evaluator returns a coroutine from `__call__` and `assert_result`, so make sure to `await` them inside an async context.
+
 ## Evaluators
 
 ### Summary Table
 
-| Evaluator                     | Method            | Granularity | Measures                                   |
-|------------------------------|-------------------|-------------|--------------------------------------------|
-| RunSimilarityEvaluator       | Embedding Cosine  | Medium      | Semantic match (0–5 scale)                 |
-| RunSemanticSimilarity        | Embedding Cosine  | Medium      | Semantic match (0–1 scale)                 |
-| RunMeteorScoreEvaluator      | n-gram + Semantic | Low-Medium  | Lexical and word-level semantic overlap    |
-| RunBleuScoreEvaluator        | n-gram            | Low         | Overlap of word sequences                  |
-| RunGleuScoreEvaluator        | n-gram            | Low         | Balanced precision/recall overlap          |
-| RunRougeScoreEvaluator       | n-gram            | Low         | Summary-level similarity (F1)              |
-| RunF1ScoreEvaluator          | Word              | Low         | Precision and recall                       |
-| RunNonLLMStringSimilarity    | String Distance   | Low         | String distance metrics (e.g. Levenshtein) |
-| RunStringPresenceEvaluator            | String Match      | Low         | Binary presence of reference               |
-| RunExactMatchEvaluator                | String Match      | Low         | Exact match detection                      |
+| Evaluator                     | Method            | Granularity | Measures                                   | Await? |
+|------------------------------|-------------------|-------------|--------------------------------------------|--------|
+| RunSimilarityEvaluator       | Embedding Cosine  | Medium      | Semantic match (0–5 scale)                 | No     |
+| RunSemanticSimilarity        | Embedding Cosine  | Medium      | Semantic match (0–1 scale)                 | Yes    |
+| RunMeteorScoreEvaluator      | n-gram + Semantic | Low-Medium  | Lexical and word-level semantic overlap    | Yes    |
+| RunBleuScoreEvaluator        | n-gram            | Low         | Overlap of word sequences                  | Yes    |
+| RunGleuScoreEvaluator        | n-gram            | Low         | Balanced precision/recall overlap          | Yes    |
+| RunRougeScoreEvaluator       | n-gram            | Low         | Summary-level similarity (F1)              | Yes    |
+| RunF1ScoreEvaluator          | Word              | Low         | Precision and recall                       | Yes    |
+| RunNonLLMStringSimilarity    | String Distance   | Low         | String distance metrics (e.g. Levenshtein) | Yes    |
+| RunStringPresenceEvaluator   | String Match      | Low         | Binary presence of reference               | Yes    |
+| RunExactMatchEvaluator       | String Match      | Low         | Exact match detection                      | Yes    |
+
+`Await?` indicates whether `__call__`/`assert_result` return coroutines that must be awaited.
 
 ---
 
@@ -168,8 +172,8 @@ Uses string distance metrics (e.g., Levenshtein, Jaro) for similarity.
 - `threshold` – Score threshold (0.0–1.0).
 
 **Results Output:**
-- `non_llm_string_similarity` – Score.
-- `non_llm_string_similarity_result` – `pass`/`fail`.
+- `non_llmstring_similarity` – Score.
+- `non_llmstring_similarity_result` – `pass`/`fail`.
 
 **Use When:**
 - You prefer character-level distance metrics over semantics.

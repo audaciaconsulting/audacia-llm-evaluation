@@ -14,14 +14,16 @@ Each metric outputs a **numerical score between 0 and 1**, with a configurable t
 
 ### Summary Table
 
-| Evaluator                                | Retrieval/Generation | Method         | Granularity | Measures                     |
-|------------------------------------------|-----------------------|----------------|-------------|------------------------------|
-| RunLLMContextPrecisionWithReferenceEvaluator      | Retrieval             | LLM            | High        | Context match to reference   |
-| RunNonLLMContextPrecisionWithReferenceEvaluator   | Retrieval             | String Sim.    | Low         | Context text overlap         |
-| RunLLMContextRecallEvaluator                      | Retrieval             | LLM            | High        | Recall vs. answer coverage   |
-| RunNonLLMContextRecallEvaluator                   | Retrieval             | String Sim.    | High        | Reference context coverage   |
-| RunFaithfulnessEvaluator                          | Generation            | LLM            | High        | Truthfulness to context      |
-| RunResponseRelevancyEvaluator                     | Generation            | LLM + Embed    | High        | Focus and alignment to query |
+| Evaluator                                | Retrieval/Generation | Method         | Granularity | Measures                     | Await? |
+|------------------------------------------|-----------------------|----------------|-------------|------------------------------|--------|
+| RunLLMContextPrecisionWithReferenceEvaluator      | Retrieval             | LLM            | High        | Context match to reference   | Yes    |
+| RunNonLLMContextPrecisionWithReferenceEvaluator   | Retrieval             | String Sim.    | Low         | Context text overlap         | Yes    |
+| RunLLMContextRecallEvaluator                      | Retrieval             | LLM            | High        | Recall vs. answer coverage   | Yes    |
+| RunNonLLMContextRecallEvaluator                   | Retrieval             | String Sim.    | High        | Reference context coverage   | Yes    |
+| RunFaithfulnessEvaluator                          | Generation            | LLM            | High        | Truthfulness to context      | Yes    |
+| RunResponseRelevancyEvaluator                     | Generation            | LLM + Embed    | High        | Focus and alignment to query | Yes    |
+
+All RAG evaluators wrap Ragas metrics and therefore expose asynchronous `__call__` / `assert_result` methods that must be awaited.
 
 
 ### 1. RunLLMContextPrecisionWithReferenceEvaluator
