@@ -17,6 +17,16 @@ The **Audacia LLM Evaluation Repo** is comprised of two main components:
     - [⚙️ Promptfoo](#-promptfoo)
     - [🛠️ Running Promptfoo for Red Teaming](#-running-promptfoo-for-red-teaming)
 
+## 📚 Additional Documentation
+
+- `docs/developer_guidelines.md` — How to build new evaluators and follow repo conventions.
+- `docs/evaluator_descriptions/similarity.md` — Similarity evaluator behaviour and configuration.
+- `docs/evaluator_descriptions/rag.md` — RAG evaluator behaviour and configuration.
+- `docs/evaluator_descriptions/sentiment.md` — Sentiment evaluators and usage tips.
+- `docs/evaluator_descriptions/bias.md` — Bias evaluation guidance.
+- `docs/evaluator_descriptions/toxicity.md` — Toxicity evaluation guidance.
+- `docs/evaluator_descriptions/format.md` — Format validators (custom type + JSON).
+
 ## 1. LLM Evaluation Tool
 
 The **Audacia LLM Evaluation Repo** is a Python package designed to streamline the evaluation of Large Language Model (LLM) outputs. It offers a suite of modular evaluators that assess various aspects of LLM responses, including similarity, retrieval accuracy, sentiment, bias, toxicity, and format consistency.
@@ -36,6 +46,18 @@ This package currently supports python versions:
 - 3.11
 - 3.12
 
+To install as a package in a uv python environment:
+  ```bash
+  # Install the package from https:
+  uv add git+https://github.com/audaciaconsulting/audacia-llm-evaluation.git
+  ```
+
+- Install a specific release by pinning the Git tag:
+  ```bash
+  uv add git+https://github.com/audaciaconsulting/audacia-llm-evaluation.git@v0.1.0
+  ```
+  See the [GitHub Releases](https://github.com/audaciaconsulting/audacia-llm-evaluation/releases) page for the latest tags and changelog notes.
+
 To install via cloning the repository:
 ```bash
 # Clone the repository
@@ -43,14 +65,8 @@ git clone https://github.com/audaciaconsulting/audacia-llm-evaluation.git
 cd audacia-llm-evaluation
 
 # Install the package in editable mode
-pip install -e .
+uv sync
 ``` 
-
-To install directly from github:
-```bash
-# Install the package from https:
-pip install git+https://github.com/audaciaconsulting/audacia-llm-evaluation.git
-```
 
 #### 🛠️ Usage Guide
 
@@ -426,15 +442,6 @@ Next, populate the the `provider` section in the config file `envsubst < ai_red_
 `npx promptfoo redteam eval --config ai_red_teaming/redteam.yaml --output ai_red_teaming/results.json`  
 
 View the results in the UI `npx promptfoo view` or the output json file `ai_red_teaming/results.json`
-
-# Things to do...
-* Complete extensive user testing
-* Test with python version 3.10 and 3.13
-* Supress or deal with warnings
-* Test with "basics" version of OpenAI API
-* are there input range checks where applicable?
-* RunSimilarityEvaluator os 1-5 scale, could change to 0-1
-* 
 
 
 
