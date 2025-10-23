@@ -1,5 +1,4 @@
 import json
-import os
 
 import pytest
 
@@ -75,19 +74,12 @@ def test_substitute_env_vars(tmp_path, monkeypatch):
     monkeypatch.setenv("MY_KEY", "secret-key")
     monkeypatch.setenv("MY_HOST", "example.com")
 
-    temp_path = substitute_env_vars(str(config))
+    substituted = substitute_env_vars(str(config))
 
-    try:
-        with open(temp_path) as f:
-            content = f.read()
-
-        assert "apiKey: secret-key" in content
-        assert "host: example.com" in content
-        assert "${MY_KEY}" not in content
-        assert "${MY_HOST}" not in content
-    finally:
-        # Cleanup
-        os.unlink(temp_path)
+    assert "apiKey: secret-key" in substituted
+    assert "host: example.com" in substituted
+    assert "${MY_KEY}" not in substituted
+    assert "${MY_HOST}" not in substituted
 
 
 def test_mask_api_key_in_json(tmp_path):

@@ -2,7 +2,6 @@ import json
 import os
 import re
 import subprocess
-import tempfile
 
 from dotenv import load_dotenv, find_dotenv
 
@@ -54,7 +53,7 @@ def extract_and_check_vars(config_path):
         check_env_vars(required_vars)
 
 def substitute_env_vars(config_path: str) -> str:
-    # Read and substitute env vars
+    """Return config content with environment variables substituted."""
     with open(config_path, "r") as f:
         result = subprocess.run(
             ["envsubst"],
@@ -64,12 +63,7 @@ def substitute_env_vars(config_path: str) -> str:
             check=True,
         )
 
-    # Use temporary file (auto-deleted)
-    with tempfile.NamedTemporaryFile(mode="w", suffix=".yaml", delete=False) as tmp:
-        tmp.write(result.stdout)
-        tmp_path = tmp.name
-
-    return tmp_path
+    return result.stdout
 
 def mask_api_key_in_json(file_path: str, output_path: str = None):
     """Mask API keys in JSON results file."""

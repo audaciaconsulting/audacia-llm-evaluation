@@ -1,11 +1,25 @@
+import argparse
+import contextlib
 import os
 import subprocess
-import argparse
-from llm_eval.red_teaming.promptfoo_utils import load_env_vars, \
-    extract_and_check_vars, substitute_env_vars, mask_api_key_in_json
+from pathlib import Path
+
+from llm_eval.red_teaming.promptfoo_utils import (
+    load_env_vars,
+    extract_and_check_vars,
+    substitute_env_vars,
+    mask_api_key_in_json,
+)
 
 
 def evaluate(config_path: str, output_path: str = None):
+    config_path = Path(config_path).expanduser()
+
+    if not config_path.exists():
+        raise FileNotFoundError(f"Config path not found: {config_path}")
+
+    config_path = config_path.resolve()
+
     os.environ["PROMPTFOO_DISABLE_REDTEAM_REMOTE_GENERATION"] = "1"
     os.environ["PROMPTFOO_DISABLE_TELEMETRY"] = "1"
 
@@ -13,28 +27,42 @@ def evaluate(config_path: str, output_path: str = None):
     load_env_vars()
 
     # Extract and check required env vars from config
-    extract_and_check_vars(config_path)
+    extract_and_check_vars(str(config_path))
 
-    tmp_path = substitute_env_vars(config_path)
+    substituted_config = substitute_env_vars(str(config_path))
+    config_dir = config_path.parent
 
-    if not output_path:
-        output_path = config_path.replace(".yaml", "_results.json")
+    if output_path:
+        output_path = Path(output_path)
+    else:
+        output_path = config_path.with_name(f"{config_path.stem}_results.json")
+
+    output_path = output_path.resolve()
+
+    resolved_config_path = config_dir / f"{config_path.stem}_resolved{config_path.suffix}"
 
     try:
-        # Run the promptfoo eval command with the temp config
+        resolved_config_path.write_text(substituted_config)
+
+        # Run the promptfoo eval command with the resolved config in-place
         cmd = [
             "npx",
             "promptfoo",
             "redteam",
             "eval",
             "--config",
-            tmp_path,
+            str(resolved_config_path),
             "--output",
-            output_path,
+            str(output_path),
         ]
 
         print(f"Running: {' '.join(cmd)}")
-        result = subprocess.run(cmd, capture_output=True, text=True)
+        result = subprocess.run(
+            cmd,
+            capture_output=True,
+            text=True,
+            cwd=str(config_dir),
+        )
 
         # Print stdout/stderr for visibility
         if result.stdout:
@@ -43,14 +71,14 @@ def evaluate(config_path: str, output_path: str = None):
             print(result.stderr)
 
     finally:
-        # Clean up temp file
-        os.unlink(tmp_path)
+        with contextlib.suppress(FileNotFoundError):
+            resolved_config_path.unlink()
 
-    if os.path.exists(output_path):
+    if output_path.exists():
         print(f"\nMasking API keys in {output_path}...")
-        mask_api_key_in_json(output_path)
+        mask_api_key_in_json(str(output_path))
 
-    return output_path
+    return str(output_path)
 
 
 if __name__ == "__main__":
