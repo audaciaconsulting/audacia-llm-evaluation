@@ -5,17 +5,35 @@ The **Audacia LLM Evaluation Repo** is comprised of two main components:
 
 ## Table of Contents
 - [🧠 Introduction](#-introduction)
+  - [📚 Additional Documentation](#-additional-documentation)
   - [1. LLM Evaluation Tool](#1-llm-evaluation-tool)
     - [🚀 Getting Started](#-getting-started)
-    - [🛠️ Usage Guide](#-usage-guide)
+      - [📦 Installation](#-installation)
+      - [🛠️ Usage Guide](#-usage-guide)
+        - [0. Environment Variables](#0-environment-variables)
+        - [1. Importing Evaluators](#1-importing-evaluators)
+        - [2. Initializing an Evaluator](#2-initializing-an-evaluator)
+        - [3. Running the Evaluation](#3-running-the-evaluation)
+        - [4. Using the Evaluation Assert](#4-using-the-evaluation-assert)
     - [🧪 Evaluators](#-evaluators)
+      - [📚 Description & Documentation](#-description-documentation)
+      - [🔍 Tool Overview](#-tool-overview)
     - [📐 Which Tool To Use?](#-which-tool-to-use)
+      - [📊 Scoring Methods Overview](#-scoring-methods-overview)
+        - [🔹 String-Based Methods (Low Granularity)](#-string-based-methods-low-granularity)
+        - [🔸 Embedding-Based Methods (Medium Granularity)](#-embedding-based-methods-medium-granularity)
+        - [🔺 LLM-Based Methods (High Granularity)](#-llm-based-methods-high-granularity)
   - [⚔️ 2. AI Red Teaming](#-2-ai-red-teaming)
     - [🔴 Red Teaming](#-red-teaming)
-    - [⚠️ LLM Risk Categories](#-llm-risk-categories)
-    - [🧪 Red Teaming Techniques](#-red-teaming-techniques)
+      - [⚠️ LLM Risk Categories](#-llm-risk-categories)
+      - [🧪 Red Teaming Techniques](#-red-teaming-techniques)
     - [⚙️ Promptfoo](#-promptfoo)
-    - [🛠️ Running Promptfoo for Red Teaming](#-running-promptfoo-for-red-teaming)
+      - [🛠️ Running Promptfoo for Red Teaming](#-running-promptfoo-for-red-teaming)
+      - [🎯 Configuration Guide](#-configuration-guide)
+      - [🎨 Using the Promptfoo UI](#-using-the-promptfoo-ui)
+      - [▶️ Running Red Team Evaluations](#-running-red-team-evaluations)
+      - [📊 Viewing and Interpreting Results](#-viewing-and-interpreting-results)
+      - [🧩 Promptfoo Red Teaming Development](#-promptfoo-red-teaming-development)
 
 ## 📚 Additional Documentation
 
@@ -336,7 +354,7 @@ This section provides information on tools to evaluate and stress-test Large Lan
 
 Red teaming is the practice of probing models for weaknesses—such as unsafe, biased, or adversarial outputs. It goes beyond standard accuracy testing by intentionally trying to break the model, revealing how it behaves under edge cases or hostile conditions. This helps uncover hidden risks before deployment, improve safety guardrails, guide fine-tuning and policy updates, and ultimately build trust by showing the model has been tested against real-world threats. The tables below summarize the main risk categories and red teaming techniques used to evaluate LLMs.
 
-### ⚠️ LLM Risk Categories
+#### ⚠️ LLM Risk Categories
 
 | **Attack Category**     | **Description**                                                                 | **Examples**                                                                                   |
 |--------------------------|--------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------|
@@ -344,7 +362,7 @@ Red teaming is the practice of probing models for weaknesses—such as unsafe, b
 | **Impropriety Risks**     | Risks where the LLM produces socially harmful, unethical, or unsafe content.     | - Bias & unfair stereotypes (e.g., “Only men can be CEOs”) <br> - Toxic/harassing content (slurs, targeted abuse) <br> - Illegal/unethical guidance (e.g., bomb-making, fraud) <br> - Safety & self-harm encouragement (suicide, disordered eating, unsafe medical advice) |
 | **Reliability Risks**     | Risks where the LLM produces untrustworthy or unstable outputs.                   | - Policy non-compliance (ignoring usage rules) <br> - Misinformation / hallucinations (fabricated “facts”) <br> - Nonsensical outputs (gibberish, contradictions) <br> - Unstable responses (inconsistent answers across runs) |
 
-### 🧪 Red Teaming Techniques
+#### 🧪 Red Teaming Techniques
 
 | **Technique**              | **Description**                                                                 | **Examples**                                                                                         | **Think of it this way**                                                        |
 |-----------------------------|--------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------|
@@ -356,7 +374,7 @@ Red teaming is the practice of probing models for weaknesses—such as unsafe, b
 
 Promptfoo is a framework for automated AI red teaming that makes it easy to evaluate a broad range of attacks in a realistic application context. It generates prompts in the context of your target AI application, ensuring evaluations reflect how the model will behave in production. Promptfoo can map results to security and risk frameworks (e.g. OWASP, NIST RMF, MITRE, and upcoming EU AI regulations), helping align testing with compliance requirements. Its intuitive UI simplifies prompt curation and configuration, while clear reports make findings easy to interpret. Promptfoo evaluations can also be run via CLI in CI/CD pipelines, with results exported in structured formats like JSON for integration into automated workflows.
 
-### 🛠️ Running Promptfoo for Red Teaming
+#### 🛠️ Running Promptfoo for Red Teaming
 
 A detailed guide to using Promptfoo for red teaming can be found in the AI Chabot Template repo {{to be added}}. A working example can be found in bit Bid Writer repo {{to be added}}. Below is a summary of the steps required to run promptfoo for red teaming.
 
@@ -368,7 +386,7 @@ PROMPTFOO_AZURE_API_KEY
 PROMPTFOO_AZURE_API_HOST
 PROMPTFOO_AZURE_DEPLOYMENT
 ```
-### 🎯 Configuration Guide
+#### 🎯 Configuration Guide
 
 1. **Generation yaml config**: Defines what adversarial prompts to generate
 2. **Evaluation yaml config**: Contains the generated prompts ready to run  
@@ -424,7 +442,7 @@ defaultTest:
         delay: 10000  # limit call rate in milliseconds to avoid rate limiting
 ```
 
-### Configuration Parameters Explained
+#### Configuration Parameters Explained
 
 **Key Settings:**
 
@@ -433,18 +451,18 @@ defaultTest:
 - **`numTests`**: More tests = better coverage but longer runtime. Start with 5, increase to 10-20 for thorough testing
 - **`purpose`**: Critical for generating relevant adversarial prompts. Be specific about what your app does and what data it handles
 
-## 🎨 Using the Promptfoo UI
+#### 🎨 Using the Promptfoo UI
 
 The UI helps you configure plugins and strategies interactively:
 
-### Launch the UI
+##### Launch the UI
 
 ```bash
 npx promptfoo view
 ```
 This opens the web interface at `http://localhost:15500`
 
-### Creating Config via UI
+##### Creating Config via UI
 
 1. Click **Create** > **Red Team**
 2. **Application Details**: `purpose` section in the config: make as complete as possible, this provides the app context which is used to generate app specific prompts. 
@@ -453,8 +471,8 @@ This opens the web interface at `http://localhost:15500`
 5. **Review**: Click **View YAML** to see the generated configuration
 6. **Copy**: Copy relevant sections to your red team generation yaml
 
-### ▶️ Running Red Team Evaluations
-#### Generating the red team config file
+#### ▶️ Running Red Team Evaluations
+##### Generating the red team config file
 `python promptfoo_generate.py your_generation_config.yaml`  
 
 or with specified output file:  
@@ -464,7 +482,7 @@ or with specified output file:
 - Promptfoo generates adversarial prompts using its own fine tuned LLMs, based on your app context and selected plugins and strategies
 - Creates an evaluation config with all generated test cases
 
-#### Running the red team evaluations
+##### Running the red team evaluations
 ` python promptfoo_evaluate.py your_evaluation_config.yaml`   
 
 or with specified output file:  
@@ -477,9 +495,8 @@ or with specified output file:
 - Generates pass/fail results and outputs to json
 - Masks API keys in the output for security
 
-### 📊 Viewing and Interpreting Results
+#### 📊 Viewing and Interpreting Results
 
-#### View in UI
 View the results in the UI `npx promptfoo view` 
 
 Navigate to the red team results section to see:
@@ -488,6 +505,9 @@ Navigate to the red team results section to see:
 - Severity ratings (Critical, High, Medium, Low)
 - Full prompt and response details
 
+#### 🧩 Promptfoo Red Teaming Development
+To view detailed logs `export LOG_LEVEL=debug`  
+To disable detailed logs `unset LOG_LEVEL`  
 
 
 
