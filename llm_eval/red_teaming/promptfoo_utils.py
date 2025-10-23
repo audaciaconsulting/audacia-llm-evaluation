@@ -71,7 +71,7 @@ def substitute_env_vars(config_path: str) -> str:
 
     return tmp_path
 
-def mask_api_key_in_json(file_path: str):
+def mask_api_key_in_json(file_path: str, output_path: str = None):
     """Mask API keys in JSON results file."""
     try:
         with open(file_path, 'r') as f:
@@ -108,7 +108,7 @@ def mask_api_key_in_json(file_path: str):
         mask_dict(data)
 
         if masked_count > 0:
-            with open(file_path, 'w') as f:
+            with open(output_path if output_path else file_path, 'w') as f:
                 json.dump(data, f, indent=2)
             print(f"  Total API keys masked: {masked_count}")
         else:

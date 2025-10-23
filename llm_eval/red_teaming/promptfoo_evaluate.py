@@ -1,4 +1,3 @@
-import json
 import os
 import subprocess
 import argparse
@@ -19,7 +18,7 @@ def evaluate(config_path: str, output_path: str = None):
     tmp_path = substitute_env_vars(config_path)
 
     if not output_path:
-        output_path = os.path.join(os.path.dirname(config_path), "results.json")
+        output_path = config_path.replace(".yaml", "_results.json")
 
     try:
         # Run the promptfoo eval command with the temp config
@@ -42,8 +41,6 @@ def evaluate(config_path: str, output_path: str = None):
             print(result.stdout)
         if result.stderr:
             print(result.stderr)
-
-        result.check_returncode()
 
     finally:
         # Clean up temp file

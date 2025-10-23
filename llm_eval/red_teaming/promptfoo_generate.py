@@ -8,7 +8,7 @@ def generate(config_path: str, output_path: str = None):
     os.environ["PROMPTFOO_DISABLE_TELEMETRY"] = "1"
 
     if not output_path:
-        output_path = os.path.join(os.path.dirname(config_path), "redteam.yaml")
+        output_path = config_path.replace(".yaml", "_generated_redteam.yaml")
 
     cmd = [
         "npx",
