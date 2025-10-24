@@ -194,3 +194,5 @@ cython_debug/
 .cursorindexingignore
 .idea
 /llm_eval/red_teaming.ipynb
+/llm_eval/red_teaming/promptfoo_default_config_generated_redteam.yaml
+/llm_eval/red_teaming/promptfoo_default_config_generated_redteam_results.json
