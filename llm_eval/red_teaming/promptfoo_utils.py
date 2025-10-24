@@ -6,11 +6,18 @@ import subprocess
 from dotenv import load_dotenv, find_dotenv
 
 def load_env_vars():
-    """Load environment variables from .env file if it exists"""
+    """Load environment variables from a `.env` file when available."""
     load_dotenv(find_dotenv())
 
 def extract_env_vars_from_config(config_path: str) -> set:
-    """Extract all environment variable references from config file"""
+    """Return environment variables referenced within a config file.
+
+    Args:
+        config_path: Path to the configuration file to scan.
+
+    Returns:
+        set: Names of environment variables referenced with `${VAR_NAME}`.
+    """
     with open(config_path, "r") as f:
         content = f.read()
 
@@ -22,7 +29,15 @@ def extract_env_vars_from_config(config_path: str) -> set:
 
 
 def check_env_vars(required_vars: set):
-    """Check that all required environment variables are set and not empty"""
+    """Ensure required environment variables are set and non-empty.
+
+    Args:
+        required_vars: Collection of environment variable names to validate.
+
+    Raises:
+        EnvironmentError: If any variable is missing or contains only
+            whitespace.
+    """
     missing_vars = []
     empty_vars = []
 
@@ -47,13 +62,32 @@ def check_env_vars(required_vars: set):
         )
 
 def extract_and_check_vars(config_path):
+    """Validate environment variables referenced by the given config file.
+
+    Args:
+        config_path: Path to the configuration file that may contain
+            `${VAR}` placeholders.
+
+    Raises:
+        EnvironmentError: If `check_env_vars` detects missing or empty values.
+    """
     required_vars = extract_env_vars_from_config(config_path)
     if required_vars:
         print(f"Checking environment variables: {', '.join(sorted(required_vars))}")
         check_env_vars(required_vars)
 
 def substitute_env_vars(config_path: str) -> str:
-    """Return config content with environment variables substituted."""
+    """Replace `${VAR}` placeholders in a config file using `envsubst`.
+
+    Args:
+        config_path: Path to the configuration file to process.
+
+    Returns:
+        str: The config content with environment variables expanded.
+
+    Raises:
+        subprocess.CalledProcessError: If the `envsubst` invocation fails.
+    """
     with open(config_path, "r") as f:
         result = subprocess.run(
             ["envsubst"],
@@ -66,7 +100,20 @@ def substitute_env_vars(config_path: str) -> str:
     return result.stdout
 
 def mask_api_key_in_json(file_path: str, output_path: str = None):
-    """Mask API keys in JSON results file."""
+    """Mask API key strings within a JSON results file.
+
+    Args:
+        file_path: Path to the JSON file containing potential API keys.
+        output_path: Optional path for writing masked output; defaults to
+            overwriting `file_path` when omitted.
+
+    Returns:
+        None: Logs masking progress for visibility.
+
+    Raises:
+        json.JSONDecodeError: If the target file contains invalid JSON.
+        FileNotFoundError: If the target file cannot be located.
+    """
     try:
         with open(file_path, 'r') as f:
             content = f.read()

@@ -4,6 +4,20 @@ import argparse
 
 
 def generate(config_path: str, output_path: str = None):
+    """Generate promptfoo red-team tests from a config file.
+
+    Args:
+        config_path: Path to the promptfoo configuration YAML file.
+        output_path: Optional output path for the generated red-team YAML;
+            defaults to `<config>_generated_redteam.yaml` beside the config.
+
+    Returns:
+        str: Path to the generated red-team configuration file.
+
+    Raises:
+        subprocess.CalledProcessError: If the `promptfoo redteam generate`
+            command exits with a non-zero status.
+    """
     os.environ["PROMPTFOO_DISABLE_REDTEAM_REMOTE_GENERATION"] = "0"
     os.environ["PROMPTFOO_DISABLE_TELEMETRY"] = "1"
 

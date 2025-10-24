@@ -13,6 +13,19 @@ from llm_eval.red_teaming.promptfoo_utils import (
 
 
 def evaluate(config_path: str, output_path: str = None):
+    """Run promptfoo red-team evaluation with a config file.
+
+    Args:
+        config_path: Path to the promptfoo configuration file to evaluate.
+        output_path: Optional path for the JSON results file; defaults to
+            `<config_name>_results.json` beside the config.
+
+    Returns:
+        str: Absolute path to the results JSON output.
+
+    Raises:
+        FileNotFoundError: If `config_path` does not exist.
+    """
     config_path = Path(config_path).expanduser()
 
     if not config_path.exists():
