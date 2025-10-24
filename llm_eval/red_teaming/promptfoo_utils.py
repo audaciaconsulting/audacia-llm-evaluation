@@ -128,6 +128,7 @@ def mask_api_key_in_json(file_path: str, output_path: str = None):
         found_keys = []
 
         def mask_dict(obj, path=""):
+            """Recursively traverse JSON-like structures and mask API keys."""
             nonlocal masked_count
             if isinstance(obj, dict):
                 for key, value in obj.items():
