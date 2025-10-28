@@ -2,6 +2,9 @@ import os
 import subprocess
 import argparse
 
+def pii_masking():
+    pass
+
 
 def generate(config_path: str, output_path: str = None):
     """Generate promptfoo red-team tests from a config file.

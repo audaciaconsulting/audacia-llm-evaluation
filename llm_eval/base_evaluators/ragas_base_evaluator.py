@@ -53,6 +53,11 @@ class RagasBaseEvaluator:
         else:
             pass_eval = "pass" if score >= self.threshold else "fail"
 
+        self.sample_data['retrieved_contexts'] = [
+            x if len(x) <= 200 else x[:100] + '......' + x[-100:]
+            for x in self.sample_data['retrieved_contexts']
+        ]
+
         results = {
             **self.sample_data,
             self.metric_name: score,
