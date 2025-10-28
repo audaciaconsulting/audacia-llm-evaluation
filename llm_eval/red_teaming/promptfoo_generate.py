@@ -1,10 +1,60 @@
 import os
 import subprocess
 import argparse
+import tempfile
+
+import yaml
 
 def mask_pii(config_path: str) -> str:
+    """Mask PII values in a promptfoo configuration file.
+
+    Reads the YAML config, replaces values based on the ``piiMasking`` mapping
+    (when present), removes the mapping from the output, writes the masked
+    configuration to a temporary file, and returns the path to that file.
+
+    Args:
+        config_path: Path to the original promptfoo config YAML file.
+
+    Returns:
+        str: Path to the temporary config file with PII masked. Falls back to
+        the original ``config_path`` when no ``piiMasking`` block is present.
+    """
+
+    with open(config_path, "r", encoding="utf-8") as config_file:
+        config_data = yaml.safe_load(config_file) or {}
+
+    if not isinstance(config_data, dict):
+        raise ValueError("Promptfoo config must be a mapping at the top level")
+
+    if "piiMasking" not in config_data or config_data["piiMasking"] is None:
+        return config_path
+
+    pii_mapping = config_data.pop("piiMasking")
+
+    if not isinstance(pii_mapping, dict):
+        raise ValueError("piiMasking must be a dictionary of replacements")
+
+    masked_yaml = yaml.safe_dump(
+        config_data,
+        sort_keys=False,
+        default_flow_style=False,
+        allow_unicode=False,
+    )
+
+    for target, replacement in pii_mapping.items():
+        masked_yaml = masked_yaml.replace(str(target), str(replacement))
+
+    suffix = os.path.splitext(config_path)[1] or ".yaml"
+    with tempfile.NamedTemporaryFile(
+        mode="w", delete=False, suffix=suffix, encoding="utf-8"
+    ) as temp_file:
+        temp_file.write(masked_yaml)
+        masked_config_path = temp_file.name
 
     return masked_config_path
+
+def unmask_pii(red_team_config: str):
+    pass
 
 
 def generate(config_path: str, output_path: str = None):
@@ -43,6 +93,8 @@ def generate(config_path: str, output_path: str = None):
 
     print(f"Running: {' '.join(cmd)}")
     subprocess.run(cmd, check=True)
+
+    unmask_pii(output_path)
 
     return output_path
 
