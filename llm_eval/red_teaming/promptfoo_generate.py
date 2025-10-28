@@ -2,8 +2,9 @@ import os
 import subprocess
 import argparse
 
-def pii_masking():
-    pass
+def mask_pii(config_path: str) -> str:
+
+    return masked_config_path
 
 
 def generate(config_path: str, output_path: str = None):
@@ -27,13 +28,15 @@ def generate(config_path: str, output_path: str = None):
     if not output_path:
         output_path = config_path.replace(".yaml", "_generated_redteam.yaml")
 
+    masked_config_path = mask_pii(config_path)
+
     cmd = [
         "npx",
         "promptfoo",
         "redteam",
         "generate",
         "--config",
-        config_path,
+        masked_config_path,
         "--output",
         output_path,
     ]
