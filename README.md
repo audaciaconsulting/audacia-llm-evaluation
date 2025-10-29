@@ -440,6 +440,9 @@ defaultTest:
         apiHost: ${PROMPTFOO_AZURE_API_HOST}
         verbose: true
         delay: 10000  # limit call rate in milliseconds to avoid rate limiting
+
+piiMasking:
+  Audacia: CompanyA
 ```
 
 #### Configuration Parameters Explained
@@ -450,7 +453,8 @@ defaultTest:
 - **`maxConcurrency`**: Set to 1 for sequential testing. Higher values may trigger rate limits
 - **`numTests`**: More tests = better coverage but longer runtime. Start with 5, increase to 10-20 for thorough testing
 - **`purpose`**: Critical for generating relevant adversarial prompts. Be specific about what your app does and what data it handles
-
+- **`piiMasking`**: Key/Value pairs of sensitive entities and masks. Used to mask for red team config generation (e.g., company names, product names)
+- 
 #### 🎨 Using the Promptfoo UI
 
 The UI helps you configure plugins and strategies interactively:
@@ -479,7 +483,9 @@ or with specified output file:
 `python promptfoo_generate.py your_generation_config.yaml --output your_evaluation_config.yaml`
 
 **What Happens:**
+- PII are masked based on the `piiMasking` section
 - Promptfoo generates adversarial prompts using its own fine tuned LLMs, based on your app context and selected plugins and strategies
+- PII are unmasked and PII use in prompts is detailed in the output config in `piiUseInPrompts`
 - Creates an evaluation config with all generated test cases
 
 ##### Running the red team evaluations

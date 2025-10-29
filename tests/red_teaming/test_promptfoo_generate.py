@@ -2,8 +2,13 @@ import textwrap
 from pathlib import Path
 
 import pytest
+import yaml
 
-from llm_eval.red_teaming.promptfoo_generate import mask_pii, unmask_pii
+from llm_eval.red_teaming.promptfoo_generate import (
+    add_masked_entity_use_summary,
+    mask_pii,
+    unmask_pii,
+)
 
 
 def test_mask_pii_without_mapping_returns_original(tmp_path):
@@ -63,7 +68,9 @@ def test_unmask_pii_restores_original_values(tmp_path):
 
     unmask_pii(str(red_team_config), {"Audacia": "Company A"})
 
-    assert red_team_config.read_text() == "description: Audacia tool\n"
+    parsed = yaml.safe_load(red_team_config.read_text())
+    assert parsed["description"] == "Audacia tool"
+    assert parsed["piiMaskingSummary"] == {"Audacia": []}
 
 
 def test_unmask_pii_no_mapping_noop(tmp_path):
@@ -74,3 +81,30 @@ def test_unmask_pii_no_mapping_noop(tmp_path):
     unmask_pii(str(red_team_config), {})
 
     assert red_team_config.read_text() == original_content
+
+
+def test_add_masked_entity_use_summary_appends_plugin_usage():
+    red_team_yaml = (
+        "tests:\n"
+        "  - vars:\n"
+        "      prompt: Audacia collaborates with Alan Kerby\n"
+        "    metadata:\n"
+        "      pluginId: pii:example\n"
+        "  - vars:\n"
+        "      prompt: Alan Kerby leads delivery at Audacia\n"
+        "    metadata:\n"
+        "      pluginId: pii:db\n"
+    )
+
+    result = add_masked_entity_use_summary(
+        red_team_yaml,
+        {"Audacia": "Company A", "Alan Kerby": "Person B"},
+    )
+
+    parsed = yaml.safe_load(result)
+    summary = parsed["piiMaskingSummary"]
+
+    assert summary == {
+        "Audacia": ["pii:example", "pii:db"],
+        "Alan Kerby": ["pii:example", "pii:db"],
+    }

@@ -45,4 +45,4 @@ defaultTest:
         delay: 10000  # limit call rate in milliseconds to avoid rate limiting
 
 piiMasking:
-  Audacia: Company A
+  Audacia: CompanyA

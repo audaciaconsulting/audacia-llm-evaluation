@@ -77,8 +77,58 @@ def unmask_pii(red_team_config_path: str, pii_mapping: dict[str, str]) -> None:
     ):
         red_team_yaml = red_team_yaml.replace(masked, original)
 
+    updated_yaml = add_masked_entity_use_summary(red_team_yaml, pii_mapping)
+
     with open(red_team_config_path, "w", encoding="utf-8") as config_file:
-        config_file.write(red_team_yaml)
+        config_file.write(updated_yaml)
+
+def add_masked_entity_use_summary(
+    red_team_yaml: str, pii_mapping: dict[str, str]
+) -> str:
+    """Append a summary of masked entity usage by plugin to the config."""
+
+    if not pii_mapping:
+        return red_team_yaml
+
+    marker = "\npiiUseInPrompts:"
+    if marker in red_team_yaml:
+        red_team_yaml = red_team_yaml.split(marker, 1)[0].rstrip() + "\n"
+
+    pii_use = {key: [] for key in pii_mapping.keys()}
+
+    data = yaml.safe_load(red_team_yaml) or {}
+    tests = data.get("tests", []) if isinstance(data, dict) else []
+
+    for test in tests:
+        if not isinstance(test, dict):
+            continue
+
+        vars_section = test.get("vars")
+        prompt_content = (
+            vars_section.get("prompt") if isinstance(vars_section, dict) else None
+        )
+
+        metadata = test.get("metadata")
+        plugin_id = metadata.get("pluginId") if isinstance(metadata, dict) else None
+
+        if not prompt_content or not plugin_id:
+            continue
+
+        for entity in pii_use:
+            if entity in prompt_content and plugin_id not in pii_use[entity]:
+                pii_use[entity].append(plugin_id)
+
+    summary_yaml = yaml.safe_dump(
+        {"piiUseInPrompts": pii_use},
+        sort_keys=False,
+        default_flow_style=False,
+        allow_unicode=False,
+    )
+
+    if not red_team_yaml.endswith("\n"):
+        red_team_yaml += "\n"
+
+    return f"{red_team_yaml}\n{summary_yaml}"
 
 
 def generate(config_path: str, output_path: str = None):
@@ -109,6 +159,7 @@ def generate(config_path: str, output_path: str = None):
         "promptfoo",
         "redteam",
         "generate",
+        "--force",
         "--config",
         masked_config_path,
         "--output",
@@ -119,6 +170,7 @@ def generate(config_path: str, output_path: str = None):
     subprocess.run(cmd, check=True)
 
     unmask_pii(output_path, pii_mapping)
+
 
     return output_path
 
