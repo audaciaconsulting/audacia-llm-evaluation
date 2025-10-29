@@ -5,7 +5,7 @@ import tempfile
 
 import yaml
 
-def mask_pii(config_path: str) -> str:
+def mask_pii(config_path: str) -> tuple[str, dict[str, str]]:
     """Mask PII values in a promptfoo configuration file.
 
     Reads the YAML config, replaces values based on the ``piiMasking`` mapping
@@ -16,8 +16,9 @@ def mask_pii(config_path: str) -> str:
         config_path: Path to the original promptfoo config YAML file.
 
     Returns:
-        str: Path to the temporary config file with PII masked. Falls back to
-        the original ``config_path`` when no ``piiMasking`` block is present.
+        tuple[str, dict[str, str]]: The path to the masked config file and the
+        mapping used for masking. Falls back to the original ``config_path``
+        and an empty mapping when no ``piiMasking`` block is present.
     """
 
     with open(config_path, "r", encoding="utf-8") as config_file:
@@ -27,12 +28,16 @@ def mask_pii(config_path: str) -> str:
         raise ValueError("Promptfoo config must be a mapping at the top level")
 
     if "piiMasking" not in config_data or config_data["piiMasking"] is None:
-        return config_path
+        return config_path, {}
 
     pii_mapping = config_data.pop("piiMasking")
 
     if not isinstance(pii_mapping, dict):
         raise ValueError("piiMasking must be a dictionary of replacements")
+
+    normalized_mapping = {
+        str(target): str(replacement) for target, replacement in pii_mapping.items()
+    }
 
     masked_yaml = yaml.safe_dump(
         config_data,
@@ -41,7 +46,9 @@ def mask_pii(config_path: str) -> str:
         allow_unicode=False,
     )
 
-    for target, replacement in pii_mapping.items():
+    for target, replacement in sorted(
+        normalized_mapping.items(), key=lambda item: len(item[0]), reverse=True
+    ):
         masked_yaml = masked_yaml.replace(str(target), str(replacement))
 
     suffix = os.path.splitext(config_path)[1] or ".yaml"
@@ -51,10 +58,27 @@ def mask_pii(config_path: str) -> str:
         temp_file.write(masked_yaml)
         masked_config_path = temp_file.name
 
-    return masked_config_path
+    return masked_config_path, normalized_mapping
 
-def unmask_pii(red_team_config: str):
-    pass
+def unmask_pii(red_team_config_path: str, pii_mapping: dict[str, str]) -> None:
+    """Restore masked PII values in a generated red-team config file."""
+
+    if not pii_mapping:
+        return
+
+    if not isinstance(pii_mapping, dict):
+        raise ValueError("pii_mapping must be a dictionary of replacements")
+
+    with open(red_team_config_path, "r", encoding="utf-8") as config_file:
+        red_team_yaml = config_file.read()
+
+    for original, masked in sorted(
+        pii_mapping.items(), key=lambda item: len(item[1]), reverse=True
+    ):
+        red_team_yaml = red_team_yaml.replace(masked, original)
+
+    with open(red_team_config_path, "w", encoding="utf-8") as config_file:
+        config_file.write(red_team_yaml)
 
 
 def generate(config_path: str, output_path: str = None):
@@ -78,7 +102,7 @@ def generate(config_path: str, output_path: str = None):
     if not output_path:
         output_path = config_path.replace(".yaml", "_generated_redteam.yaml")
 
-    masked_config_path = mask_pii(config_path)
+    masked_config_path, pii_mapping = mask_pii(config_path)
 
     cmd = [
         "npx",
@@ -94,7 +118,7 @@ def generate(config_path: str, output_path: str = None):
     print(f"Running: {' '.join(cmd)}")
     subprocess.run(cmd, check=True)
 
-    unmask_pii(output_path)
+    unmask_pii(output_path, pii_mapping)
 
     return output_path
 
