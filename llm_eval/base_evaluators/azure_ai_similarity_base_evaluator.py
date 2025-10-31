@@ -44,6 +44,13 @@ class BaseScoreEvaluator:
                 "ground_truth": self.ground_truth,
             }
         )
+
+        result = {
+            **result,
+            "response": self.response,
+            "ground_truth": self.ground_truth,
+        }
+
         logger.info(format_dict_log(dictionary=result))
         return result
 
