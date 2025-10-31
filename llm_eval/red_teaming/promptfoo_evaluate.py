@@ -111,7 +111,7 @@ Environment variables will be automatically detected from config file.
         "--output",
         type=str,
         default=None,
-        help="Output path for results.json (default: results.json in same directory as config)",
+        help="Output path for results.json (default: `<config_name>_results.json` in same directory as config)",
     )
 
     args = parser.parse_args()
