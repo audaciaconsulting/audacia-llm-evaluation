@@ -348,7 +348,7 @@ graph TD
 ```
 ## ⚔️ 2. AI Red Teaming
 
-This section provides information on tools to evaluate and stress-test Large Language Models (LLMs) using red teaming and using Promptfoo to run red team evaluations.
+This section provides information on tools to evaluate and stress-test apps using Large Language Models (LLMs) using red teaming and using Promptfoo to run red team evaluations.
 
 ### 🔴 Red Teaming
 
@@ -379,6 +379,7 @@ Promptfoo is a framework for automated AI red teaming that makes it easy to eval
 A detailed guide to using Promptfoo for red teaming can be found in the AI Chabot Template repo {{to be added}}. A working example can be found in bit Bid Writer repo {{to be added}}. Below is a summary of the steps required to run promptfoo for red teaming.
 
 #### Setting up the environment:
+* [Install this repo](#-installation)
 * Install promptfoo `npm install -g promptfoo`
 * Add environment variables to `.env`  
 ```
@@ -453,8 +454,20 @@ piiMasking:
 - **`maxConcurrency`**: Set to 1 for sequential testing. Higher values may trigger rate limits
 - **`numTests`**: More tests = better coverage but longer runtime. Start with 5, increase to 10-20 for thorough testing
 - **`purpose`**: Critical for generating relevant adversarial prompts. Be specific about what your app does and what data it handles
-- **`piiMasking`**: Key/Value pairs of sensitive entities and masks. Used to mask for red team config generation (e.g., company names, product names)
-- 
+- **`piiMasking`**: Key/Value pairs of sensitive entities to mask. Used to mask for red team config generation (e.g., company names, product names) so that PII are not passed to promptfoo LLMs during prompt generation.
+
+#### Generation Config for App Endpoint
+To use an app as a target endpoint the `targets` key in the config can be set to a python file e.g. `inference_ai_app.py`.
+
+```yaml
+targets:    # endpoint to be tested
+  - id: file://inference_ai_app.py    # python file for app inference
+    label: AI App   # enter app name here
+    config: {}
+```
+
+There is an example of this in the [Bid Writer repo](https://dev.azure.com/audacia/Audacia/_git/Audacia.BidWriter.Chatbot?path=/example_llm_eval_data_science/README.md)
+
 #### 🎨 Using the Promptfoo UI
 
 The UI helps you configure plugins and strategies interactively:
@@ -476,11 +489,14 @@ This opens the web interface at `http://localhost:15500`
 6. **Copy**: Copy relevant sections to your red team generation yaml
 
 #### ▶️ Running Red Team Evaluations
+When this repo is installed as a package use `python -m {command}`.  
+When this repo is installed locally use `python {command}`.  
+
 ##### Generating the red team config file
-`python promptfoo_generate.py your_generation_config.yaml`  
+`python -m promptfoo_generate.py your_generation_config.yaml`
 
 or with specified output file:  
-`python promptfoo_generate.py your_generation_config.yaml --output your_evaluation_config.yaml`
+`python -m promptfoo_generate.py your_generation_config.yaml --output your_evaluation_config.yaml`
 
 **What Happens:**
 - PII are masked based on the `piiMasking` section
@@ -489,10 +505,10 @@ or with specified output file:
 - Creates an evaluation config with all generated test cases
 
 ##### Running the red team evaluations
-` python promptfoo_evaluate.py your_evaluation_config.yaml`   
+`python -m promptfoo_evaluate.py your_evaluation_config.yaml`   
 
 or with specified output file:  
-` python promptfoo_evaluate.py your_evaluation_config.yaml --output your_output.json` 
+`python -m promptfoo_evaluate.py your_evaluation_config.yaml --output your_output.json` 
 
 **What Happens:**
 - Adversarial prompts are sent to your target application
