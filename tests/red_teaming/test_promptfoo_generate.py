@@ -4,7 +4,7 @@ from pathlib import Path
 import pytest
 import yaml
 
-from llm_eval.red_teaming.promptfoo_generate import (
+from llm_eval.red_teaming.promptfoo_utils import (
     add_masked_entity_use_summary,
     mask_pii,
     unmask_pii,
@@ -70,7 +70,7 @@ def test_unmask_pii_restores_original_values(tmp_path):
 
     parsed = yaml.safe_load(red_team_config.read_text())
     assert parsed["description"] == "Audacia tool"
-    assert parsed["piiMaskingSummary"] == {"Audacia": []}
+    assert parsed["piiUseInPrompts"] == {"Audacia": []}
 
 
 def test_unmask_pii_no_mapping_noop(tmp_path):
@@ -102,7 +102,7 @@ def test_add_masked_entity_use_summary_appends_plugin_usage():
     )
 
     parsed = yaml.safe_load(result)
-    summary = parsed["piiMaskingSummary"]
+    summary = parsed["piiUseInPrompts"]
 
     assert summary == {
         "Audacia": ["pii:example", "pii:db"],
