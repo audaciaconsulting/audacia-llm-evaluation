@@ -53,14 +53,31 @@ class RagasBaseEvaluator:
         else:
             pass_eval = "pass" if score >= self.threshold else "fail"
 
+
+        sample_data_logging = self.sample_data.copy()
+
+        for col in ['retrieved_contexts', 'reference_contexts']:
+            if col in sample_data_logging:
+                sample_data_logging[col] = [
+                    x if len(x) <= 200 else x[:100] + '......' + x[-100:]
+                    for x in sample_data_logging[col]
+                ]
+
+        logging_results = {
+            **sample_data_logging,
+            self.metric_name: score,
+            f"{self.metric_name}_threshold": self.threshold,
+            self.metric_name_result: pass_eval,
+        }
+
+        logger.info(format_dict_log(dictionary=logging_results))
+
         results = {
             **self.sample_data,
             self.metric_name: score,
             f"{self.metric_name}_threshold": self.threshold,
             self.metric_name_result: pass_eval,
         }
-
-        logger.info(format_dict_log(dictionary=results))
 
         return results
 

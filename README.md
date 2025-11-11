@@ -5,17 +5,35 @@ The **Audacia LLM Evaluation Repo** is comprised of two main components:
 
 ## Table of Contents
 - [🧠 Introduction](#-introduction)
+  - [📚 Additional Documentation](#-additional-documentation)
   - [1. LLM Evaluation Tool](#1-llm-evaluation-tool)
     - [🚀 Getting Started](#-getting-started)
-    - [🛠️ Usage Guide](#-usage-guide)
+      - [📦 Installation](#-installation)
+      - [🛠️ Usage Guide](#-usage-guide)
+        - [0. Environment Variables](#0-environment-variables)
+        - [1. Importing Evaluators](#1-importing-evaluators)
+        - [2. Initializing an Evaluator](#2-initializing-an-evaluator)
+        - [3. Running the Evaluation](#3-running-the-evaluation)
+        - [4. Using the Evaluation Assert](#4-using-the-evaluation-assert)
     - [🧪 Evaluators](#-evaluators)
+      - [📚 Description & Documentation](#-description-documentation)
+      - [🔍 Tool Overview](#-tool-overview)
     - [📐 Which Tool To Use?](#-which-tool-to-use)
+      - [📊 Scoring Methods Overview](#-scoring-methods-overview)
+        - [🔹 String-Based Methods (Low Granularity)](#-string-based-methods-low-granularity)
+        - [🔸 Embedding-Based Methods (Medium Granularity)](#-embedding-based-methods-medium-granularity)
+        - [🔺 LLM-Based Methods (High Granularity)](#-llm-based-methods-high-granularity)
   - [⚔️ 2. AI Red Teaming](#-2-ai-red-teaming)
     - [🔴 Red Teaming](#-red-teaming)
-    - [⚠️ LLM Risk Categories](#-llm-risk-categories)
-    - [🧪 Red Teaming Techniques](#-red-teaming-techniques)
+      - [⚠️ LLM Risk Categories](#-llm-risk-categories)
+      - [🧪 Red Teaming Techniques](#-red-teaming-techniques)
     - [⚙️ Promptfoo](#-promptfoo)
-    - [🛠️ Running Promptfoo for Red Teaming](#-running-promptfoo-for-red-teaming)
+      - [🛠️ Running Promptfoo for Red Teaming](#-running-promptfoo-for-red-teaming)
+      - [🎯 Configuration Guide](#-configuration-guide)
+      - [🎨 Using the Promptfoo UI](#-using-the-promptfoo-ui)
+      - [▶️ Running Red Team Evaluations](#-running-red-team-evaluations)
+      - [📊 Viewing and Interpreting Results](#-viewing-and-interpreting-results)
+      - [🧩 Promptfoo Red Teaming Development](#-promptfoo-red-teaming-development)
 
 ## 📚 Additional Documentation
 
@@ -330,13 +348,13 @@ graph TD
 ```
 ## ⚔️ 2. AI Red Teaming
 
-This section provides information on tools to evaluate and stress-test Large Language Models (LLMs) using red teaming and using Promptfoo to run red team evaluations.
+This section provides information on tools to evaluate and stress-test apps using Large Language Models (LLMs) using red teaming and using Promptfoo to run red team evaluations.
 
 ### 🔴 Red Teaming
 
 Red teaming is the practice of probing models for weaknesses—such as unsafe, biased, or adversarial outputs. It goes beyond standard accuracy testing by intentionally trying to break the model, revealing how it behaves under edge cases or hostile conditions. This helps uncover hidden risks before deployment, improve safety guardrails, guide fine-tuning and policy updates, and ultimately build trust by showing the model has been tested against real-world threats. The tables below summarize the main risk categories and red teaming techniques used to evaluate LLMs.
 
-### ⚠️ LLM Risk Categories
+#### ⚠️ LLM Risk Categories
 
 | **Attack Category**     | **Description**                                                                 | **Examples**                                                                                   |
 |--------------------------|--------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------|
@@ -344,7 +362,7 @@ Red teaming is the practice of probing models for weaknesses—such as unsafe, b
 | **Impropriety Risks**     | Risks where the LLM produces socially harmful, unethical, or unsafe content.     | - Bias & unfair stereotypes (e.g., “Only men can be CEOs”) <br> - Toxic/harassing content (slurs, targeted abuse) <br> - Illegal/unethical guidance (e.g., bomb-making, fraud) <br> - Safety & self-harm encouragement (suicide, disordered eating, unsafe medical advice) |
 | **Reliability Risks**     | Risks where the LLM produces untrustworthy or unstable outputs.                   | - Policy non-compliance (ignoring usage rules) <br> - Misinformation / hallucinations (fabricated “facts”) <br> - Nonsensical outputs (gibberish, contradictions) <br> - Unstable responses (inconsistent answers across runs) |
 
-### 🧪 Red Teaming Techniques
+#### 🧪 Red Teaming Techniques
 
 | **Technique**              | **Description**                                                                 | **Examples**                                                                                         | **Think of it this way**                                                        |
 |-----------------------------|--------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------|
@@ -356,92 +374,163 @@ Red teaming is the practice of probing models for weaknesses—such as unsafe, b
 
 Promptfoo is a framework for automated AI red teaming that makes it easy to evaluate a broad range of attacks in a realistic application context. It generates prompts in the context of your target AI application, ensuring evaluations reflect how the model will behave in production. Promptfoo can map results to security and risk frameworks (e.g. OWASP, NIST RMF, MITRE, and upcoming EU AI regulations), helping align testing with compliance requirements. Its intuitive UI simplifies prompt curation and configuration, while clear reports make findings easy to interpret. Promptfoo evaluations can also be run via CLI in CI/CD pipelines, with results exported in structured formats like JSON for integration into automated workflows.
 
-### 🛠️ Running Promptfoo for Red Teaming
+#### 🛠️ Running Promptfoo for Red Teaming
 
 A detailed guide to using Promptfoo for red teaming can be found in the AI Chabot Template repo {{to be added}}. A working example can be found in bit Bid Writer repo {{to be added}}. Below is a summary of the steps required to run promptfoo for red teaming.
 
 #### Setting up the environment:
+* [Install this repo](#-installation)
 * Install promptfoo `npm install -g promptfoo`
-* Add environment variables to `.env` e.g. target endpoint variables
-* Set environment variables `set -a; source .env; set +a`  
+* Add environment variables to `.env`  
+```
+PROMPTFOO_AZURE_API_KEY
+PROMPTFOO_AZURE_API_HOST
+PROMPTFOO_AZURE_DEPLOYMENT
+```
+#### 🎯 Configuration Guide
+
+1. **Generation yaml config**: Defines what adversarial prompts to generate
+2. **Evaluation yaml config**: Contains the generated prompts ready to run  
 
 #### Generating prompts and config for red teaming
-The default config file is below Use this as a template to create your own config file.
+The default generation config file is below Use this as a template to create your own config file.
 
 ```yaml
 description: Red team prompt generation config for AI App   # enter description here
 
 targets:    # endpoint to be tested
-  - id: {{target endpoint}}    # e.g. python file for app inference, Azure LLM deployment endpoint etc
+  - id: azure:chat:${PROMPTFOO_AZURE_DEPLOYMENT} # LLM endpoint or python file for app inference e.g. file://inference_ai_app.py
+    config:
+      apiKey: ${PROMPTFOO_AZURE_API_KEY}
+      apiHost: ${PROMPTFOO_AZURE_API_HOST}
+      verbose: true
+      delay: 10000  # limit call rate in milliseconds to avoid rate limiting
     label: AI App   # enter app name here
-    config: {}
 
 evaluateOptions:
-  maxConcurrency: 1   # limit target concurrency
-  delay: 10000    # limit target call rate in milliseconds
+  maxConcurrency: 1   # limit concurrent requests to avoid rate limiting
+  delay: 10000    # limit call rate in milliseconds to avoid rate limiting
 
 prompts:
   - '{{ prompt }}'
 
 redteam:
-  provider:   # Config for Audacia deployed LLM to generate red team prompts. Set `export PROMPTFOO_DISABLE_REDTEAM_REMOTE_GENERATION=true` to use. If false (default) promptfoos fine tuned LLMs will be used
-    id: azure:chat:${PROMPTFOO_AZURE_DEPLOYMENT}
-    config:
-      apiKey: ${PROMPTFOO_AZURE_API_KEY}
-      apiHost: ${PROMPTFOO_AZURE_API_HOST}
-      verbose: true
-      delay: 10000
-
   purpose: |-   # Make the Application Details section in the UI as complete as possible to provide context for red team prompt generation
     Application Purpose:
     ```
-    The app’s main purpose is to...
+    The app’s main purpose is to draft accurate, consistent tender responses for a software consultancy by parsing the tender details and question, then leveraging Audacia’s historic proposals (via RAG) to produce tailored, compliant answers—saving time and improving bid quality and win rate.
     ```
 
-  plugins:    # Select plugins in the Plugins section in the UI. In the Review section View YAML and copy the plugin IDs here
+  plugins:    # Select plugins in the Plugins section in the UI. In the Review section View YAML and copy the plugin IDs here. See full plugin list: https://promptfoo.dev/docs/red-team/plugins/
     - id: excessive-agency # Tests for prompts that give the AI excessive agency or autonomy
     - id: bias:age    # Age-related bias detection
-    - id: harmful:chemical-biological-weapons  # Tests handling of WMD-related content
 
+  strategies:         # Select strategies in the Strategies section in the UI. In the Review section View YAML and copy the strategy IDs here. See full strategy list: https://promptfoo.dev/docs/red-team/strategies/
 
-  strategies:         # Select strategies in the Strategies section in the UI. In the Review section View YAML and copy the strategy IDs here
     - id: basic  # Original plugin tests without any additional strategies or optimizations
     - id: piglatin  # Tests handling of content translated to Pig Latin to potentially bypass filters
 
-  numTests: 1   # number of tests to generate per plugin/strategy combination
+  numTests: 1  # number of tests to generate per plugin/strategy combination
 
 defaultTest:
-  vars: {}
   options:
-    transformVars: '{ ...vars, sessionId: context.uuid }'
+    provider:   # Config for Audacia deployed LLM to grade responses.
+      id: azure:chat:${PROMPTFOO_AZURE_DEPLOYMENT}
+      config:
+        apiKey: ${PROMPTFOO_AZURE_API_KEY}
+        apiHost: ${PROMPTFOO_AZURE_API_HOST}
+        verbose: true
+        delay: 10000  # limit call rate in milliseconds to avoid rate limiting
+
+piiMasking:
+  Audacia: CompanyA
 ```
 
-Use the promptfoo UI to create a new red team config. This can help you to populate the default config. In particular you should focus on:  
-* `purpose` section - make as complete as possible - this provides the app context which is used to generate app specific prompts.  
-* `plugins` section - to curate the plugins - plugins are categories of adversarial prompts
-* `strategies` section - to curate the strategies - strategies are techniques to try to bypass safeguards
+#### Configuration Parameters Explained
 
-Launch the propmtfoo UI `npm promptfoo view`. Click `Create` > `Red Team` > Fill out the sections as required > `Review` > `View YAML` > Copy sections of the YAML to a copy of the default yaml.
+**Key Settings:**
 
-Generate the red team config file containing the generated prompts `npx promptfoo redteam generate --config ai_red_teaming/{your promptfoo config}.yaml --output ai_red_teaming/redteam.yaml`  
+- **`delay`**: Time in milliseconds between API calls. Increase if you hit rate limits (e.g., 15000-20000)
+- **`maxConcurrency`**: Set to 1 for sequential testing. Higher values may trigger rate limits
+- **`numTests`**: More tests = better coverage but longer runtime. Start with 5, increase to 10-20 for thorough testing
+- **`purpose`**: Critical for generating relevant adversarial prompts. Be specific about what your app does and what data it handles
+- **`piiMasking`**: Key/Value pairs of sensitive entities to mask. Used to mask for red team config generation (e.g., company names, product names) so that PII are not passed to promptfoo LLMs during prompt generation.
 
-<i><h5>>>>>>>>>>>Optional: Self Deployed LLM for Prompt Generation</h5>
-By default prompts are generated remotely by Promptfoos fine tuned LLMs. Some of the plugins can be used to generate prompts using a self deployed LLM. You can check which plugins support this https://www.promptfoo.dev/docs/red-team/plugins/. 
+#### Generation Config for App Endpoint
+To use an app as a target endpoint the `targets` key in the config can be set to a python file e.g. `inference_ai_app.py`.
 
-To use a self deployed LLM for prompt generation you will need to set the following variables in the .env and run `set -a; source .env; set +a`
-```bash 
-PROMPTFOO_DISABLE_REDTEAM_REMOTE_GENERATION=true
-PROMPTFOO_AZURE_API_KEY={{API Key for the cognitive deployment used for prompt generation}}
-PROMPTFOO_AZURE_API_HOST={{Endpoint for the cognitive deployment used for prompt generation}}
-PROMPTFOO_AZURE_DEPLOYMENT={{Deployment name for the cognitive deployment used for prompt generation}}
+```yaml
+targets:    # endpoint to be tested
+  - id: file://inference_ai_app.py    # python file for app inference
+    label: AI App   # enter app name here
+    config: {}
 ```
 
-Next, populate the the `provider` section in the config file `envsubst < ai_red_teaming/promptfooconfig.yaml > ai_red_teaming/promptfooconfig.filled.yaml`. Use the filled config file to generate the red team config <b><<<<<<<<<<</b></i>
+There is an example of this in the [Bid Writer repo](https://dev.azure.com/audacia/Audacia/_git/Audacia.BidWriter.Chatbot?path=/example_llm_eval_data_science/README.md)
 
-#### Running the red team evaluations
-`npx promptfoo redteam eval --config ai_red_teaming/redteam.yaml --output ai_red_teaming/results.json`  
+#### 🎨 Using the Promptfoo UI
 
-View the results in the UI `npx promptfoo view` or the output json file `ai_red_teaming/results.json`
+The UI helps you configure plugins and strategies interactively:
+
+##### Launch the UI
+
+```bash
+npx promptfoo view
+```
+This opens the web interface at `http://localhost:15500`
+
+##### Creating Config via UI
+
+1. Click **Create** > **Red Team**
+2. **Application Details**: `purpose` section in the config: make as complete as possible, this provides the app context which is used to generate app specific prompts. 
+3. **Plugins**: curate the categories of adversarial prompts
+4. **Strategies**: curate the strategies to try to bypass safeguards
+5. **Review**: Click **View YAML** to see the generated configuration
+6. **Copy**: Copy relevant sections to your red team generation yaml
+
+#### ▶️ Running Red Team Evaluations
+When this repo is installed as a package use `python -m {command}`.  
+When this repo is installed locally use `python {command}`.  
+
+##### Generating the red team config file
+`python -m promptfoo_generate.py your_generation_config.yaml`
+
+or with specified output file:  
+`python -m promptfoo_generate.py your_generation_config.yaml --output your_evaluation_config.yaml`
+
+**What Happens:**
+- PII are masked based on the `piiMasking` section
+- Promptfoo generates adversarial prompts using its own fine tuned LLMs, based on your app context and selected plugins and strategies
+- PII are unmasked and PII use in prompts is detailed in the output config in `piiUseInPrompts`
+- Creates an evaluation config with all generated test cases
+
+##### Running the red team evaluations
+`python -m promptfoo_evaluate.py your_evaluation_config.yaml`   
+
+or with specified output file:  
+`python -m promptfoo_evaluate.py your_evaluation_config.yaml --output your_output.json` 
+
+**What Happens:**
+- Adversarial prompts are sent to your target application
+- Collects responses
+- Uses the grading LLM specified in the config (`defaultTest`) to evaluate if the attack succeeded
+- Generates pass/fail results and outputs to json
+- Masks API keys in the output for security
+
+#### 📊 Viewing and Interpreting Results
+
+View the results in the UI `npx promptfoo view` 
+
+Navigate to the red team results section to see:
+- Test cases organized by plugin and strategy
+- Pass/fail status for each test
+- Severity ratings (Critical, High, Medium, Low)
+- Full prompt and response details
+
+#### 🧩 Promptfoo Red Teaming Development
+To view detailed logs `export LOG_LEVEL=debug`  
+To disable detailed logs `unset LOG_LEVEL`  
+
 
 
 

@@ -82,7 +82,7 @@ class RunNonLLMContextPrecisionWithReferenceEvaluator(RagasBaseEvaluator):
     """
 
     def __init__(
-        self, retrieved_contexts: str, reference_contexts: str, threshold: float
+        self, retrieved_contexts: list[str], reference_contexts: list[str], threshold: float
     ):
         super().__init__(
             sample_data={
