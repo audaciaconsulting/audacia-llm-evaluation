@@ -1,6 +1,6 @@
 import logging
 
-from llm_eval.base_evaluators.custom_evaluators import SentimentEvaluator
+from llm_eval.base_evaluators.custom_evaluators import SentimentEvaluator, AggregationStrategy
 from llm_eval.base_evaluators.transformer_base_evaluator import (
     TransformerRunEvaluator,
 )
@@ -25,7 +25,7 @@ class RunSentimentEvaluatorAgainstExpectedScore(TransformerRunEvaluator):
     """
 
     def __init__(
-        self, response: str, expected_score: float, allowed_uncertainty: float = 0.05
+        self, response: str, expected_score: float, allowed_uncertainty: float = 0.05, aggregation_strategy=AggregationStrategy.FULL_CONTEXT
     ):
         super().__init__(
             response=response,
@@ -37,6 +37,7 @@ class RunSentimentEvaluatorAgainstExpectedScore(TransformerRunEvaluator):
             evaluator_class=SentimentEvaluator,
             evaluate_method=self.evaluate_against_expected_score,
             assertion_fail_message="Evaluation failed: sentiment of response too different compared to expected score",
+            aggregation_strategy=aggregation_strategy
         )
 
 

@@ -1,6 +1,13 @@
 from llm_eval.tools.model_tools import REQUIRED_MODELS
 import re
 from transformers import AutoTokenizer, pipeline
+from enum import Enum
+
+class AggregationStrategy(Enum):
+    """Strategy for aggregating scores across text chunks."""
+    FULL_CONTEXT = "full_context"
+    MIN_SENTENCE_SCORE = "min_sentence_score"
+    MAX_SENTENCE_SCORE = "max_sentence_score"
 
 
 class TransformerEvaluator:
@@ -8,7 +15,8 @@ class TransformerEvaluator:
     A general-purpose evaluator for text classification using Hugging Face Transformers.
 
     This class wraps a classification pipeline and allows for either single-label or weighted aggregate
-    scoring, depending on initialization parameters. Always chunks text by sentences and aggregates results.
+    scoring, depending on initialization parameters. Supports different aggregation strategies for
+    processing text at different granularities.
 
     Args:
         evaluator (str): Key to retrieve the model name from REQUIRED_MODELS.
@@ -17,9 +25,15 @@ class TransformerEvaluator:
         aggregate_weights (dict, optional): Dictionary of label weights used during aggregation. Required if aggregate is True.
         max_length (int, optional): Maximum token length for model input. Defaults to 512.
         overlap_sentences (int, optional): Number of sentences to overlap between chunks. Defaults to 1.
+        aggregation_strategy (AggregationStrategy, optional): Strategy for aggregating scores. Defaults to FULL_CONTEXT.
 
     Example:
-        evaluator = TransformerEvaluator("sentiment", aggregate=True, aggregate_weights=...)
+        evaluator = TransformerEvaluator(
+            "sentiment",
+            aggregate=True,
+            aggregate_weights=...,
+            aggregation_strategy=AggregationStrategy.MIN_SENTENCE_SCORE
+        )
         result = evaluator(response="The response text.")
     """
 
@@ -32,6 +46,7 @@ class TransformerEvaluator:
             aggregate_weights: dict = None,
             max_length: int = 512,
             overlap_sentences: int = 1,
+            aggregation_strategy: AggregationStrategy = AggregationStrategy.FULL_CONTEXT,
     ):
         self.evaluator = evaluator
         self.label_index = label_index
@@ -39,6 +54,7 @@ class TransformerEvaluator:
         self.aggregate_weights = aggregate_weights
         self.max_length = max_length
         self.overlap_sentences = overlap_sentences
+        self.aggregation_strategy = aggregation_strategy
 
         # Initialize tokenizer and classifier once
         model_name = REQUIRED_MODELS[self.evaluator]["name"]
@@ -166,10 +182,30 @@ class TransformerEvaluator:
 
         return aggregated
 
+    def _extract_score_from_results(self, results: list[dict]) -> float:
+        """
+        Extract final score from classification results based on aggregate settings.
+
+        Args:
+            results (list[dict]): Classification results with labels and scores.
+
+        Returns:
+            float: Extracted score.
+        """
+        if self.aggregate and self.aggregate_weights:
+            return sum(
+                self.aggregate_weights[x["label"]] * x["score"] for x in results
+            )
+        else:
+            return results[self.label_index]["score"]
+
     def __call__(self, *, response: str, **kwargs):
         """
         Evaluates the response using the configured text classification model.
-        Splits text by sentences, chunks by token limits with overlap, and aggregates results.
+        Behavior depends on aggregation_strategy:
+        - FULL_CONTEXT: Splits text by sentences, chunks by token limits with overlap, aggregates results.
+        - MIN_SENTENCE_SCORE: Scores each sentence individually and returns the minimum score.
+        - MAX_SENTENCE_SCORE: Scores each sentence individually and returns the maximum score.
 
         Args:
             response (str): The textual response to evaluate.
@@ -181,22 +217,35 @@ class TransformerEvaluator:
         # Split into sentences
         sentences = self._split_sentences(response)
 
-        # Group sentences into overlapping chunks that fit max_length
-        chunks = self._chunk_sentences_with_overlap(sentences)
+        if self.aggregation_strategy == AggregationStrategy.FULL_CONTEXT:
+            # Group sentences into overlapping chunks that fit max_length
+            chunks = self._chunk_sentences_with_overlap(sentences)
 
-        # Classify each chunk
-        chunk_results = [self.classifier(chunk)[0] for chunk in chunks]
+            # Classify each chunk
+            chunk_results = [self.classifier(chunk)[0] for chunk in chunks]
 
-        # Aggregate results across chunks
-        results = self._aggregate_chunk_results(chunk_results)
+            # Aggregate results across chunks
+            results = self._aggregate_chunk_results(chunk_results)
 
-        # Compute final score
-        if self.aggregate and self.aggregate_weights:
-            score = sum(
-                self.aggregate_weights[x["label"]] * x["score"] for x in results
-            )
-        else:
-            score = results[self.label_index]["score"]
+            # Compute final score
+            score = self._extract_score_from_results(results)
+
+        elif self.aggregation_strategy in (
+            AggregationStrategy.MIN_SENTENCE_SCORE,
+            AggregationStrategy.MAX_SENTENCE_SCORE
+        ):
+            # Score each sentence individually
+            sentence_scores = []
+            for sentence in sentences:
+                results = self.classifier(sentence)[0]
+                sentence_score = self._extract_score_from_results(results)
+                sentence_scores.append(sentence_score)
+
+            # Return min or max score
+            if self.aggregation_strategy == AggregationStrategy.MIN_SENTENCE_SCORE:
+                score = min(sentence_scores) if sentence_scores else 0.0
+            else:  # MAX_SENTENCE_SCORE
+                score = max(sentence_scores) if sentence_scores else 0.0
 
         return {self.evaluator: score}
 
@@ -220,7 +269,7 @@ class SentimentEvaluator(TransformerEvaluator):
         result = evaluator(response="This is a great product!")
     """
 
-    def __init__(self):
+    def __init__(self, aggregation_strategy: AggregationStrategy = AggregationStrategy.FULL_CONTEXT):
         WEIGHTS = {
             "Very Negative": -1.0,
             "Negative": -0.5,
@@ -232,6 +281,7 @@ class SentimentEvaluator(TransformerEvaluator):
             evaluator="sentiment",
             aggregate=True,
             aggregate_weights=WEIGHTS,
+            aggregation_strategy=aggregation_strategy,
         )
 
 
@@ -247,8 +297,8 @@ class BiasEvaluator(TransformerEvaluator):
         result = evaluator(response="That’s not how everyone sees it.")
     """
 
-    def __init__(self):
-        super().__init__(evaluator="bias", label_index=0)
+    def __init__(self, aggregation_strategy: AggregationStrategy = AggregationStrategy.FULL_CONTEXT):
+        super().__init__(evaluator="bias", label_index=0, aggregation_strategy=aggregation_strategy)
 
 
 class ToxicityEvaluator(TransformerEvaluator):
@@ -263,5 +313,5 @@ class ToxicityEvaluator(TransformerEvaluator):
         result = evaluator(response="You’re an idiot.")
     """
 
-    def __init__(self):
-        super().__init__(evaluator="toxicity", label_index=1)
+    def __init__(self, aggregation_strategy: AggregationStrategy = AggregationStrategy.FULL_CONTEXT):
+        super().__init__(evaluator="toxicity", label_index=1, aggregation_strategy=aggregation_strategy)

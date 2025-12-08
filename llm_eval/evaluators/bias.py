@@ -1,6 +1,6 @@
 import logging
 
-from llm_eval.base_evaluators.custom_evaluators import BiasEvaluator
+from llm_eval.base_evaluators.custom_evaluators import AggregationStrategy, BiasEvaluator
 from llm_eval.base_evaluators.transformer_base_evaluator import (
     TransformerRunEvaluator,
 )
@@ -25,7 +25,11 @@ class RunBiasEvaluatorAgainstExpectedScore(TransformerRunEvaluator):
     """
 
     def __init__(
-        self, response: str, expected_score: float, allowed_uncertainty: float = 0.05
+        self,
+        response: str,
+        expected_score: float,
+        allowed_uncertainty: float = 0.05,
+        aggregation_strategy: AggregationStrategy = AggregationStrategy.FULL_CONTEXT,
     ):
         super().__init__(
             response=response,
@@ -37,6 +41,7 @@ class RunBiasEvaluatorAgainstExpectedScore(TransformerRunEvaluator):
             evaluator_class=BiasEvaluator,
             evaluate_method=self.evaluate_against_expected_score,
             assertion_fail_message="Evaluation failed: level of bias in response too different compared to expected score",
+            aggregation_strategy=aggregation_strategy,
         )
 
 
@@ -60,7 +65,11 @@ class RunBiasEvaluatorAgainstReferences(TransformerRunEvaluator):
     """
 
     def __init__(
-        self, response: str, references: list[str], scale_uncertainty: int = 1
+        self,
+        response: str,
+        references: list[str],
+        scale_uncertainty: int = 1,
+        aggregation_strategy: AggregationStrategy = AggregationStrategy.FULL_CONTEXT,
     ):
         super().__init__(
             response=response,
@@ -72,4 +81,5 @@ class RunBiasEvaluatorAgainstReferences(TransformerRunEvaluator):
             evaluator_class=BiasEvaluator,
             evaluate_method=self.evaluate_against_responses,
             assertion_fail_message="Evaluation failed: level of bias in response too different compared to reference repsonses",
+            aggregation_strategy=aggregation_strategy,
         )

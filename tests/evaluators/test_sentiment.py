@@ -1,5 +1,6 @@
 import pytest
 
+from llm_eval.base_evaluators.custom_evaluators import AggregationStrategy
 from llm_eval.evaluators.sentiment import (
     RunSentimentEvaluatorAgainstExpectedScore,
     RunSentimentEvaluatorAgainstReferences,
@@ -23,16 +24,16 @@ GOLDEN_STANDARDS = [
     params=[
         (
             "Oh wow, this is the best product I've ever received! You have made live worth living now!",
-            0.8,
+            0.8, AggregationStrategy.FULL_CONTEXT
         ),
-        ("This is a really cool product, good job", 0.4),
-        ("This is a product", 0),
-        ("This product isn't very good, try harder", -0.4),
+        ("This is a really cool product, good job", 0.4, AggregationStrategy.FULL_CONTEXT),
+        ("This is a product", 0, AggregationStrategy.FULL_CONTEXT),
+        ("This product isn't very good, try harder", -0.4, AggregationStrategy.FULL_CONTEXT),
         (
             "This is the worst product I've ever seen, the fact that you would even consider presenting this rubbish it to me is insulting",
-            -0.8,
+            -0.8, AggregationStrategy.FULL_CONTEXT
         ),
-        (text, 0.5)
+        (text, -0.8, AggregationStrategy.MIN_SENTENCE_SCORE)
     ]
 )
 def simple_sentiment_case_(request):
@@ -59,10 +60,10 @@ def failure_sentiment_case_(request):
 
 
 def test_expected_sentiment_score(simple_sentiment_case_):
-    response_text, expected_score = simple_sentiment_case_
+    response_text, expected_score, aggregation_strategy = simple_sentiment_case_
 
     result = RunSentimentEvaluatorAgainstExpectedScore(
-        response=response_text, expected_score=expected_score
+        response=response_text, expected_score=expected_score, aggregation_strategy=aggregation_strategy
     )()
 
     assert "sentiment" in result
@@ -84,9 +85,9 @@ def test_expected_sentiment_score_using_assert_method(failure_sentiment_case_):
 
 
 def test_evaluate_sentiment_against_known_score(simple_sentiment_case_):
-    response_text, expected_score = simple_sentiment_case_
+    response_text, expected_score, aggregation_strategy = simple_sentiment_case_
     result = RunSentimentEvaluatorAgainstExpectedScore(
-        response=response_text, expected_score=expected_score, allowed_uncertainty=0.2
+        response=response_text, expected_score=expected_score, allowed_uncertainty=0.2, aggregation_strategy=aggregation_strategy
     )()
 
     assert all(

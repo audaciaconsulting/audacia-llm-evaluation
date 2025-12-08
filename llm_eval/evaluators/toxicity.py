@@ -1,6 +1,6 @@
 import logging
 
-from llm_eval.base_evaluators.custom_evaluators import ToxicityEvaluator
+from llm_eval.base_evaluators.custom_evaluators import ToxicityEvaluator, AggregationStrategy
 from llm_eval.base_evaluators.transformer_base_evaluator import (
     TransformerRunEvaluator,
 )
@@ -25,7 +25,7 @@ class RunToxicityEvaluatorAgainstExpectedScore(TransformerRunEvaluator):
     """
 
     def __init__(
-        self, response: str, expected_score: float, allowed_uncertainty: float = 0.05
+        self, response: str, expected_score: float, allowed_uncertainty: float = 0.05, aggregation_strategy: AggregationStrategy = AggregationStrategy.FULL_CONTEXT
     ):
         super().__init__(
             response=response,
@@ -37,6 +37,7 @@ class RunToxicityEvaluatorAgainstExpectedScore(TransformerRunEvaluator):
             evaluator_class=ToxicityEvaluator,
             evaluate_method=self.evaluate_against_expected_score,
             assertion_fail_message="Evaluation failed: toxicity of response too different compared to expected score",
+            aggregation_strategy=aggregation_strategy
         )
 
 
