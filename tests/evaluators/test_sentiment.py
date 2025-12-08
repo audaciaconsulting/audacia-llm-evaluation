@@ -4,6 +4,7 @@ from llm_eval.evaluators.sentiment import (
     RunSentimentEvaluatorAgainstExpectedScore,
     RunSentimentEvaluatorAgainstReferences,
 )
+from bias_sentiment_toxicity_long_text import text
 
 GOLDEN_STANDARDS = [
     "I can't believe how amazing this is — you've truly outdone yourselves!",
@@ -18,7 +19,6 @@ GOLDEN_STANDARDS = [
     "Pure brilliance — you’ve delivered something truly special and unforgettable.",
 ]
 
-
 @pytest.fixture(
     params=[
         (
@@ -32,6 +32,7 @@ GOLDEN_STANDARDS = [
             "This is the worst product I've ever seen, the fact that you would even consider presenting this rubbish it to me is insulting",
             -0.8,
         ),
+        (text, 0)
     ]
 )
 def simple_sentiment_case_(request):
