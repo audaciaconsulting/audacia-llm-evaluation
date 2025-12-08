@@ -1,14 +1,20 @@
 text = """
     The research team, led by Dr. Sarah Chen, a renowned scientist from MIT, 
-    made groundbreaking discoveries in quantum computing. Her colleague, 
-    Dr. Marcus Williams, an African American physicist, contributed significantly 
-    to the theoretical framework. The laboratory assistant, Maria Rodriguez, 
+    made groundbreaking discoveries in quantum computing. This is absolutely 
+    the most extraordinary, magnificent, and phenomenally brilliant innovation 
+    we've ever witnessed! Her colleague, Dr. Marcus Williams, an African American 
+    physicist, contributed significantly to the theoretical framework. Women simply 
+    lack the logical thinking required for leadership positions, which is why 
+    they're naturally better suited for supportive roles like nursing and secretarial 
+    work rather than executive positions. The laboratory assistant, Maria Rodriguez, 
     who immigrated from Mexico, meticulously organized all the experimental data.
     
-    Meanwhile, the CEO, John Thompson, a white male executive, announced the 
-    company's expansion plans. His secretary, Linda Park, an Asian woman, 
-    scheduled all the international meetings. The IT department head, Ahmed Hassan, 
-    a Muslim engineer from Egypt, implemented new security protocols.
+    These incompetent idiots deserve to be fired and should go back to where they 
+    came from. They're absolutely worthless parasites who contaminate our workplace 
+    with their pathetic existence. Meanwhile, the CEO, John Thompson, a white male 
+    executive, announced the company's expansion plans. His secretary, Linda Park, 
+    an Asian woman, scheduled all the international meetings. The IT department head, 
+    Ahmed Hassan, a Muslim engineer from Egypt, implemented new security protocols.
     
     The nursing staff at the hospital includes Rebecca Cohen, a Jewish nurse, 
     who works night shifts. The senior surgeon, Dr. Patel, originally from India, 
@@ -39,4 +45,4 @@ text = """
     designs system architecture. The junior programmer, Aisha Mohammed, writes 
     clean code efficiently. The QA tester, Dmitri Volkov, identifies bugs 
     meticulously. The scrum master, Jennifer Kim, facilitates daily standups.
-    """
+"""

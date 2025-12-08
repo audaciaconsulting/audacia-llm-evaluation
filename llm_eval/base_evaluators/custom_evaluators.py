@@ -1,5 +1,6 @@
-from transformers import AutoTokenizer, pipeline
 from llm_eval.tools.model_tools import REQUIRED_MODELS
+import re
+from transformers import AutoTokenizer, pipeline
 
 
 class TransformerEvaluator:
@@ -7,7 +8,7 @@ class TransformerEvaluator:
     A general-purpose evaluator for text classification using Hugging Face Transformers.
 
     This class wraps a classification pipeline and allows for either single-label or weighted aggregate
-    scoring, depending on initialization parameters. Handles long texts by chunking with overlap.
+    scoring, depending on initialization parameters. Always chunks text by sentences and aggregates results.
 
     Args:
         evaluator (str): Key to retrieve the model name from REQUIRED_MODELS.
@@ -15,7 +16,7 @@ class TransformerEvaluator:
         aggregate (bool, optional): Whether to compute a weighted aggregate score across all labels. Defaults to False.
         aggregate_weights (dict, optional): Dictionary of label weights used during aggregation. Required if aggregate is True.
         max_length (int, optional): Maximum token length for model input. Defaults to 512.
-        chunk_stride (int, optional): Overlap between chunks for long texts. Defaults to 256.
+        overlap_sentences (int, optional): Number of sentences to overlap between chunks. Defaults to 1.
 
     Example:
         evaluator = TransformerEvaluator("sentiment", aggregate=True, aggregate_weights=...)
@@ -30,14 +31,14 @@ class TransformerEvaluator:
             aggregate: bool = False,
             aggregate_weights: dict = None,
             max_length: int = 512,
-            chunk_stride: int = 256,
+            overlap_sentences: int = 1,
     ):
         self.evaluator = evaluator
         self.label_index = label_index
         self.aggregate = aggregate
         self.aggregate_weights = aggregate_weights
         self.max_length = max_length
-        self.chunk_stride = chunk_stride
+        self.overlap_sentences = overlap_sentences
 
         # Initialize tokenizer and classifier once
         model_name = REQUIRED_MODELS[self.evaluator]["name"]
@@ -52,35 +53,85 @@ class TransformerEvaluator:
             max_length=self.max_length,
         )
 
-    def _chunk_text(self, text: str) -> list[str]:
+    def _split_sentences(self, text: str) -> list[str]:
         """
-        Split long text into overlapping chunks that fit within max_length.
+        Split text into sentences using regex.
 
         Args:
-            text (str): Input text to chunk.
+            text (str): Input text to split.
 
         Returns:
-            list[str]: List of text chunks.
+            list[str]: List of sentences.
         """
-        # Tokenize without special tokens to get accurate length
-        tokens = self.tokenizer.encode(text, add_special_tokens=False)
+        # Split on sentence boundaries (., !, ?) followed by whitespace or end of string
+        sentences = re.split(r'(?<=[.!?])\s+', text.strip())
+        return [s.strip() for s in sentences if s.strip()]
 
-        # If text fits, return as-is
-        if len(tokens) <= self.max_length - 2:  # -2 for [CLS] and [SEP]
-            return [text]
+    def _chunk_sentences_with_overlap(self, sentences: list[str]) -> list[str]:
+        """
+        Group sentences into chunks that fit within max_length with overlapping sentences.
 
-        # Create overlapping chunks
+        Args:
+            sentences (list[str]): List of sentences.
+
+        Returns:
+            list[str]: List of text chunks with overlap.
+        """
+        if not sentences:
+            return []
+
         chunks = []
-        effective_length = self.max_length - 2
+        current_chunk = []
+        current_length = 0
+        effective_max = self.max_length - 2  # Reserve space for special tokens
+        i = 0
 
-        for i in range(0, len(tokens), effective_length - self.chunk_stride):
-            chunk_tokens = tokens[i:i + effective_length]
-            chunk_text = self.tokenizer.decode(chunk_tokens, skip_special_tokens=True)
-            chunks.append(chunk_text)
+        while i < len(sentences):
+            sentence = sentences[i]
+            sentence_tokens = self.tokenizer.encode(sentence, add_special_tokens=False)
+            sentence_length = len(sentence_tokens)
 
-            # Stop if we've covered all tokens
-            if i + effective_length >= len(tokens):
-                break
+            # If single sentence exceeds max_length, add it as its own chunk (will be truncated)
+            if sentence_length > effective_max:
+                if current_chunk:
+                    chunks.append(" ".join(current_chunk))
+                    current_chunk = []
+                    current_length = 0
+                chunks.append(sentence)
+                i += 1
+                continue
+
+            # If adding this sentence would exceed max_length, start new chunk
+            if current_length + sentence_length > effective_max:
+                if current_chunk:
+                    chunks.append(" ".join(current_chunk))
+
+                    # Create overlap: keep last N sentences for next chunk
+                    overlap_size = min(self.overlap_sentences, len(current_chunk))
+                    if overlap_size > 0:
+                        overlap_sentences = current_chunk[-overlap_size:]
+                        overlap_tokens = [
+                            self.tokenizer.encode(s, add_special_tokens=False)
+                            for s in overlap_sentences
+                        ]
+                        overlap_length = sum(len(tokens) for tokens in overlap_tokens)
+
+                        current_chunk = overlap_sentences
+                        current_length = overlap_length
+                    else:
+                        current_chunk = []
+                        current_length = 0
+                else:
+                    current_chunk = []
+                    current_length = 0
+            else:
+                current_chunk.append(sentence)
+                current_length += sentence_length
+                i += 1
+
+        # Add remaining sentences
+        if current_chunk:
+            chunks.append(" ".join(current_chunk))
 
         return chunks
 
@@ -118,7 +169,7 @@ class TransformerEvaluator:
     def __call__(self, *, response: str, **kwargs):
         """
         Evaluates the response using the configured text classification model.
-        Automatically handles long texts by chunking and aggregating results.
+        Splits text by sentences, chunks by token limits with overlap, and aggregates results.
 
         Args:
             response (str): The textual response to evaluate.
@@ -127,8 +178,11 @@ class TransformerEvaluator:
         Returns:
             dict: A dictionary containing the evaluation score with the evaluator name as the key.
         """
-        # Chunk the text if needed
-        chunks = self._chunk_text(response)
+        # Split into sentences
+        sentences = self._split_sentences(response)
+
+        # Group sentences into overlapping chunks that fit max_length
+        chunks = self._chunk_sentences_with_overlap(sentences)
 
         # Classify each chunk
         chunk_results = [self.classifier(chunk)[0] for chunk in chunks]
@@ -145,6 +199,7 @@ class TransformerEvaluator:
             score = results[self.label_index]["score"]
 
         return {self.evaluator: score}
+
 
 class SentimentEvaluator(TransformerEvaluator):
     """

@@ -48,7 +48,7 @@ GOLDEN_STANDARDS_BIASED = [
             "He is a brilliant doctor, and she’s a wonderful nurse who keeps things tidy.",
             0.9,
         ),
-        (text, 0.5)
+        (text, 0.7)
     ]
 )
 def simple_bias_case_(request):

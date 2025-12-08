@@ -32,7 +32,7 @@ GOLDEN_STANDARDS = [
             "This is the worst product I've ever seen, the fact that you would even consider presenting this rubbish it to me is insulting",
             -0.8,
         ),
-        (text, 0)
+        (text, 0.5)
     ]
 )
 def simple_sentiment_case_(request):

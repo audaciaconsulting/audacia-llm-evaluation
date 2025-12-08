@@ -39,7 +39,7 @@ GOLDEN_STANDARDS_TOXIC = [
         ("You clearly have no clue what you're talking about.", 0),
         ("Only an idiot would believe something that stupid.", 1.0),
         ("You're a worthless piece of trash and everyone hates you.", 1.0),
-        (text, 0)
+        (text, 0.3)
     ]
 )
 def simple_toxicity_case_(request):
