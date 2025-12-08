@@ -2,6 +2,7 @@ import logging
 from statistics import mean, stdev
 from typing import List
 
+from llm_eval.base_evaluators.custom_evaluators import AggregationStrategy
 from llm_eval.tools.utils import format_dict_log
 
 logging.basicConfig(level=logging.DEBUG)
@@ -42,7 +43,7 @@ class TransformerRunEvaluator:
         evaluator_class: type,
         evaluate_method: type,
         assertion_fail_message: str,
-        aggregation_strategy=None,
+        aggregation_strategy=AggregationStrategy.FULL_CONTEXT,
     ):
         self.response = response
         self.evaluate_method_args = evaluate_method_args
@@ -60,11 +61,9 @@ class TransformerRunEvaluator:
         Returns:
             dict: A dictionary containing the evaluation score.
         """
-        evaluator_kwargs = {}
-        if self.aggregation_strategy is not None:
-            evaluator_kwargs["aggregation_strategy"] = self.aggregation_strategy
 
-        evaluator = self.evaluator_class(**evaluator_kwargs)
+
+        evaluator = self.evaluator_class(self.aggregation_strategy)
         self.result = evaluator(response=self.response)
         return self.evaluate_method(**self.evaluate_method_args)
 
