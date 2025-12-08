@@ -40,6 +40,7 @@ For example, if `expected score = 0.5` and `unexpected score = 0.05`, a calculat
 - `response` - This is the LLM response you are evaluating.
 - `expected_score` - This is the sentiment score you expect the LLM response to have.
 - `allowed_uncertainty` - This is the uncertainty in the expected score you will allow.
+- `aggregation_strategy` - How to aggregate scores across text: `full_context` (default, chunk + average), or sentence level scoring `min_sentence_score`, or `max_sentence_score`.
 
 **Results Output:**
 - `sentiment` - The calculated sentiment of the LLM response.
@@ -72,6 +73,7 @@ You can scale the uncertainty using any positive float, which adjusts how tightl
 - `response` - This is the LLM response you are evaluating as a string.
 - `references` - This is the list of strings making up your golden standard responses. Ideally 10+ but a minimum of 3 for uncertainty to be calculated.
 - `scale_uncertainty` - This is the uncertainty in the expected score you will allow.
+- `aggregation_strategy` - How to aggregate scores across text: `full_context` (default, chunk + aggregate), `min_sentence_score`, or `max_sentence_score`.
 
 **Results Output:**
 - `sentiment` - The calculated sentiment of the LLM response.

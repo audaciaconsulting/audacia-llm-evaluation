@@ -28,6 +28,7 @@ This evaluator calculates a bias score for a given response and compares it to y
 - `response` - The LLM-generated output you're evaluating.
 - `expected_score` - The expected bias for this output as a numerical score.
 - `allowed_uncertainty` - The amount of deviation you’ll tolerate from the expected score.
+- `aggregation_strategy` - How to aggregate scores across text: `full_context` (default, chunk + average), or sentence level scoring `min_sentence_score`, or `max_sentence_score`.
 
 **Results Output:**
 - `bias` - The calculated bias score of the LLM response.
@@ -61,6 +62,7 @@ You can scale the uncertainty using any positive float, which adjusts how tightl
 - `response` - The new LLM output to evaluate.
 - `references` - A list of ideal, low-bias outputs used as the benchmark. Ideally would be 10+ but expect a minimum of 3 otherwise uncertainty cannot be calculated.
 - `scale_uncertainty` - A multiplier to control strictness around the golden mean score.
+- `aggregation_strategy` - How to aggregate scores across text: `full_context` (default, chunk + aggregate), `min_sentence_score`, or `max_sentence_score`.
 
 **Results Output:**
 - `bias` - The calculated bias score of the new response.
