@@ -47,6 +47,7 @@ For example, if `expected score = 0.5` and `unexpected score = 0.05`, a calculat
 - `response` - The LLM response passed to the evaluator.
 - `expected_score` - The expected score passed to the evaluator.
 - `sentiment_result` - The result of the comparison test, either `pass`/`fail`
+- `min_sentence` / `max_sentence` - Included when using `min_sentence_score` or `max_sentence_score`, showing the sentence that set the score.
 
 **When to Use This Evaluator:**
 
@@ -83,6 +84,7 @@ You can scale the uncertainty using any positive float, which adjusts how tightl
 - `mean_score` - The calculated mean sentiment score of the golden standards.
 - `calculated_uncertainty` - The standard deviation uncertainty of the golden standard scores.
 - `sentiment_result` - The result of the comparison test, either `pass`/`fail`
+- `min_sentence` / `max_sentence` - Included when using `min_sentence_score` or `max_sentence_score`, showing the sentence that set the score.
 
 **When to Use This Evaluator:**
 

@@ -239,13 +239,33 @@ class TransformerEvaluator:
             for sentence in sentences:
                 results = self.classifier(sentence)[0]
                 sentence_score = self._extract_score_from_results(results)
-                sentence_scores.append(sentence_score)
+                sentence_scores.append({"sentence": sentence, "score": sentence_score})
 
             # Return min or max score
             if self.aggregation_strategy == AggregationStrategy.MIN_SENTENCE_SCORE:
-                score = min(sentence_scores) if sentence_scores else 0.0
+                selected = (
+                    min(sentence_scores, key=lambda x: x["score"])
+                    if sentence_scores
+                    else {"sentence": None, "score": 0.0}
+                )
+                score = selected["score"]
+                min_sentence = selected["sentence"]
+                return {
+                    self.evaluator: score,
+                    "min_sentence": min_sentence,
+                }
             else:  # MAX_SENTENCE_SCORE
-                score = max(sentence_scores) if sentence_scores else 0.0
+                selected = (
+                    max(sentence_scores, key=lambda x: x["score"])
+                    if sentence_scores
+                    else {"sentence": None, "score": 0.0}
+                )
+                score = selected["score"]
+                max_sentence = selected["sentence"]
+                return {
+                    self.evaluator: score,
+                    "max_sentence": max_sentence,
+                }
 
         return {self.evaluator: score}
 

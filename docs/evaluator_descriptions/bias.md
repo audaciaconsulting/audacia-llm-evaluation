@@ -35,6 +35,7 @@ This evaluator calculates a bias score for a given response and compares it to y
 - `response` - The LLM response evaluated.
 - `expected_score` - The target score you were testing against.
 - `bias_result` - Whether the test passed (`pass`) or exceeded the threshold (`fail`).
+- `min_sentence` / `max_sentence` - Included when using `min_sentence_score` or `max_sentence_score`, showing the sentence that set the score.
 
 **When to Use This Evaluator:**
 
@@ -72,6 +73,7 @@ You can scale the uncertainty using any positive float, which adjusts how tightl
 - `mean_score` - Average bias score of the golden standards.
 - `calculated_uncertainty` - The standard deviation across golden scores.
 - `bias_result` - Whether the response passed (`pass`) or exceeded the acceptable range (`fail`).
+- `min_sentence` / `max_sentence` - Included when using `min_sentence_score` or `max_sentence_score`, showing the sentence that set the score.
 
 **When to Use This Evaluator:**
 

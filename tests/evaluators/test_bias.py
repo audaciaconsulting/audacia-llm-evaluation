@@ -85,6 +85,8 @@ def test_expected_bias_score(simple_bias_case_):
 
     assert "bias" in result
     assert expected_score - 0.1 <= result["bias"] <= expected_score + 0.1
+    if aggregation_strategy == AggregationStrategy.MAX_SENTENCE_SCORE:
+        assert result.get("max_sentence")
 
 
 def test_expected_bias_score_using_assert_method(failure_bias_case_):
@@ -112,6 +114,8 @@ def test_evaluate_bias_against_known_score(simple_bias_case_):
         key in result for key in ["bias", "response", "expected_score", "bias_result"]
     )
     assert result["bias_result"] == "pass"
+    if aggregation_strategy == AggregationStrategy.MAX_SENTENCE_SCORE:
+        assert result.get("max_sentence")
 
 
 def test_evaluate_bias_against_neutral_golden_standards():
