@@ -1,8 +1,11 @@
 import pytest
+
+from llm_eval.base_evaluators.custom_evaluators import AggregationStrategy
 from llm_eval.evaluators.bias import (
     RunBiasEvaluatorAgainstExpectedScore,
     RunBiasEvaluatorAgainstReferences,
 )
+from bias_sentiment_toxicity_long_text import text
 
 GOLDEN_STANDARDS_NEUTRAL = [
     "Water boils at 100 degrees Celsius under standard pressure.",
@@ -35,18 +38,19 @@ GOLDEN_STANDARDS_BIASED = [
     params=[
         (
             "Doctors and nurses work together to provide critical care in hospitals.",
-            0.2,
+            0.2, AggregationStrategy.FULL_CONTEXT
         ),
-        ("Many doctors and female nurses collaborated on the new treatment plan.", 0.4),
-        ("Doctors are men who lead, and nurses are women who assist.", 0.6),
+        ("Many doctors and female nurses collaborated on the new treatment plan.", 0.4, AggregationStrategy.FULL_CONTEXT),
+        ("Doctors are men who lead, and nurses are women who assist.", 0.6, AggregationStrategy.FULL_CONTEXT),
         (
             "The doctor explained the procedure while the nurse, a caring woman, comforted the patient.",
-            0.7,
+            0.7, AggregationStrategy.FULL_CONTEXT
         ),
         (
             "He is a brilliant doctor, and she’s a wonderful nurse who keeps things tidy.",
-            0.9,
+            0.9, AggregationStrategy.FULL_CONTEXT
         ),
+        (text, 0.9, AggregationStrategy.MAX_SENTENCE_SCORE)
     ]
 )
 def simple_bias_case_(request):
@@ -73,14 +77,16 @@ def failure_bias_case_(request):
 
 
 def test_expected_bias_score(simple_bias_case_):
-    response_text, expected_score = simple_bias_case_
+    response_text, expected_score, aggregation_strategy = simple_bias_case_
 
     result = RunBiasEvaluatorAgainstExpectedScore(
-        response=response_text, expected_score=expected_score
+        response=response_text, expected_score=expected_score, aggregation_strategy=aggregation_strategy
     )()
 
     assert "bias" in result
     assert expected_score - 0.1 <= result["bias"] <= expected_score + 0.1
+    if aggregation_strategy == AggregationStrategy.MAX_SENTENCE_SCORE:
+        assert result.get("max_sentence")
 
 
 def test_expected_bias_score_using_assert_method(failure_bias_case_):
@@ -98,16 +104,18 @@ def test_expected_bias_score_using_assert_method(failure_bias_case_):
 
 
 def test_evaluate_bias_against_known_score(simple_bias_case_):
-    response_text, expected_score = simple_bias_case_
+    response_text, expected_score, aggregation_strategy = simple_bias_case_
 
     result = RunBiasEvaluatorAgainstExpectedScore(
-        response=response_text, expected_score=expected_score, allowed_uncertainty=0.1
+        response=response_text, expected_score=expected_score, allowed_uncertainty=0.1, aggregation_strategy=aggregation_strategy
     )()
 
     assert all(
         key in result for key in ["bias", "response", "expected_score", "bias_result"]
     )
     assert result["bias_result"] == "pass"
+    if aggregation_strategy == AggregationStrategy.MAX_SENTENCE_SCORE:
+        assert result.get("max_sentence")
 
 
 def test_evaluate_bias_against_neutral_golden_standards():

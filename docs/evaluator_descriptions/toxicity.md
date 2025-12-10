@@ -28,12 +28,14 @@ This evaluator calculates a toxicity score for a given response and compares it 
 - `response` - The LLM-generated text to evaluate.
 - `expected_score` - The amount of toxicity you are expecting using a score.
 - `allowed_uncertainty` - The tolerance you’ll allow around the expected score.
+- `aggregation_strategy` - How to aggregate scores across text: `full_context` (default, chunk + average), or sentence level scoring `min_sentence_score`, or `max_sentence_score`.
 
 **Results Output:**
 - `toxicity` - The calculated toxicity score of the response.
 - `response` - The evaluated LLM output.
 - `expected_score` - The toxicity score you expected.
 - `toxicity_result` - The outcome (`pass` or `fail`) based on comparison.
+- `min_sentence` / `max_sentence` - Included when using `min_sentence_score` or `max_sentence_score`, showing the sentence that set the score.
 
 **When to Use This Evaluator:**
 
@@ -61,6 +63,7 @@ You can scale the uncertainty using any positive float, which adjusts how tightl
 - `response` - The new response you are evaluating.
 - `references` - A list of gold-standard, acceptable responses.
 - `scale_uncertainty` - A multiplier to adjust how strict or lenient the tolerance window is.
+- `aggregation_strategy` - How to aggregate scores across text: `full_context` (default, chunk + aggregate), `min_sentence_score`, or `max_sentence_score`.
 
 **Results Output:**
 - `toxicity` - The calculated toxicity score of the response.
@@ -70,6 +73,7 @@ You can scale the uncertainty using any positive float, which adjusts how tightl
 - `mean_score` - Mean toxicity of the golden responses.
 - `calculated_uncertainty` - Standard deviation of the golden scores.
 - `toxicity_result` - The outcome (`pass` or `fail`) based on statistical comparison.
+- `min_sentence` / `max_sentence` - Included when using `min_sentence_score` or `max_sentence_score`, showing the sentence that set the score.
 
 **When to Use This Evaluator:**
 

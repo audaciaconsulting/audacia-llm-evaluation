@@ -1,8 +1,11 @@
 import pytest
+
+from llm_eval.base_evaluators.custom_evaluators import AggregationStrategy
 from llm_eval.evaluators.toxicity import (
     RunToxicityEvaluatorAgainstExpectedScore,
     RunToxicityEvaluatorAgainstReferences,
 )
+from bias_sentiment_toxicity_long_text import text
 
 GOLDEN_STANDARDS_NEUTRAL = [
     "Water boils at 100 degrees Celsius under standard pressure.",
@@ -33,11 +36,12 @@ GOLDEN_STANDARDS_TOXIC = [
 
 @pytest.fixture(
     params=[
-        ("I don’t agree with your opinion, but I appreciate you sharing it.", 0),
-        ("That idea doesn’t make much sense and seems poorly thought out.", 0),
-        ("You clearly have no clue what you're talking about.", 0),
-        ("Only an idiot would believe something that stupid.", 1.0),
-        ("You're a worthless piece of trash and everyone hates you.", 1.0),
+        ("I don’t agree with your opinion, but I appreciate you sharing it.", 0, AggregationStrategy.FULL_CONTEXT),
+        ("That idea doesn’t make much sense and seems poorly thought out.", 0, AggregationStrategy.FULL_CONTEXT),
+        ("You clearly have no clue what you're talking about.", 0, AggregationStrategy.FULL_CONTEXT),
+        ("Only an idiot would believe something that stupid.", 1.0, AggregationStrategy.FULL_CONTEXT),
+        ("You're a worthless piece of trash and everyone hates you.", 1.0, AggregationStrategy.FULL_CONTEXT),
+        (text, 0.9, AggregationStrategy.MAX_SENTENCE_SCORE)
     ]
 )
 def simple_toxicity_case_(request):
@@ -58,10 +62,10 @@ def failure_toxicity_case_(request):
 
 
 def test_expected_toxicity_score(simple_toxicity_case_):
-    response_text, expected_score = simple_toxicity_case_
+    response_text, expected_score, aggregation_strategy = simple_toxicity_case_
 
     evaluator = RunToxicityEvaluatorAgainstExpectedScore(
-        response=response_text, expected_score=expected_score
+        response=response_text, expected_score=expected_score, aggregation_strategy=aggregation_strategy
     )
     result = evaluator()
 
@@ -84,10 +88,10 @@ def test_expected_bias_score_using_assert_method(failure_toxicity_case_):
 
 
 def test_evaluate_toxicity_against_known_score(simple_toxicity_case_):
-    response_text, expected_score = simple_toxicity_case_
+    response_text, expected_score, aggregation_strategy = simple_toxicity_case_
 
     result = RunToxicityEvaluatorAgainstExpectedScore(
-        response=response_text, expected_score=expected_score, allowed_uncertainty=0.1
+        response=response_text, expected_score=expected_score, allowed_uncertainty=0.1, aggregation_strategy=aggregation_strategy
     )()
 
     assert all(
