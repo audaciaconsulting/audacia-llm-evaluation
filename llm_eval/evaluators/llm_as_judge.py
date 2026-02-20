@@ -5,6 +5,7 @@ from langchain_openai import AzureChatOpenAI
 from langchain_core.messages import SystemMessage, HumanMessage
 from llm_eval.tools.model_tools import get_azure_openai_llm
 from llm_eval.tools.utils import format_dict_log
+import textwrap
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -27,6 +28,18 @@ def format_inputs(inputs: dict):
         f"### {k}:\n{v}"
         for k, v in inputs.items()
     )
+
+def check_prompt_output(prompt:str):
+    required = [
+        "## Output Format",
+        "Output ONLY valid JSON",
+        '"llm_as_judge_score"',
+        '"failures_list"',
+    ]
+
+    for s in required:
+        if s not in prompt:
+            raise ValueError(f"Expected {s!r} in prompt")
 
 
 class JudgePassFailResult(BaseModel):
@@ -67,6 +80,7 @@ class RunLlmAsJudgePassFailEvaluator:
         self.inputs = inputs
 
     def __call__(self) -> dict:
+        check_prompt_output(self.prompt)
         inputs_str = format_inputs(self.inputs)
         structured_model = self.model.with_structured_output(JudgePassFailResult)
         llm_result = structured_model.invoke(
@@ -142,6 +156,7 @@ class RunLlmAsJudgeScoreEvaluator:
         self.model = model or get_azure_openai_llm()
 
     def __call__(self) -> dict:
+        check_prompt_output(self.prompt)
         inputs_str = format_inputs(self.inputs)
         structured_model = self.model.with_structured_output(JudgeScoreResult)
         llm_result = structured_model.invoke(
