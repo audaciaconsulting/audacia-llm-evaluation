@@ -14,6 +14,7 @@ from typing import List, Literal, Dict
 
 
 def truncate_prompt(prompt):
+    """Normalize and truncate prompt text for compact logging."""
     clean_prompt = str(prompt).replace('\n', ' - ')
     clean_prompt = re.sub(r'\s+', ' ', clean_prompt).strip()
     prompt_trunc = clean_prompt[:100]
@@ -21,6 +22,7 @@ def truncate_prompt(prompt):
 
 
 def format_inputs(inputs: dict):
+    """Render evaluator inputs into a markdown-like block for the judge."""
     return "## Inputs\n" + "\n\n".join(
         f"### {k}:\n{v}"
         for k, v in inputs.items()
@@ -28,20 +30,30 @@ def format_inputs(inputs: dict):
 
 
 class JudgePassFailResult(BaseModel):
+    """Structured output schema for pass/fail judge responses."""
     llm_as_judge_result: Literal["pass", "fail"]
     failures_list: List[str] = Field(default_factory=list)
 
 
 class RunLlmAsJudgePassFailEvaluator:
     """
-    Evaluates a judge prompt using an LLM and returns a structured pass/fail result.
+    Evaluate prompt-defined criteria with an LLM judge and return pass/fail output.
 
-    The evaluator invokes a chat model with a strict output schema containing:
-    - `llm_as_judge_result`: "pass" or "fail"
+    Use the pass/fail template at:
+    - `llm_eval/prompt_templates/llm-as-judge-template.md`
+
+    The evaluator sends:
+    - `prompt` as a system message containing judging instructions.
+    - `inputs` as a formatted human message payload.
+
+    Expected structured model output (`JudgePassFailResult`):
+    - `llm_as_judge_result`: `"pass"` or `"fail"`
     - `failures_list`: list of failure reasons
 
-    The supplied prompt must clearly instruct the model to produce an output that
-    matches the `JudgePassFailResult` schema.
+    Returned dict includes:
+    - `llm_as_judge_result`
+    - `failures_list`
+    - `prompt_trunc`
     """
 
     def __init__(
@@ -89,20 +101,32 @@ class RunLlmAsJudgePassFailEvaluator:
 
 
 class JudgeScoreResult(BaseModel):
+    """Structured output schema for score-based judge responses."""
     llm_as_judge_score: float
     failures_list: List[str] = Field(default_factory=list)
 
 
 class RunLlmAsJudgeScoreEvaluator:
     """
-    Evaluates a judge prompt using an LLM and returns a structured score result.
+    Evaluate prompt-defined criteria with an LLM judge and return a scored result.
 
-    The evaluator invokes a chat model with a strict output schema containing:
+     Use the score-threshold template at:
+    - `llm_eval/prompt_templates/llm-as-judge-score-threshold-template.md`
+
+    The evaluator sends:
+    - `prompt` as a system message containing judging instructions.
+    - `inputs` as a formatted human message payload.
+
+    Expected structured model output (`JudgeScoreResult`):
     - `llm_as_judge_score`: numeric score from the judge model
     - `failures_list`: list of failure reasons
 
-    The supplied prompt must clearly instruct the model to produce an output that
-    matches the `JudgeScoreResult` schema.
+    Returned dict includes:
+    - `llm_as_judge_score`
+    - `llm_as_judge_result` (`"pass"` when score `>= threshold`, else `"fail"`)
+    - `threshold`
+    - `failures_list`
+    - `prompt_trunc`
     """
 
     def __init__(

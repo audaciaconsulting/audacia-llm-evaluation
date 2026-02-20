@@ -10,7 +10,7 @@ from llm_eval.evaluators.llm_as_judge import (
 
 def template_md(template_name: str):
     repo_root = Path(__file__).resolve().parents[2]
-    template_path = repo_root / "llm_eval" / "evaluators" / f"{template_name}.md"
+    template_path = repo_root / "llm_eval" / "prompt_templates" / f"{template_name}.md"
     with open(template_path, "r", encoding="utf-8") as f:
         return f.read()
 

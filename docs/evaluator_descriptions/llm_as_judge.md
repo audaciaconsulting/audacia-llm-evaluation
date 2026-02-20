@@ -6,7 +6,13 @@ LLM-as-Judge evaluators let you define custom evaluation logic in plain language
 These evaluators are best suited for nuanced checks such as factual correctness, policy compliance, style adherence, and task-specific requirements that are easier to describe than to hard-code.
 
 ## How They Work
-Each evaluator takes a `prompt` that describes how the judge should evaluate an output. The model is invoked with structured output parsing, and the returned payload is converted into a standard pass/fail result shape.
+Use the provided templates in `llm_eval/prompt_templates` for all LLM-as-Judge evaluations.
+
+Each evaluator takes:
+- a `prompt` (judge instructions sent as a system message), and
+- an `inputs` dictionary (formatted and sent as a human message payload).
+
+The model is invoked with structured output parsing, and the returned payload is converted into a standard result shape.
 
 The prompt **must explicitly instruct** the judge model to return JSON matching the expected schema.
 
@@ -27,8 +33,12 @@ The prompt **must explicitly instruct** the judge model to return JSON matching 
 
 Evaluates a prompt and expects the judge to return a binary decision.
 
+**Required Prompt Template:**
+- `llm_eval/prompt_templates/llm-as-judge-template.md`
+
 **Expected Inputs:**
 - `prompt` - Full evaluation instructions for the judge model.
+- `inputs` - Dictionary of fields/values to evaluate (e.g., query, response, reference, context).
 - `model` *(optional)* - Custom `AzureChatOpenAI` model; default model is used if omitted.
 
 **Prompt Output Schema (required):**
@@ -50,8 +60,12 @@ Evaluates a prompt and expects the judge to return a binary decision.
 
 Evaluates a prompt and expects the judge to return a numeric score. The evaluator then converts score to pass/fail using a threshold.
 
+**Required Prompt Template:**
+- `llm_eval/prompt_templates/llm-as-judge-score-threshold-template.md`
+
 **Expected Inputs:**
 - `prompt` - Full evaluation instructions for the judge model.
+- `inputs` - Dictionary of fields/values to evaluate (e.g., query, response, reference, context).
 - `threshold` - Minimum score required to pass.
 - `model` *(optional)* - Custom `AzureChatOpenAI` model; default model is used if omitted.
 

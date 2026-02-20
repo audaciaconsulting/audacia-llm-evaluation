@@ -190,7 +190,7 @@ The Audacia LLM Evaluation Tool focuses on seven key areas of LLM evaluation. In
 - [Bias Scoring](docs/evaluator_descriptions/bias.md) — Assesses whether a response contains social, cultural, or political bias.
 - [Toxicity Scoring](docs/evaluator_descriptions/toxicity.md) — Flags offensive, harmful, or abusive language in the response.
 - [Format Consistency](docs/evaluator_descriptions/format.md) — Checks if the response is in the correct structure or JSON format.
-- [LLM-as-Judge](docs/evaluator_descriptions/llm_as_judge.md) — Uses prompt-defined criteria for pass/fail or score-based judging.
+- [LLM-as-Judge](docs/evaluator_descriptions/llm_as_judge.md) — Uses prompt-defined criteria for pass/fail or score-based judging (required prompt templates).
 
 #### 🔍 Tool Overview
 The table below summarises each evaluator in the Audacia LLM Evaluation Tool, grouped by their target area and purpose:
@@ -223,6 +223,13 @@ The table below summarises each evaluator in the Audacia LLM Evaluation Tool, gr
 | `format`               | [`RunJsonResponseEvaluator`](https://github.com/audaciaconsulting/audacia-llm-evaluation/blob/main/llm_eval/evaluators/format.py#L26-L46) | Validates whether the LLM output is in a valid JSON format.                                                                                                                                                               | Detected format of the response.                           | No     |
 | `llm_as_judge`         | [`RunLlmAsJudgePassFailEvaluator`](https://github.com/audaciaconsulting/audacia-llm-evaluation/blob/main/llm_eval/evaluators/llm_as_judge.py) | Prompt-driven LLM judge that returns a structured binary pass/fail verdict with failure reasons.                                                                                                                         | `pass`/`fail` + failures list.                             | No     |
 | `llm_as_judge`         | [`RunLlmAsJudgeScoreEvaluator`](https://github.com/audaciaconsulting/audacia-llm-evaluation/blob/main/llm_eval/evaluators/llm_as_judge.py) | Prompt-driven LLM judge that returns a numeric score and derives pass/fail using a threshold.                                                                                                                            | Numeric score + thresholded `pass`/`fail`.                | No     |
+
+#### 🧩 LLM-as-Judge Prompt Templates
+
+Template usage is required. Use the corresponding file in `llm_eval/prompt_templates`:
+
+- `RunLlmAsJudgePassFailEvaluator` → `llm_eval/prompt_templates/llm-as-judge-template.md`
+- `RunLlmAsJudgeScoreEvaluator` → `llm_eval/prompt_templates/llm-as-judge-score-threshold-template.md`
 
 
 ### 📐 Which Tool To Use?
