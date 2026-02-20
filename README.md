@@ -44,10 +44,11 @@ The **Audacia LLM Evaluation Repo** is comprised of two main components:
 - `docs/evaluator_descriptions/bias.md` — Bias evaluation guidance.
 - `docs/evaluator_descriptions/toxicity.md` — Toxicity evaluation guidance.
 - `docs/evaluator_descriptions/format.md` — Format validators (custom type + JSON).
+- `docs/evaluator_descriptions/llm_as_judge.md` — Prompt-driven judge evaluators (pass/fail + score).
 
 ## 1. LLM Evaluation Tool
 
-The **Audacia LLM Evaluation Repo** is a Python package designed to streamline the evaluation of Large Language Model (LLM) outputs. It offers a suite of modular evaluators that assess various aspects of LLM responses, including similarity, retrieval accuracy, sentiment, bias, toxicity, and format consistency.
+The **Audacia LLM Evaluation Repo** is a Python package designed to streamline the evaluation of Large Language Model (LLM) outputs. It offers a suite of modular evaluators that assess various aspects of LLM responses, including similarity, retrieval accuracy, sentiment, bias, toxicity, format consistency, and prompt-driven LLM-as-judge checks.
 
 This tool is ideal for developers, testers, and researchers aiming to:
 - **Automate** the evaluation of LLM responses.
@@ -179,7 +180,7 @@ await RunRougeScoreEvaluator(
 
 ### 🧪 Evaluators
 
-The Audacia LLM Evaluation Tool focuses on six key areas of LLM evaluation. In some cases, multiple evaluators are provided for a single area to support varied testing needs and offer greater flexibility and granularity. For full usage documentation, follow the links in the **Description & Documentation** section.
+The Audacia LLM Evaluation Tool focuses on seven key areas of LLM evaluation. In some cases, multiple evaluators are provided for a single area to support varied testing needs and offer greater flexibility and granularity. For full usage documentation, follow the links in the **Description & Documentation** section.
 
 #### 📚 Description & Documentation
 
@@ -189,6 +190,7 @@ The Audacia LLM Evaluation Tool focuses on six key areas of LLM evaluation. In s
 - [Bias Scoring](docs/evaluator_descriptions/bias.md) — Assesses whether a response contains social, cultural, or political bias.
 - [Toxicity Scoring](docs/evaluator_descriptions/toxicity.md) — Flags offensive, harmful, or abusive language in the response.
 - [Format Consistency](docs/evaluator_descriptions/format.md) — Checks if the response is in the correct structure or JSON format.
+- [LLM-as-Judge](docs/evaluator_descriptions/llm_as_judge.md) — Uses prompt-defined criteria for pass/fail or score-based judging.
 
 #### 🔍 Tool Overview
 The table below summarises each evaluator in the Audacia LLM Evaluation Tool, grouped by their target area and purpose:
@@ -219,6 +221,8 @@ The table below summarises each evaluator in the Audacia LLM Evaluation Tool, gr
 | `toxicity`             | [`RunToxicityEvaluatorAgainstReferences`](https://github.com/audaciaconsulting/audacia-llm-evaluation/blob/main/llm_eval/evaluators/toxicity.py#L43-L74) | Compare the toxicity in the response against a list of golden standards.                                                                                                                                                  | Score between 0 (neutral) and 1 (toxic).                | No     |
 | `format`               | [`RunCustomResponseEvaluator`](https://github.com/audaciaconsulting/audacia-llm-evaluation/blob/main/llm_eval/evaluators/format.py#L7-L23) | Validates whether the LLM output is in a given format passed to the evaluator.                                                                                                                                            | Detected format of the response.                           | No     |
 | `format`               | [`RunJsonResponseEvaluator`](https://github.com/audaciaconsulting/audacia-llm-evaluation/blob/main/llm_eval/evaluators/format.py#L26-L46) | Validates whether the LLM output is in a valid JSON format.                                                                                                                                                               | Detected format of the response.                           | No     |
+| `llm_as_judge`         | [`RunLlmAsJudgePassFailEvaluator`](https://github.com/audaciaconsulting/audacia-llm-evaluation/blob/main/llm_eval/evaluators/llm_as_judge.py) | Prompt-driven LLM judge that returns a structured binary pass/fail verdict with failure reasons.                                                                                                                         | `pass`/`fail` + failures list.                             | No     |
+| `llm_as_judge`         | [`RunLlmAsJudgeScoreEvaluator`](https://github.com/audaciaconsulting/audacia-llm-evaluation/blob/main/llm_eval/evaluators/llm_as_judge.py) | Prompt-driven LLM judge that returns a numeric score and derives pass/fail using a threshold.                                                                                                                            | Numeric score + thresholded `pass`/`fail`.                | No     |
 
 
 ### 📐 Which Tool To Use?
@@ -345,6 +349,16 @@ graph TD
   B1 --> C1["Yes"] --> D1["Use RunJsonResponseEvaluator"]
   B1 --> C2["No"] --> B2["Should the output match a specific Python type (e.g., list, dict)?"]
   B2 --> C3["Yes"] --> D2["Use RunCustomResponseEvaluator"]
+```
+
+**I want to run a prompt-driven LLM judge evaluation...**
+```mermaid
+graph TD
+  C1["Do you want a binary verdict only?"]
+  C1 --> D1["Yes"] --> E1["Use RunLlmAsJudgePassFailEvaluator"]
+  C1 --> D2["No"] --> C2["Do you want a numeric score with pass/fail thresholding?"]
+  C2 --> E2["Yes"] --> F2["Use RunLlmAsJudgeScoreEvaluator"]
+  C2 --> E3["No"] --> F3["Refine prompt/schema until one of the two evaluator outputs fits"]
 ```
 ## ⚔️ 2. AI Red Teaming
 

@@ -1,4 +1,5 @@
 import logging
+import re
 from typing import Optional
 
 from langchain_openai import AzureChatOpenAI
@@ -12,6 +13,12 @@ logger = logging.getLogger(__name__)
 from pydantic import BaseModel, Field
 from typing import List, Literal
 
+def truncate_prompt(prompt):
+    clean_prompt = str(prompt).replace('\n', ' - ')
+    clean_prompt = re.sub(r'\s+', ' ', clean_prompt).strip()
+    prompt_trunc = clean_prompt[:100]
+    return prompt_trunc
+
 
 class JudgePassFailResult(BaseModel):
     llm_as_judge_result: Literal["pass", "fail"]
@@ -19,6 +26,16 @@ class JudgePassFailResult(BaseModel):
 
 
 class RunLlmAsJudgePassFailEvaluator:
+    """
+    Evaluates a judge prompt using an LLM and returns a structured pass/fail result.
+
+    The evaluator invokes a chat model with a strict output schema containing:
+    - `llm_as_judge_result`: "pass" or "fail"
+    - `failures_list`: list of failure reasons
+
+    The supplied prompt must clearly instruct the model to produce an output that
+    matches the `JudgePassFailResult` schema.
+    """
     def __init__(
             self,
             prompt: str,
@@ -33,7 +50,7 @@ class RunLlmAsJudgePassFailEvaluator:
         result = {
             "llm_as_judge_result": llm_result.llm_as_judge_result,
             "failures_list": llm_result.failures_list,
-            "prompt_trunc": str(self.prompt).replace('  ', '')[:100],
+            "prompt_trunc": truncate_prompt(self.prompt)
         }
 
         logger.info(format_dict_log(dictionary=result))
@@ -43,6 +60,61 @@ class RunLlmAsJudgePassFailEvaluator:
         result = self()
         if result.get("llm_as_judge_result") == "fail":
             raise AssertionError("LLM-as-Judge evaluation failed")
+
+    def evaluate(self, assert_result: bool = False):
+        result = self()
+
+        logger.info(format_dict_log(dictionary=result))
+
+        if assert_result:
+            assert result["llm_as_judge_result"] == "pass"
+
+        return result
+
+class JudgeScoreResult(BaseModel):
+    llm_as_judge_score: float
+    failures_list: List[str] = Field(default_factory=list)
+
+class RunLlmAsJudgeScoreEvaluator:
+    """
+    Evaluates a judge prompt using an LLM and returns a structured score result.
+
+    The evaluator invokes a chat model with a strict output schema containing:
+    - `llm_as_judge_score`: numeric score from the judge model
+    - `failures_list`: list of failure reasons
+
+    The supplied prompt must clearly instruct the model to produce an output that
+    matches the `JudgeScoreResult` schema.
+    """
+
+    def __init__(
+            self,
+            prompt: str,
+            threshold: float,
+            model: Optional[AzureChatOpenAI] = None,
+    ):
+        self.prompt = prompt
+        self.threshold = threshold
+        self.model = model or get_azure_openai_llm()
+
+    def __call__(self) -> dict:
+        structured_model = self.model.with_structured_output(JudgeScoreResult)
+        llm_result = structured_model.invoke(self.prompt)
+        result = {
+            "llm_as_judge_score": llm_result.llm_as_judge_score,
+            "llm_as_judge_result": "pass" if llm_result.llm_as_judge_score >= self.threshold else "fail",
+            "threshold": self.threshold,
+            "failures_list": llm_result.failures_list,
+            "prompt_trunc": truncate_prompt(self.prompt)
+        }
+
+        logger.info(format_dict_log(dictionary=result))
+        return result
+
+    def assert_result(self):
+        result = self()
+        if result.get("llm_as_judge_result") == "fail":
+            raise AssertionError("LLM-as-Judge score evaluation failed")
 
     def evaluate(self, assert_result: bool = False):
         result = self()
