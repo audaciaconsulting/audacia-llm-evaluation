@@ -16,6 +16,20 @@ The model is invoked with structured output parsing, and the returned payload is
 
 The prompt **must explicitly instruct** the judge model to return JSON matching the expected schema.
 
+### Template Validation Requirements
+
+The evaluator validates the prompt before running. If you customize a template, you must keep:
+
+- `## Inputs`
+- `You will receive:`
+- numbered input lines that match `inputs` dict keys exactly and in order (for example `1. query`, `2. response`)
+- `## Output Format`
+- `Output ONLY valid JSON`
+- `llm_as_judge_score`
+- `failures_list`
+
+If any required marker is missing, evaluation raises a `ValueError`.
+
 ## Evaluators
 
 ### Summary Table
@@ -42,7 +56,7 @@ Evaluates a prompt and expects the judge to return a binary decision.
 - `model` *(optional)* - Custom `AzureChatOpenAI` model; default model is used if omitted.
 
 **Prompt Output Schema (required):**
-- `llm_as_judge_result` - `"pass"` or `"fail"`.
+- `llm_as_judge_score` - `"pass"` or `"fail"`.
 - `failures_list` - List of failure reasons.
 
 **Results Output:**

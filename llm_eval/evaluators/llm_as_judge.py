@@ -5,7 +5,6 @@ from langchain_openai import AzureChatOpenAI
 from langchain_core.messages import SystemMessage, HumanMessage
 from llm_eval.tools.model_tools import get_azure_openai_llm
 from llm_eval.tools.utils import format_dict_log
-import textwrap
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -29,13 +28,35 @@ def format_inputs(inputs: dict):
         for k, v in inputs.items()
     )
 
-def check_prompt_output(prompt:str):
-    required = [
+
+def check_prompt_output(prompt: str, inputs: dict):
+    """
+    Validate that the prompt keeps required template markers.
+
+    Required prompt content:
+    - `## Inputs`
+    - `You will receive:`
+    - numbered input labels matching `inputs` keys exactly, e.g. `1. query`, `2. response`
+    - `## Output Format`
+    - `Output ONLY valid JSON`
+    - `llm_as_judge_score`
+    - `failures_list`
+
+    Raises:
+        ValueError: If any required marker is missing.
+    """
+    inputs_strs = ["## Inputs", "You will receive:"]
+    for i, (k, v) in enumerate(inputs.items(), start=1):
+        inputs_strs.append(f'{i}. {k}')
+
+    output_strs = [
         "## Output Format",
         "Output ONLY valid JSON",
-        '"llm_as_judge_score"',
-        '"failures_list"',
+        "llm_as_judge_score",
+        "failures_list",
     ]
+
+    required = inputs_strs + output_strs
 
     for s in required:
         if s not in prompt:
@@ -43,8 +64,8 @@ def check_prompt_output(prompt:str):
 
 
 class JudgePassFailResult(BaseModel):
-    """Structured output schema for pass/fail judge responses."""
-    llm_as_judge_result: Literal["pass", "fail"]
+    """Structured output schema for pass/fail judge responses using a score field."""
+    llm_as_judge_score: Literal["pass", "fail"]
     failures_list: List[str] = Field(default_factory=list)
 
 
@@ -55,12 +76,24 @@ class RunLlmAsJudgePassFailEvaluator:
     Use the pass/fail template at:
     - `llm_eval/prompt_templates/llm-as-judge-template.md`
 
+    Prompt template constraints enforced by `check_prompt_output`:
+    - Keep these exact strings in the prompt:
+      - `## Inputs`
+      - `You will receive:`
+      - `## Output Format`
+      - `Output ONLY valid JSON`
+      - `llm_as_judge_score`
+      - `failures_list`
+    - Keep numbered input lines whose labels exactly match the keys of `inputs`
+      in order (e.g. `1. query`, `2. response`).
+    - If you customize the template, do not remove or rename these required strings.
+
     The evaluator sends:
     - `prompt` as a system message containing judging instructions.
     - `inputs` as a formatted human message payload.
 
     Expected structured model output (`JudgePassFailResult`):
-    - `llm_as_judge_result`: `"pass"` or `"fail"`
+    - `llm_as_judge_score`: `"pass"` or `"fail"`
     - `failures_list`: list of failure reasons
 
     Returned dict includes:
@@ -80,7 +113,7 @@ class RunLlmAsJudgePassFailEvaluator:
         self.inputs = inputs
 
     def __call__(self) -> dict:
-        check_prompt_output(self.prompt)
+        check_prompt_output(self.prompt, self.inputs)
         inputs_str = format_inputs(self.inputs)
         structured_model = self.model.with_structured_output(JudgePassFailResult)
         llm_result = structured_model.invoke(
@@ -90,7 +123,7 @@ class RunLlmAsJudgePassFailEvaluator:
             ]
         )
         result = {
-            "llm_as_judge_result": llm_result.llm_as_judge_result,
+            "llm_as_judge_result": llm_result.llm_as_judge_score,
             "failures_list": llm_result.failures_list,
             "prompt_trunc": truncate_prompt(self.prompt)
         }
@@ -127,6 +160,18 @@ class RunLlmAsJudgeScoreEvaluator:
      Use the score-threshold template at:
     - `llm_eval/prompt_templates/llm-as-judge-score-threshold-template.md`
 
+    Prompt template constraints enforced by `check_prompt_output`:
+    - Keep these exact strings in the prompt:
+      - `## Inputs`
+      - `You will receive:`
+      - `## Output Format`
+      - `Output ONLY valid JSON`
+      - `llm_as_judge_score`
+      - `failures_list`
+    - Keep numbered input lines whose labels exactly match the keys of `inputs`
+      in order (e.g. `1. query`, `2. response`).
+    - If you customize the template, do not remove or rename these required strings.
+
     The evaluator sends:
     - `prompt` as a system message containing judging instructions.
     - `inputs` as a formatted human message payload.
@@ -156,7 +201,7 @@ class RunLlmAsJudgeScoreEvaluator:
         self.model = model or get_azure_openai_llm()
 
     def __call__(self) -> dict:
-        check_prompt_output(self.prompt)
+        check_prompt_output(self.prompt, self.inputs)
         inputs_str = format_inputs(self.inputs)
         structured_model = self.model.with_structured_output(JudgeScoreResult)
         llm_result = structured_model.invoke(

@@ -224,14 +224,6 @@ The table below summarises each evaluator in the Audacia LLM Evaluation Tool, gr
 | `llm_as_judge`         | [`RunLlmAsJudgePassFailEvaluator`](https://github.com/audaciaconsulting/audacia-llm-evaluation/blob/main/llm_eval/evaluators/llm_as_judge.py) | Prompt-driven LLM judge that returns a structured binary pass/fail verdict with failure reasons.                                                                                                                         | `pass`/`fail` + failures list.                             | No     |
 | `llm_as_judge`         | [`RunLlmAsJudgeScoreEvaluator`](https://github.com/audaciaconsulting/audacia-llm-evaluation/blob/main/llm_eval/evaluators/llm_as_judge.py) | Prompt-driven LLM judge that returns a numeric score and derives pass/fail using a threshold.                                                                                                                            | Numeric score + thresholded `pass`/`fail`.                | No     |
 
-#### 🧩 LLM-as-Judge Prompt Templates
-
-Template usage is required. Use the corresponding file in `llm_eval/prompt_templates`:
-
-- `RunLlmAsJudgePassFailEvaluator` → `llm_eval/prompt_templates/llm-as-judge-template.md`
-- `RunLlmAsJudgeScoreEvaluator` → `llm_eval/prompt_templates/llm-as-judge-score-threshold-template.md`
-
-
 ### 📐 Which Tool To Use?
 
 #### 📊 Scoring Methods Overview

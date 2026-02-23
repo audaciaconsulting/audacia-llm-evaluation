@@ -65,6 +65,27 @@ def test_llm_as_judge_pass(inputs: dict, objective: str, methods: str, template_
         ]
     )
 
+@pytest.mark.parametrize(
+    ("inputs", "objective", "methods", "template_name"),
+    [
+        (
+                {"statement_1": "The Earth is an oblate spheroid",
+                 "statement_2": "The Earth is bigger than the moon"
+                 },
+                "You are a fact checker, checking if all input statements are true",
+                "Check if the statements are true, if all are true set llm_as_judge_result to 'pass', otherwise set it to 'fail'",
+                "llm-as-judge-template"
+        )
+    ],
+)
+def test_llm_as_judge_fail_inputs_dict_prompt_mismatch(inputs: dict, objective: str, methods: str, template_name: str):
+        with pytest.raises(ValueError):
+            template = template_md(template_name)
+            prompt = format_md(inputs, objective, methods, template)
+            prompt = prompt.replace("statement_1", "claim_1").replace("statement_2", "claim_2")
+            evaluator = RunLlmAsJudgePassFailEvaluator(prompt=prompt, inputs=inputs)
+            evaluator.assert_result()
+
 
 @pytest.mark.parametrize(
     ("inputs", "objective", "methods", "template_name"),
