@@ -8,7 +8,6 @@ from langchain.chat_models.base import BaseChatModel
 from langchain_openai import AzureChatOpenAI, AzureOpenAIEmbeddings
 from ragas.embeddings import LangchainEmbeddingsWrapper
 from ragas.llms import LangchainLLMWrapper
-from transformers import AutoConfig, AutoModel, AutoTokenizer
 
 load_dotenv()
 
@@ -35,7 +34,18 @@ def preload_huggingface_model(
 
     Raises:
         EnvironmentError: If model/tokenizer/config loading fails completely.
+        ImportError: If the optional 'local-models' dependencies are not installed.
     """
+
+    try:
+        from transformers import AutoConfig, AutoModel, AutoTokenizer
+    except ImportError as e:
+        raise ImportError(
+            "Local Hugging Face model support requires the optional 'local-models' "
+            "dependencies (torch, transformers). Install them with: "
+            "`uv sync --extra local-models` (in a clone) or "
+            "`uv add \"audacia-llm-evaluation[local-models]\"` (as a dependency)."
+        ) from e
 
     os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
 

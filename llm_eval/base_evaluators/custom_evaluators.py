@@ -1,7 +1,16 @@
 from llm_eval.tools.model_tools import REQUIRED_MODELS
 import re
-from transformers import AutoTokenizer, pipeline
 from enum import Enum
+
+try:
+    from transformers import AutoTokenizer, pipeline
+except ImportError as e:
+    raise ImportError(
+        "The sentiment, toxicity and bias evaluators require the optional "
+        "'local-models' dependencies (torch, transformers). Install them with: "
+        "`uv sync --extra local-models` (in a clone) or "
+        "`uv add \"audacia-llm-evaluation[local-models]\"` (as a dependency)."
+    ) from e
 
 class AggregationStrategy(Enum):
     """Strategy for aggregating scores across text chunks."""

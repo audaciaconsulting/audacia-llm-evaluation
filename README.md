@@ -87,6 +87,41 @@ cd audacia-llm-evaluation
 uv sync
 ``` 
 
+##### Local model evaluators (optional)
+
+The `sentiment`, `bias`, and `toxicity` evaluators run a local Hugging Face
+model and are the only ones that need `torch` and `transformers`. To keep the
+base install small (~0.5 GB vs ~1.4 GB), these are packaged as an optional
+`local-models` extra. Install it only if you use those evaluators:
+
+```bash
+# When adding as a dependency
+uv add "audacia-llm-evaluation[local-models] @ git+https://github.com/audaciaconsulting/audacia-llm-evaluation.git"
+
+# When working in a clone
+uv sync --extra local-models
+```
+
+All other evaluators — similarity, RAG, LLM-as-judge, format checks — work with
+the base install and need no extra.
+
+> **CPU-only torch:** the evaluators run on `device="cpu"`, so this repo pins
+> `torch` to the CPU-only build (via `[tool.uv.sources]` in `pyproject.toml`),
+> avoiding ~3.4 GB of unused CUDA/GPU wheels. This pin applies automatically when
+> you clone and `uv sync` this repo. If you install the package as a dependency
+> of another project and want the CPU build there too, add the index to your own
+> `pyproject.toml`:
+>
+> ```toml
+> [tool.uv.sources]
+> torch = { index = "pytorch-cpu" }
+>
+> [[tool.uv.index]]
+> name = "pytorch-cpu"
+> url = "https://download.pytorch.org/whl/cpu"
+> explicit = true
+> ```
+
 #### 🛠️ Usage Guide
 
 Each evaluator returns a dictionary containing a `'result'` field (`'pass'` or `'fail'`), which indicates whether the evaluation meets the expected criteria. Expected criteria can range from user inputted scores, to user inputted golden standard response, or more comparitive elements. All evaluators also include an `assert_result` method for easy unit testing integration. 

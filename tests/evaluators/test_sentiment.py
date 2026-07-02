@@ -1,5 +1,7 @@
 import pytest
 
+pytest.importorskip("transformers", reason="requires the 'local-models' extra")
+
 from llm_eval.base_evaluators.custom_evaluators import AggregationStrategy
 from llm_eval.evaluators.sentiment import (
     RunSentimentEvaluatorAgainstExpectedScore,
