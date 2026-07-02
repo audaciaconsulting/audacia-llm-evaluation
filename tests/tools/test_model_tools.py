@@ -23,9 +23,9 @@ def custom_model_config():
 
 
 @patch("llm_eval.tools.model_tools.snapshot_download")
-@patch("llm_eval.tools.model_tools.AutoConfig.from_pretrained")
-@patch("llm_eval.tools.model_tools.AutoTokenizer.from_pretrained")
-@patch("llm_eval.tools.model_tools.AutoModel.from_pretrained")
+@patch("transformers.AutoConfig.from_pretrained")
+@patch("transformers.AutoTokenizer.from_pretrained")
+@patch("transformers.AutoModel.from_pretrained")
 def test_preload_huggingface_model_success(
     mock_model, mock_tokenizer, mock_config, mock_snapshot, fake_model_name
 ):
