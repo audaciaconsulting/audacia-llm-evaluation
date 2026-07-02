@@ -2,6 +2,8 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
+pytest.importorskip("transformers", reason="requires the 'local-models' extra")
+
 from llm_eval.tools.model_tools import (
     cache_required_models,
     get_azure_ai_evaluation_model_config,
