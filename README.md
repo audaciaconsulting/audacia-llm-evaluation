@@ -429,12 +429,9 @@ A detailed guide to using Promptfoo for red teaming can be found in the AI Chabo
 #### Setting up the environment:
 * [Install this repo](#-installation)
 * Install promptfoo `npm install -g promptfoo`
-* Add environment variables to `.env`  
-```
-PROMPTFOO_AZURE_API_KEY
-PROMPTFOO_AZURE_API_HOST
-PROMPTFOO_AZURE_DEPLOYMENT
-```
+* Add TARGET and GRADER LLM environment variables to `.env`  
+* The GRADER LLM should be set to minimum guardrails to avoid triggering the content filter 
+
 #### 🎯 Configuration Guide
 
 1. **Generation yaml config**: Defines what adversarial prompts to generate
@@ -447,10 +444,10 @@ The default generation config file is below Use this as a template to create you
 description: Red team prompt generation config for AI App   # enter description here
 
 targets:    # endpoint to be tested
-  - id: azure:chat:${PROMPTFOO_AZURE_DEPLOYMENT} # LLM endpoint or python file for app inference e.g. file://inference_ai_app.py
+  - id: azure:chat:${TARGET_LLM__DEPLOYMENT} # LLM endpoint or python file for app inference e.g. file://inference_ai_app.py
     config:
-      apiKey: ${PROMPTFOO_AZURE_API_KEY}
-      apiHost: ${PROMPTFOO_AZURE_API_HOST}
+      apiKey: ${TARGET_LLM_KEY}
+      apiHost: ${TARGET_LLM_HOST}
       verbose: true
       delay: 10000  # limit call rate in milliseconds to avoid rate limiting
     label: AI App   # enter app name here
@@ -483,10 +480,10 @@ redteam:
 defaultTest:
   options:
     provider:   # Config for Audacia deployed LLM to grade responses.
-      id: azure:chat:${PROMPTFOO_AZURE_DEPLOYMENT}
+      id: azure:chat:${GRADER_LLM_DEPLOYMENT}
       config:
-        apiKey: ${PROMPTFOO_AZURE_API_KEY}
-        apiHost: ${PROMPTFOO_AZURE_API_HOST}
+        apiKey: ${GRADER_LLM_KEY}
+        apiHost: ${GRADER_LLM_HOST}
         verbose: true
         delay: 10000  # limit call rate in milliseconds to avoid rate limiting
 
@@ -578,6 +575,14 @@ Navigate to the red team results section to see:
 #### 🧩 Promptfoo Red Teaming Development
 To view detailed logs `export LOG_LEVEL=debug`  
 To disable detailed logs `unset LOG_LEVEL`  
+
+#### Considerations/Warnings Using Promptfoo                                                                                      
+- The core strength of Promptfoo is also its weakness. It enables generation of attacks from the product of multiple plugins and multiple attack methods. This can cast a wide net but at the risk of losing oversight of attack relevance and accuracy.
+- The number of attacks can explode if multiple plugins and multiple attack methods are selected. Curate the attack-set or use custom code to sample the attack-set after generation.
+- The LLM grader can false-pass (wave through a real attack) as well as be content filter-blocked and rate limited — spot-check green runs; don't treat the pass rate as ground truth.
+- Generated attacks can miss your core harm: if the built-in plugins don't reliably produce the specific misuse you care about, add the intent (custom-intent) plugin with hand-written seeds to guarantee coverage. 
+- If your app returns structured output (JSON fields, a classification, a score), the harms are usually specific field values — grade those with deterministic assertions rather than the LLM rubric. In this case promptfoo could be used to generate attack variants as a source to create structured evals.  
+- Generation is unreliable across some plugin/strategy combinations — attacks can come back in the wrong variable. The classic tell is a test where the generated attack sits in `__prompt:` but `prompt:` is `""`. Always inspect the generated config and confirm each test has a populated attack in the variable your target actually reads before evaluating. Custom code can be used to fix this issue.
 
 
 
