@@ -3,14 +3,11 @@ from typing import Optional
 
 from azure.ai.evaluation import AzureOpenAIModelConfiguration
 from azure.identity import DefaultAzureCredential, get_bearer_token_provider
-from dotenv import load_dotenv
 from huggingface_hub import snapshot_download
 from langchain.chat_models.base import BaseChatModel
 from langchain_openai import AzureChatOpenAI, AzureOpenAIEmbeddings
 from ragas.embeddings import LangchainEmbeddingsWrapper
 from ragas.llms import LangchainLLMWrapper
-
-load_dotenv()
 
 REQUIRED_MODELS = {
     "sentiment": {"name": "tabularisai/multilingual-sentiment-analysis"},
