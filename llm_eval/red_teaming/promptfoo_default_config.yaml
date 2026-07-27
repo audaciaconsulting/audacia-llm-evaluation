@@ -1,10 +1,10 @@
 description: Red team prompt generation config for AI App   # enter description here
 
 targets:    # endpoint to be tested
-  - id: azure:chat:${PROMPTFOO_AZURE_DEPLOYMENT} # LLM endpoint or python file for app inference e.g. file://inference_ai_app.py
+  - id: azure:chat:${LLM_EVAL_PROMPTFOO_LLM_MODEL} # LLM endpoint or python file for app inference e.g. file://inference_ai_app.py
     config:
-      apiKey: ${PROMPTFOO_AZURE_API_KEY}
-      apiHost: ${PROMPTFOO_AZURE_API_HOST}
+      apiKey: ${LLM_EVAL_PROMPTFOO_LLM_API_KEY}
+      apiHost: ${LLM_EVAL_PROMPTFOO_LLM_API_ENDPOINT}
       verbose: true
       delay: 0  # limit call rate in milliseconds to avoid rate limiting]
       maxConcurrency: 1   # limit concurrent requests to avoid rate limiting
@@ -33,10 +33,10 @@ redteam:
 defaultTest:
   options:
     provider:   # Config for Audacia deployed LLM to grade responses.
-      id: azure:chat:${PROMPTFOO_AZURE_DEPLOYMENT}
+      id: azure:chat:${LLM_EVAL_PROMPTFOO_LLM_MODEL}
       config:
-        apiKey: ${PROMPTFOO_AZURE_API_KEY}
-        apiHost: ${PROMPTFOO_AZURE_API_HOST}
+        apiKey: ${LLM_EVAL_PROMPTFOO_LLM_API_KEY}
+        apiHost: ${LLM_EVAL_PROMPTFOO_LLM_API_ENDPOINT}
         verbose: true
         delay: 0  # limit call rate in milliseconds to avoid rate limiting
         maxConcurrency: 1   # limit concurrent requests to avoid rate limiting

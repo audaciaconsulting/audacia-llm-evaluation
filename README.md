@@ -132,15 +132,21 @@ Each evaluator may also have additional functionality, for detailed descriptions
 
 Make sure you have the following environment variables set in your system environment or in a `.env` file located in your project root:
 
-- `AZURE_OPENAI_LLM_MODEL` — The name of the Azure OpenAI language model deployment (e.g., `gpt-35-turbo`).
-- `AZURE_OPENAI_LLM_API_KEY` — The API key used to authenticate requests to the language model.
-- `AZURE_OPENAI_LLM_ENDPOINT` — The endpoint URL for the Azure OpenAI language model resource.
-- `AZURE_OPENAI_LLM_API_VERSION` — The API version to use when calling the language model (e.g., `2024-04-01-preview`).
+- `LLM_EVAL_LLM_MODEL` — The name of the Azure OpenAI language model deployment (e.g., `gpt-35-turbo`).
+- `LLM_EVAL_LLM_API_KEY` — The API key used to authenticate requests to the language model. Optional: if unset, authentication falls back to Entra ID (`DefaultAzureCredential` — az login / managed identity), which is required for resources with `disableLocalAuth=true`.
+- `LLM_EVAL_LLM_ENDPOINT` — The endpoint URL for the Azure OpenAI language model resource.
+- `LLM_EVAL_LLM_API_VERSION` — The API version to use when calling the language model (e.g., `2024-04-01-preview`).
 
-- `AZURE_OPENAI_EMBEDDING_MODEL` — The name of the Azure OpenAI embedding model deployment.
-- `AZURE_OPENAI_EMBEDDING_MODEL_API_KEY` — The API key for authenticating requests to the embedding model.
-- `AZURE_OPENAI_EMBEDDING_MODEL_ENDPONT` — The endpoint URL for the embedding model resource.
-- `AZURE_OPENAI_EMBEDDING_MODEL_API_VERSION` — The API version used for the embedding model (typically the same as the LLM version).
+- `LLM_EVAL_EMBEDDING_MODEL` — The name of the Azure OpenAI embedding model deployment.
+- `LLM_EVAL_EMBEDDING_MODEL_API_KEY` — The API key for authenticating requests to the embedding model. Optional: if unset, authentication falls back to Entra ID (`DefaultAzureCredential`).
+- `LLM_EVAL_EMBEDDING_MODEL_ENDPOINT` — The endpoint URL for the embedding model resource.
+- `LLM_EVAL_EMBEDDING_MODEL_API_VERSION` — The API version used for the embedding model (typically the same as the LLM version).
+
+Red-team (promptfoo) evaluations additionally require:
+
+- `LLM_EVAL_PROMPTFOO_LLM_MODEL` — The Azure OpenAI deployment name used by the promptfoo red-team provider.
+- `LLM_EVAL_PROMPTFOO_LLM_API_ENDPOINT` — The endpoint URL (host) for the promptfoo provider's Azure OpenAI resource.
+- `LLM_EVAL_PROMPTFOO_LLM_API_KEY` — The API key for the promptfoo provider. Required for red-team runs (unlike the evaluators above, promptfoo does not currently fall back to Entra ID).
 
 
 ##### 1. Importing Evaluators

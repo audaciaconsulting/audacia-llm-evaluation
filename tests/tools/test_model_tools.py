@@ -86,7 +86,7 @@ def test_get_azure_ai_evaluation_model_config():
 
     model = get_azure_openai_llm(
         model=model_config["azure_deployment"],
-        api_key=model_config["api_key"],
+        api_key=model_config.get("api_key"),
         azure_endpoint=model_config["azure_endpoint"],
         api_version=model_config["api_version"],
     )

@@ -161,24 +161,15 @@ wheels = [
 ]
 
 [[package]]
-name = "audacia-datasciencetools"
-version = "0.1.0"
-source = { git = "https://github.com/audaciaconsulting/Audacia.DataScienceTools.git#1a1acc363fb2e9dfbead1613797b2a281efb636b" }
-dependencies = [
-    { name = "azure-storage-blob" },
-    { name = "pytest" },
-    { name = "python-dotenv" },
-]
-
-[[package]]
 name = "audacia-llm-evaluation"
-version = "0.1.5"
+version = "0.2.0"
 source = { editable = "." }
 dependencies = [
-    { name = "audacia-datasciencetools" },
     { name = "azure-ai-evaluation" },
     { name = "azure-ai-projects" },
+    { name = "azure-identity" },
     { name = "huggingface-hub" },
+    { name = "langchain-community" },
     { name = "langchain-openai" },
     { name = "promptflow" },
     { name = "pytest" },
@@ -198,17 +189,18 @@ local-models = [
 
 [package.metadata]
 requires-dist = [
-    { name = "audacia-datasciencetools", git = "https://github.com/audaciaconsulting/Audacia.DataScienceTools.git" },
     { name = "azure-ai-evaluation", specifier = ">=1.8.0" },
     { name = "azure-ai-projects", specifier = ">=1.0.0b11" },
+    { name = "azure-identity", specifier = ">=1.23.0" },
     { name = "huggingface-hub", specifier = ">=0.33.0" },
-    { name = "langchain-openai", specifier = ">=0.3.24" },
+    { name = "langchain-community", specifier = ">=0.3,<0.4" },
+    { name = "langchain-openai", specifier = ">=0.3.24,<1" },
     { name = "promptflow", specifier = ">=1.18.1" },
     { name = "pytest", specifier = ">=8.4.1" },
     { name = "pytest-asyncio", specifier = ">=1.0.0" },
     { name = "python-dotenv", specifier = ">=1.1.0" },
     { name = "pyyaml", specifier = ">=6.0" },
-    { name = "ragas", specifier = ">=0.2.15" },
+    { name = "ragas", specifier = ">=0.2.15,<0.3" },
     { name = "rapidfuzz", specifier = ">=3.13.0" },
     { name = "torch", marker = "extra == 'local-models'", specifier = ">=2.7.1", index = "https://download.pytorch.org/whl/cpu" },
     { name = "transformers", marker = "extra == 'local-models'", specifier = ">=4.52.4" },

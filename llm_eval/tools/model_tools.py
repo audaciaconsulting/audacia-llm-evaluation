@@ -2,6 +2,7 @@ import os
 from typing import Optional
 
 from azure.ai.evaluation import AzureOpenAIModelConfiguration
+from azure.identity import DefaultAzureCredential, get_bearer_token_provider
 from dotenv import load_dotenv
 from huggingface_hub import snapshot_download
 from langchain.chat_models.base import BaseChatModel
@@ -134,13 +135,36 @@ def cache_required_models(
         )
 
 
+# Scope for Entra ID (Azure AD) auth against Azure OpenAI / Cognitive Services.
+_COGNITIVE_SERVICES_SCOPE = "https://cognitiveservices.azure.com/.default"
+
+
+def _entra_token_provider():
+    """Bearer-token provider for keyless (Entra ID) auth, backed by
+    DefaultAzureCredential (az login locally / managed identity when deployed)."""
+    return get_bearer_token_provider(DefaultAzureCredential(), _COGNITIVE_SERVICES_SCOPE)
+
+
+def _auth_kwargs(api_key: Optional[str]) -> dict:
+    """Auth kwargs for a langchain Azure OpenAI client: key auth when a key is
+    provided, otherwise Entra ID via a bearer-token provider."""
+    if api_key:
+        return {"api_key": api_key}
+    return {"azure_ad_token_provider": _entra_token_provider()}
+
+
 def get_azure_ai_evaluation_model_config():
-    return AzureOpenAIModelConfiguration(
-        azure_endpoint=os.getenv("AZURE_OPENAI_LLM_ENDPOINT"),
-        api_key=os.getenv("AZURE_OPENAI_LLM_API_KEY"),
-        azure_deployment=os.getenv("AZURE_OPENAI_LLM_MODEL"),
-        api_version=os.getenv("AZURE_OPENAI_LLM_API_VERSION"),
+    config = AzureOpenAIModelConfiguration(
+        azure_endpoint=os.getenv("LLM_EVAL_LLM_ENDPOINT"),
+        azure_deployment=os.getenv("LLM_EVAL_LLM_MODEL"),
+        api_version=os.getenv("LLM_EVAL_LLM_API_VERSION"),
     )
+
+    api_key = os.getenv("LLM_EVAL_LLM_API_KEY")
+    if api_key:
+        config["api_key"] = api_key
+
+    return config
 
 
 def get_azure_openai_llm(
@@ -161,19 +185,19 @@ def get_azure_openai_llm(
         AzureChatOpenAI: Configured Azure OpenAI chat client.
     """
 
-    defaults = {
-        "model": os.getenv("AZURE_OPENAI_LLM_MODEL"),
-        "api_key": os.getenv("AZURE_OPENAI_LLM_API_KEY"),
-        "azure_endpoint": os.getenv("AZURE_OPENAI_LLM_ENDPOINT"),
-        "api_version": os.getenv("AZURE_OPENAI_LLM_API_VERSION"),
+    model = model or os.getenv("LLM_EVAL_LLM_MODEL")
+    api_key = api_key or os.getenv("LLM_EVAL_LLM_API_KEY")
+    azure_endpoint = azure_endpoint or os.getenv("LLM_EVAL_LLM_ENDPOINT")
+    api_version = api_version or os.getenv("LLM_EVAL_LLM_API_VERSION")
+
+    kwargs = {
+        "model": model,
+        "azure_endpoint": azure_endpoint,
+        "api_version": api_version,
+        **_auth_kwargs(api_key),
     }
 
-    return AzureChatOpenAI(
-        model=model or defaults["model"],
-        api_key=api_key or defaults["api_key"],
-        azure_endpoint=azure_endpoint or defaults["azure_endpoint"],
-        api_version=api_version or defaults["api_version"],
-    )
+    return AzureChatOpenAI(**kwargs)
 
 
 def get_ragas_wrapped_llm(model: BaseChatModel):
@@ -186,14 +210,14 @@ def get_ragas_wrapped_azure_openai_llm():
 
 
 def get_azure_openai_embedding_model():
-    openai_embedding = AzureOpenAIEmbeddings(
-        model=os.getenv("AZURE_OPENAI_EMBEDDING_MODEL"),
-        api_key=os.getenv("AZURE_OPENAI_EMBEDDING_MODEL_API_KEY"),
-        azure_endpoint=os.getenv("AZURE_OPENAI_EMBEDDING_MODEL_ENDPONT"),
-        api_version=os.getenv("AZURE_OPENAI_EMBEDDING_MODEL_API_VERSION"),
-    )
+    kwargs = {
+        "model": os.getenv("LLM_EVAL_EMBEDDING_MODEL"),
+        "azure_endpoint": os.getenv("LLM_EVAL_EMBEDDING_MODEL_ENDPOINT"),
+        "api_version": os.getenv("LLM_EVAL_EMBEDDING_MODEL_API_VERSION"),
+        **_auth_kwargs(os.getenv("LLM_EVAL_EMBEDDING_MODEL_API_KEY")),
+    }
 
-    return openai_embedding
+    return AzureOpenAIEmbeddings(**kwargs)
 
 
 def get_ragas_wrapped_embedding_model(model: AzureOpenAIEmbeddings):
