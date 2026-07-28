@@ -1,6 +1,6 @@
 [project]
 name = "audacia-llm-evaluation"
-version = "0.1.6"
+version = "0.2.0"
 description = "A framework to evaluate LLMs in AI systems"
 authors = [
     { name = "Chris Bentley", email = "chris.bentley@audacia.co.uk" },
@@ -11,18 +11,23 @@ readme = "README.md"
 license = "MIT"
 requires-python = ">=3.11"
 dependencies = [
-    "audacia-datasciencetools",
     "azure-ai-evaluation>=1.8.0",
     "azure-ai-projects>=1.0.0b11",
     "huggingface-hub>=0.33.0",
-    "langchain-openai>=0.3.24",
+    "langchain-openai>=0.3.24,<1",
     "promptflow>=1.18.1",
     "pytest>=8.4.1",
     "pytest-asyncio>=1.0.0",
     "PyYAML>=6.0",
     "python-dotenv>=1.1.0",
-    "ragas>=0.2.15",
+    # ragas imports langchain_community.chat_models.vertexai (removed in
+    # langchain-community 0.4) but doesn't pin it. Keep the langchain stack on
+    # 0.3 or consumers crash on import. ragas 0.4.x has the same bad import, so
+    # don't raise these until it's fixed upstream.
+    "ragas>=0.2.15,<0.3",
     "rapidfuzz>=3.13.0",
+    "langchain-community>=0.3,<0.4",
+    "azure-identity>=1.23.0",
 ]
 
 [project.optional-dependencies]
@@ -50,7 +55,6 @@ log_cli = true
 log_cli_level = "INFO"
 
 [tool.uv.sources]
-audacia-datasciencetools = { git = "https://github.com/audaciaconsulting/Audacia.DataScienceTools.git" }
 # Pull the CPU-only torch build. The local-model evaluators run on device="cpu",
 # so this avoids ~3.4GB of unused CUDA/nvidia wheels on install.
 torch = { index = "pytorch-cpu" }
