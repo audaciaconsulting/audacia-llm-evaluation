@@ -136,25 +136,48 @@ def cache_required_models(
 _COGNITIVE_SERVICES_SCOPE = "https://cognitiveservices.azure.com/.default"
 
 
-def _entra_token_provider():
-    """Bearer-token provider for keyless (Entra ID) auth, backed by
-    DefaultAzureCredential (az login locally / managed identity when deployed)."""
-    return get_bearer_token_provider(DefaultAzureCredential(), _COGNITIVE_SERVICES_SCOPE)
+def get_credential(credential=None):
+    """Credential for keyless (Entra ID) auth against Azure OpenAI.
+
+    Defaults to `DefaultAzureCredential` — `az login` locally, managed identity when
+    deployed. Note it resolves whichever credential it finds first, so a local session
+    signed into the wrong tenant fails with "Tenant provided in token does not match
+    resource token". Fix that with `az login --tenant <id>`, or pass a pinned
+    credential such as `AzureCliCredential(tenant_id=...)`.
+    """
+    return credential if credential is not None else DefaultAzureCredential()
 
 
-def _auth_kwargs(api_key: Optional[str]) -> dict:
+def _entra_token_provider(credential=None):
+    """Bearer-token provider for keyless (Entra ID) auth."""
+    return get_bearer_token_provider(
+        get_credential(credential), _COGNITIVE_SERVICES_SCOPE
+    )
+
+
+def _auth_kwargs(api_key: Optional[str], credential=None) -> dict:
     """Auth kwargs for a langchain Azure OpenAI client: key auth when a key is
     provided, otherwise Entra ID via a bearer-token provider."""
     if api_key:
         return {"api_key": api_key}
-    return {"azure_ad_token_provider": _entra_token_provider()}
+    return {"azure_ad_token_provider": _entra_token_provider(credential)}
+
+
+def _require_env(env_var: str) -> str:
+    """Fail naming the variable, rather than as a 401 from the grader mid-run."""
+    value = os.getenv(env_var)
+    if not value:
+        raise ValueError(
+            f"{env_var} is not set. This package does not load .env files — see the README."
+        )
+    return value
 
 
 def get_azure_ai_evaluation_model_config():
     config = AzureOpenAIModelConfiguration(
-        azure_endpoint=os.getenv("LLM_EVAL_LLM_ENDPOINT"),
-        azure_deployment=os.getenv("LLM_EVAL_LLM_MODEL"),
-        api_version=os.getenv("LLM_EVAL_LLM_API_VERSION"),
+        azure_endpoint=_require_env("LLM_EVAL_LLM_ENDPOINT"),
+        azure_deployment=_require_env("LLM_EVAL_LLM_MODEL"),
+        api_version=_require_env("LLM_EVAL_LLM_API_VERSION"),
     )
 
     api_key = os.getenv("LLM_EVAL_LLM_API_KEY")
