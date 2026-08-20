@@ -5,7 +5,6 @@ from llm_eval.base_evaluators.transformer_base_evaluator import (
     TransformerRunEvaluator,
 )
 
-logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 

@@ -48,6 +48,11 @@ build-backend = "setuptools.build_meta"
 where = ["."]
 include = ["llm_eval*"]
 
+# A wheel ships only .py files by default, and PEP 561 tells type checkers to ignore
+# a package whose py.typed marker is missing.
+[tool.setuptools.package-data]
+llm_eval = ["py.typed"]
+
 
 [tool.pytest.ini_options]
 addopts = "-s --log-cli-level=INFO"

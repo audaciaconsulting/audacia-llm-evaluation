@@ -29,7 +29,6 @@ from llm_eval.tools.model_tools import (
 )
 from llm_eval.tools.utils import format_dict_log
 
-logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 

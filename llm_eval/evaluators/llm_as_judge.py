@@ -6,7 +6,6 @@ from langchain_core.messages import SystemMessage, HumanMessage
 from llm_eval.tools.model_tools import get_azure_openai_llm
 from llm_eval.tools.utils import format_dict_log
 
-logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 from pydantic import BaseModel, Field

@@ -5,7 +5,6 @@ from typing import List
 from llm_eval.base_evaluators.custom_evaluators import AggregationStrategy
 from llm_eval.tools.utils import format_dict_log
 
-logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 

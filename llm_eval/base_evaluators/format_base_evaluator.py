@@ -4,7 +4,6 @@ from abc import ABC, abstractmethod
 
 from llm_eval.tools.utils import format_dict_log
 
-logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 
