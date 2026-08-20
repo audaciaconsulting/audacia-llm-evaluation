@@ -38,6 +38,7 @@ The **Audacia LLM Evaluation Repo** is comprised of two main components:
 ## 📚 Additional Documentation
 
 - `docs/developer_guidelines.md` — How to build new evaluators and follow repo conventions.
+- `docs/consumer_api_proposal.md` — Draft proposal for a consistent evaluator API.
 - `docs/evaluator_descriptions/similarity.md` — Similarity evaluator behaviour and configuration.
 - `docs/evaluator_descriptions/rag.md` — RAG evaluator behaviour and configuration.
 - `docs/evaluator_descriptions/sentiment.md` — Sentiment evaluators and usage tips.
@@ -199,6 +200,19 @@ result = await RunRougeScoreEvaluator(
 ```
 
 The Tool Overview table below flags which evaluators need to be awaited.
+
+Results are returned as a flat dict following `azure-ai-evaluation`'s naming convention —
+the metric name, plus `{metric}_result` (`"pass"`/`"fail"`), `{metric}_threshold` and, where
+the evaluator provides one, `{metric}_reason`:
+
+```python
+{"faithfulness": 0.86, "faithfulness_threshold": 0.7, "faithfulness_result": "pass", ...}
+```
+
+The Azure-backed evaluators return this shape natively; the ragas-backed ones are mapped
+onto it deliberately, so results are consistent across evaluator families and remain
+compatible with Azure tooling that expects one flat record per evaluation. Note the key is
+prefixed per metric, so read `result["faithfulness_result"]`, not `result["result"]`.
 
 ##### 4. Using the Evaluation Assert
 
