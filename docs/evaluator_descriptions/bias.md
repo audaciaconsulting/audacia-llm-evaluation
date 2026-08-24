@@ -18,6 +18,13 @@ The evaluator uses a transformer-based bias classifier to detect how biased a gi
 
 The final score reflects the severity of bias present in the LLM output. Lower scores indicate more neutral responses, while higher scores suggest more problematic or skewed language.
 
+## Result
+
+Every evaluator returns an `EvalResult`. Read `passed` for the verdict, `score` and
+`threshold` for the number, `reason` where the evaluator explains itself, and `inputs` for
+what was evaluated. `raw` carries the flat metric dict, in the `{metric}_result` convention,
+for anything the top level does not. Per-evaluator detail below.
+
 ## Evaluators
 
 ### 1. RunBiasEvaluatorAgainstExpectedScore
@@ -25,19 +32,20 @@ The final score reflects the severity of bias present in the LLM output. Lower s
 This evaluator calculates a bias score for a given response and compares it to your expected score and a user-defined uncertainty range. This lets you test whether a model output contains more or less bias than you're willing to allow.
 
 **Expected Inputs:**
-- `response` - The LLM-generated output you're evaluating.
-- `expected_score` - The expected bias for this output as a numerical score.
-- `allowed_uncertainty` - The amount of deviation you’ll tolerate from the expected score.
-- `aggregation_strategy` - How to aggregate scores across text: `full_context` (default, chunk + average), or sentence level scoring `min_sentence_score`, or `max_sentence_score`.
+- `response` – The LLM-generated output you're evaluating.
+- `expected_score` – The expected bias for this output as a numerical score.
+- `allowed_uncertainty` – The amount of deviation you’ll tolerate from the expected score.
+- `aggregation_strategy` – How to aggregate scores across text: `full_context` (default, chunk + average), or sentence level scoring `min_sentence_score`, or `max_sentence_score`.
 
-**Results Output:**
-- `bias` - The calculated bias score of the LLM response.
-- `response` - The LLM response evaluated.
-- `expected_score` - The target score you were testing against.
-- `bias_result` - Whether the test passed (`pass`) or exceeded the threshold (`fail`).
-- `min_sentence` / `max_sentence` - Included when using `min_sentence_score` or `max_sentence_score`, showing the sentence that set the score.
+**Result:**
+- `passed` – Whether `score` is within `allowed_uncertainty` of `expected_score`.
+- `score` – The calculated bias score of the response.
+- `threshold` – `None`; the criterion is the expected score and its uncertainty.
 
-**When to Use This Evaluator:**
+Also in `raw`: `bias`, `expected_score`, `bias_result`, `response`, plus
+`min_sentence`/`max_sentence` for the sentence-level strategies.
+
+**Use When:**
 
 Use this evaluator when:
 - You have a clear tolerance level for bias and want to automatically reject outputs that exceed it.
@@ -60,22 +68,21 @@ The evaluator will get the mean sentiment score of the golden standards, and use
 You can scale the uncertainty using any positive float, which adjusts how tightly values must cluster around the mean sentiment score to pass. We recommend scaling between 1 and 3, as this corresponds to standard deviation ranges that cover approximately 68% to 99.7% of values in a normal distribution. Higher values allow for broader acceptance, while lower values enforce stricter confidence around the mean.
 
 **Expected Inputs:**
-- `response` - The new LLM output to evaluate.
-- `references` - A list of ideal, low-bias outputs used as the benchmark. Ideally would be 10+ but expect a minimum of 3 otherwise uncertainty cannot be calculated.
-- `scale_uncertainty` - A multiplier to control strictness around the golden mean score.
-- `aggregation_strategy` - How to aggregate scores across text: `full_context` (default, chunk + aggregate), `min_sentence_score`, or `max_sentence_score`.
+- `response` – The new LLM output to evaluate.
+- `references` – A list of ideal, low-bias outputs used as the benchmark. Ideally would be 10+ but expect a minimum of 3 otherwise uncertainty cannot be calculated.
+- `scale_uncertainty` – A multiplier to control strictness around the golden mean score.
+- `aggregation_strategy` – How to aggregate scores across text: `full_context` (default, chunk + aggregate), `min_sentence_score`, or `max_sentence_score`.
 
-**Results Output:**
-- `bias` - The calculated bias score of the new response.
-- `response` - The evaluated LLM response.
-- `references` - The golden examples used for comparison.
-- `reference_scores` - Individual bias scores for each golden response.
-- `mean_score` - Average bias score of the golden standards.
-- `calculated_uncertainty` - The standard deviation across golden scores.
-- `bias_result` - Whether the response passed (`pass`) or exceeded the acceptable range (`fail`).
-- `min_sentence` / `max_sentence` - Included when using `min_sentence_score` or `max_sentence_score`, showing the sentence that set the score.
+**Result:**
+- `passed` – Whether `score` falls within `mean_score` ± `calculated_uncertainty`.
+- `score` – The calculated bias score of the response.
+- `threshold` – `None`; the criterion is the reference spread.
 
-**When to Use This Evaluator:**
+Also in `raw`: `bias`, `references`, `reference_scores`, `mean_score`,
+`calculated_uncertainty`, `bias_result`, `response`, plus `min_sentence`/`max_sentence`
+for the sentence-level strategies.
+
+**Use When:**
 
 Use this evaluator when:
 - You want to compare current responses to high-quality, low-bias golden outputs.

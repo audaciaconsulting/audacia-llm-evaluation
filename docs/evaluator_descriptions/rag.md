@@ -10,21 +10,27 @@ Each evaluator measures a distinct quality dimension using LLM-based or non-LLM-
 
 Each metric outputs a **numerical score between 0 and 1**, with a configurable threshold for determining pass/fail status. The evaluation can use LLMs or simpler string similarity algorithms, depending on the metric type.
 
+## Result
+
+Every evaluator returns an `EvalResult`. Read `passed` for the verdict, `score` and
+`threshold` for the number, `reason` where the evaluator explains itself, and `inputs` for
+what was evaluated. `raw` carries the flat metric dict, in the `{metric}_result` convention,
+for anything the top level does not. Per-evaluator detail below.
+
 ## Evaluators
 
 ### Summary Table
 
-| Evaluator                                | Retrieval/Generation | Method         | Granularity | Measures                     | Await? |
-|------------------------------------------|-----------------------|----------------|-------------|------------------------------|--------|
-| RunLLMContextPrecisionWithReferenceEvaluator      | Retrieval             | LLM            | High        | Context match to reference   | Yes    |
-| RunNonLLMContextPrecisionWithReferenceEvaluator   | Retrieval             | String Sim.    | Low         | Context text overlap         | Yes    |
-| RunLLMContextRecallEvaluator                      | Retrieval             | LLM            | High        | Recall vs. answer coverage   | Yes    |
-| RunNonLLMContextRecallEvaluator                   | Retrieval             | String Sim.    | High        | Reference context coverage   | Yes    |
-| RunFaithfulnessEvaluator                          | Generation            | LLM            | High        | Truthfulness to context      | Yes    |
-| RunResponseRelevancyEvaluator                     | Generation            | LLM + Embed    | High        | Focus and alignment to query | Yes    |
+| Evaluator                                | Retrieval/Generation | Method         | Granularity | Measures                     |
+|------------------------------------------|-----------------------|----------------|-------------|------------------------------|
+| RunLLMContextPrecisionWithReferenceEvaluator      | Retrieval             | LLM            | High        | Context match to reference   |
+| RunNonLLMContextPrecisionWithReferenceEvaluator   | Retrieval             | String Sim.    | Low         | Context text overlap         |
+| RunLLMContextRecallEvaluator                      | Retrieval             | LLM            | High        | Recall vs. answer coverage   |
+| RunNonLLMContextRecallEvaluator                   | Retrieval             | String Sim.    | High        | Reference context coverage   |
+| RunFaithfulnessEvaluator                          | Generation            | LLM            | High        | Truthfulness to context      |
+| RunResponseRelevancyEvaluator                     | Generation            | LLM + Embed    | High        | Focus and alignment to query |
 
-All RAG evaluators wrap Ragas metrics and therefore expose asynchronous `__call__` / `assert_result` methods that must be awaited.
-
+All RAG evaluators wrap Ragas metrics, which are async internally, but expose the same synchronous interface as every other evaluator. Use `evaluate_async` / `assert_result_async` if you are already inside an event loop.
 
 ### 1. RunLLMContextPrecisionWithReferenceEvaluator
 
@@ -36,9 +42,13 @@ Assesses how well the retrieved contexts align with a reference answer. This pre
 - `retrieved_contexts` – A list of retrieved context passages.
 - `threshold` – Minimum acceptable precision score (0.0–1.0).
 
-**Results Output:**
-- `llm_context_precision_with_reference` – Calculated score.
-- `llm_context_precision_with_reference_result` – `pass`/`fail`.
+**Result:**
+- `passed` – Whether `score` met `threshold`.
+- `score` – 0.0–1.0.
+- `threshold` – The value you passed.
+
+Also in `raw`: `llm_context_precision_with_reference`,
+plus its `_threshold` and `_result` keys, and the inputs.
 
 **Use When:**
 - Evaluating retrieval quality relative to known answers.
@@ -55,9 +65,13 @@ Computes how well the retrieved contexts match a reference set, using string sim
 - `reference_contexts` – Known relevant context passages.
 - `threshold` – Minimum similarity score (0.0–1.0).
 
-**Results Output:**
-- `non_llm_context_precision_with_reference` – Score.
-- `non_llm_context_precision_with_reference_result` – `pass`/`fail`.
+**Result:**
+- `passed` – Whether `score` met `threshold`.
+- `score` – 0.0–1.0.
+- `threshold` – The value you passed.
+
+Also in `raw`: `non_llm_context_precision_with_reference`,
+plus its `_threshold` and `_result` keys, and the inputs.
 
 **Use When:**
 - You need a lightweight alternative to LLM evaluation.
@@ -76,9 +90,12 @@ Evaluates how much of the reference answer is covered by the retrieved contexts 
 - `retrieved_contexts` – List of retrieved passages.
 - `threshold` – Recall threshold (0.0–1.0).
 
-**Results Output:**
-- `llm_context_recall` – Computed recall score.
-- `llm_context_recall_result` – `pass`/`fail`.
+**Result:**
+- `passed` – Whether `score` met `threshold`.
+- `score` – 0.0–1.0.
+- `threshold` – The value you passed.
+
+Also in `raw`: `llm_context_recall`, plus its `_threshold` and `_result` keys, and the inputs.
 
 **Use When:**
 - You want to ensure completeness of retrieval relative to the answer.
@@ -95,9 +112,12 @@ Measures recall using similarity-based checks between retrieved and reference co
 - `reference_contexts` – List of reference contexts.
 - `threshold` – Match threshold (0.0–1.0).
 
-**Results Output:**
-- `non_llm_context_recall` – Computed score.
-- `non_llm_context_recall_result` – `pass`/`fail`.
+**Result:**
+- `passed` – Whether `score` met `threshold`.
+- `score` – 0.0–1.0.
+- `threshold` – The value you passed.
+
+Also in `raw`: `non_llm_context_recall`, plus its `_threshold` and `_result` keys, and the inputs.
 
 **Use When:**
 - Fast, non-LLM recall verification is sufficient.
@@ -115,9 +135,12 @@ Checks whether the generated response is faithful to the retrieved contexts usin
 - `retrieved_contexts` – Supporting documents.
 - `threshold` – Minimum faithfulness score (0.0–1.0).
 
-**Results Output:**
-- `faithfulness` – Computed score.
-- `faithfulness_result` – `pass`/`fail`.
+**Result:**
+- `passed` – Whether `score` met `threshold`.
+- `score` – 0.0–1.0.
+- `threshold` – The value you passed.
+
+Also in `raw`: `faithfulness`, plus its `_threshold` and `_result` keys, and the inputs.
 
 **Use When:**
 - Hallucination risk needs to be mitigated.
@@ -134,9 +157,12 @@ Evaluates how well the generated response addresses the original query. Uses LLM
 - `response` – Generated response.
 - `threshold` – Minimum acceptable relevance score (0.0–1.0).
 
-**Results Output:**
-- `response_relevancy` – Relevancy score.
-- `response_relevancy_result` – `pass`/`fail`.
+**Result:**
+- `passed` – Whether `score` met `threshold`.
+- `score` – 0.0–1.0.
+- `threshold` – The value you passed.
+
+Also in `raw`: `response_relevancy`, plus its `_threshold` and `_result` keys, and the inputs.
 
 **Use When:**
 - You care about response focus and alignment to query intent.

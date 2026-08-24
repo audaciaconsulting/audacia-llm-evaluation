@@ -13,6 +13,13 @@ Format evaluators determine whether the response returned by the model meets a s
 
 Each evaluator returns a simple pass/fail result along with the original response and the detected format.
 
+## Result
+
+Every evaluator returns an `EvalResult`. Read `passed` for the verdict, `score` and
+`threshold` for the number, `reason` where the evaluator explains itself, and `inputs` for
+what was evaluated. `raw` carries the flat metric dict, in the `{metric}_result` convention,
+for anything the top level does not. Per-evaluator detail below.
+
 ## Evaluators
 
 ### 1. RunCustomResponseEvaluator
@@ -20,16 +27,17 @@ Each evaluator returns a simple pass/fail result along with the original respons
 This evaluator verifies whether the response matches a specific Python type (e.g., `dict`, `list`, `str`, etc.). It uses Python's `isinstance()` internally.
 
 **Expected Inputs:**
-- `response` - The LLM response to evaluate (any object or string).
-- `expected_type` - The Python type that the response is expected to match.
-- `assert_result` *(optional)* - If `True`, the evaluator raises an assertion error if the response fails the check.
+- `response` – The LLM response to evaluate (any object or string).
+- `expected_type` – The Python type that the response is expected to match.
+- `assert_result` *(optional)* – If `True`, the evaluator raises an assertion error if the response fails the check.
 
-**Results Output:**
-- `response` - The original LLM response.
-- `format` - The actual Python type of the response.
-- `custom_response_result` - Either `pass` or `fail` based on the type check.
+**Result:**
+- `passed` – Whether the response is the expected type.
+- `score` / `threshold` – `None`; this is a yes/no check.
 
-**When to Use This Evaluator:**
+Also in `raw`: `format` (the response's type), `custom_response_result`, `response`.
+
+**Use When:**
 
 Use this evaluator when:
 - You're expecting a specific Python type from the model (e.g., a list of items or a dict payload).
@@ -48,15 +56,16 @@ Use this evaluator when:
 This evaluator checks whether a string response is valid JSON and specifically whether it can be parsed into a Python dictionary. It uses `json.loads()` internally and fails if parsing errors occur or the result is not a `dict`.
 
 **Expected Inputs:**
-- `response` - The string response to evaluate.
-- `assert_result` *(optional)* - If `True`, the evaluator raises an assertion error if parsing fails.
+- `response` – The string response to evaluate.
+- `assert_result` *(optional)* – If `True`, the evaluator raises an assertion error if parsing fails.
 
-**Results Output:**
-- `response` - The original response string.
-- `format` - The type after parsing (if successful).
-- `json_response_result` - Either `pass` or `fail` depending on the success of parsing and type.
+**Result:**
+- `passed` – Whether the response parses as JSON.
+- `score` / `threshold` – `None`; this is a yes/no check.
 
-**When to Use This Evaluator:**
+Also in `raw`: `format` (the type after parsing), `json_response_result`, `response`.
+
+**Use When:**
 
 Use this evaluator when:
 - You expect the LLM output to be a JSON object (`{...}`).

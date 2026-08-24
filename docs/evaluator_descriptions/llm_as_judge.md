@@ -30,16 +30,21 @@ The evaluator validates the prompt before running. If you customize a template, 
 
 If any required marker is missing, evaluation raises a `ValueError`.
 
+## Result
+
+Every evaluator returns an `EvalResult`. Read `passed` for the verdict, `score` and
+`threshold` for the number, `reason` where the evaluator explains itself, and `inputs` for
+what was evaluated. `raw` carries the flat metric dict, in the `{metric}_result` convention,
+for anything the top level does not. Per-evaluator detail below.
+
 ## Evaluators
 
 ### Summary Table
 
-| Evaluator                        | Method         | Granularity | Measures                              | Await? |
-|----------------------------------|----------------|-------------|---------------------------------------|--------|
-| RunLlmAsJudgePassFailEvaluator   | LLM Judge      | High        | Binary pass/fail decision             | No     |
-| RunLlmAsJudgeScoreEvaluator      | LLM Judge      | High        | Numeric score with thresholded result | No     |
-
-`Await?` indicates whether `__call__`/`assert_result` return coroutines that must be awaited.
+| Evaluator                        | Method         | Granularity | Measures                              |
+|----------------------------------|----------------|-------------|---------------------------------------|
+| RunLlmAsJudgePassFailEvaluator   | LLM Judge      | High        | Binary pass/fail decision             |
+| RunLlmAsJudgeScoreEvaluator      | LLM Judge      | High        | Numeric score with thresholded result |
 
 ---
 
@@ -51,18 +56,20 @@ Evaluates a prompt and expects the judge to return a binary decision.
 - `llm_eval/prompt_templates/llm-as-judge-template.md`
 
 **Expected Inputs:**
-- `prompt` - Full evaluation instructions for the judge model.
-- `inputs` - Dictionary of fields/values to evaluate (e.g., query, response, reference, context).
-- `model` *(optional)* - Custom `AzureChatOpenAI` model; default model is used if omitted.
+- `prompt` – Full evaluation instructions for the judge model.
+- `inputs` – Dictionary of fields/values to evaluate (e.g., query, response, reference, context).
+- `model` *(optional)* – Custom `AzureChatOpenAI` model; default model is used if omitted.
 
 **Prompt Output Schema (required):**
-- `llm_as_judge_score` - `"pass"` or `"fail"`.
-- `failures_list` - List of failure reasons.
+- `llm_as_judge_score` – `"pass"` or `"fail"`.
+- `failures_list` – List of failure reasons.
 
-**Results Output:**
-- `llm_as_judge_result` - `pass`/`fail`.
-- `failures_list` - Returned failure details.
-- `prompt_trunc` - Truncated prompt preview for logging.
+**Result:**
+- `passed` – The judge's verdict.
+- `reason` – The judge's failures, joined; appended to the assertion message.
+- `score` / `threshold` – `None`; this judge returns a verdict, not a score.
+
+Also in `raw`: `llm_as_judge_result`, `failures_list`, `prompt_trunc`.
 
 **Use When:**
 - You want a strict binary verdict.
@@ -78,21 +85,23 @@ Evaluates a prompt and expects the judge to return a numeric score. The evaluato
 - `llm_eval/prompt_templates/llm-as-judge-score-threshold-template.md`
 
 **Expected Inputs:**
-- `prompt` - Full evaluation instructions for the judge model.
-- `inputs` - Dictionary of fields/values to evaluate (e.g., query, response, reference, context).
-- `threshold` - Minimum score required to pass.
-- `model` *(optional)* - Custom `AzureChatOpenAI` model; default model is used if omitted.
+- `prompt` – Full evaluation instructions for the judge model.
+- `inputs` – Dictionary of fields/values to evaluate (e.g., query, response, reference, context).
+- `threshold` – Minimum score required to pass.
+- `model` *(optional)* – Custom `AzureChatOpenAI` model; default model is used if omitted.
 
 **Prompt Output Schema (required):**
-- `llm_as_judge_score` - Numeric score.
-- `failures_list` - List of failure reasons.
+- `llm_as_judge_score` – Numeric score.
+- `failures_list` – List of failure reasons.
 
-**Results Output:**
-- `llm_as_judge_score` - Numeric score returned by judge.
-- `llm_as_judge_result` - `pass` when score is `>= threshold`, otherwise `fail`.
-- `threshold` - Threshold used for pass/fail conversion.
-- `failures_list` - Returned failure details.
-- `prompt_trunc` - Truncated prompt preview for logging.
+**Result:**
+- `passed` – Whether `score` met `threshold`.
+- `score` – The judge's numeric score.
+- `threshold` – The value you passed.
+- `reason` – The judge's failures, joined; appended to the assertion message.
+
+Also in `raw`: `llm_as_judge_score`, `llm_as_judge_result`, `threshold`, `failures_list`,
+`prompt_trunc`.
 
 **Use When:**
 - You need graded evaluation rather than binary-only output.

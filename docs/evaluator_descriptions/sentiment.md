@@ -26,6 +26,13 @@ These categories are then converted into a **numerical sentiment score** using t
 
 The final score is a single number between -1 and 1 that represents the overall sentiment of the response.
 
+## Result
+
+Every evaluator returns an `EvalResult`. Read `passed` for the verdict, `score` and
+`threshold` for the number, `reason` where the evaluator explains itself, and `inputs` for
+what was evaluated. `raw` carries the flat metric dict, in the `{metric}_result` convention,
+for anything the top level does not. Per-evaluator detail below.
+
 ## Evaluators
 
 ### 1. RunSentimentEvaluatorAgainstExpectedScore
@@ -37,19 +44,20 @@ The allowed uncertainty is the range around your expected score that you will al
 For example, if `expected score = 0.5` and `unexpected score = 0.05`, a calculated response score of `sentiment result = 0.52` would pass, whilst `sentiment result = 0.56` would fail.
 
 **Expected Inputs:**
-- `response` - This is the LLM response you are evaluating.
-- `expected_score` - This is the sentiment score you expect the LLM response to have.
-- `allowed_uncertainty` - This is the uncertainty in the expected score you will allow.
-- `aggregation_strategy` - How to aggregate scores across text: `full_context` (default, chunk + average), or sentence level scoring `min_sentence_score`, or `max_sentence_score`.
+- `response` – This is the LLM response you are evaluating.
+- `expected_score` – This is the sentiment score you expect the LLM response to have.
+- `allowed_uncertainty` – This is the uncertainty in the expected score you will allow.
+- `aggregation_strategy` – How to aggregate scores across text: `full_context` (default, chunk + average), or sentence level scoring `min_sentence_score`, or `max_sentence_score`.
 
-**Results Output:**
-- `sentiment` - The calculated sentiment of the LLM response.
-- `response` - The LLM response passed to the evaluator.
-- `expected_score` - The expected score passed to the evaluator.
-- `sentiment_result` - The result of the comparison test, either `pass`/`fail`
-- `min_sentence` / `max_sentence` - Included when using `min_sentence_score` or `max_sentence_score`, showing the sentence that set the score.
+**Result:**
+- `passed` – Whether `score` is within `allowed_uncertainty` of `expected_score`.
+- `score` – The calculated sentiment score of the response.
+- `threshold` – `None`; the criterion is the expected score and its uncertainty.
 
-**When to Use This Evaluator:**
+Also in `raw`: `sentiment`, `expected_score`, `sentiment_result`, `response`, plus
+`min_sentence`/`max_sentence` for the sentence-level strategies.
+
+**Use When:**
 
 Use this evaluator when:
 
@@ -71,22 +79,21 @@ The evaluator will get the mean sentiment score of the golden standards, and use
 You can scale the uncertainty using any positive float, which adjusts how tightly values must cluster around the mean sentiment score to pass. We recommend scaling between 1 and 3, as this corresponds to standard deviation ranges that cover approximately 68% to 99.7% of values in a normal distribution. Higher values allow for broader acceptance, while lower values enforce stricter confidence around the mean.
 
 **Expected Inputs:**
-- `response` - This is the LLM response you are evaluating as a string.
-- `references` - This is the list of strings making up your golden standard responses. Ideally 10+ but a minimum of 3 for uncertainty to be calculated.
-- `scale_uncertainty` - This is the uncertainty in the expected score you will allow.
-- `aggregation_strategy` - How to aggregate scores across text: `full_context` (default, chunk + aggregate), `min_sentence_score`, or `max_sentence_score`.
+- `response` – This is the LLM response you are evaluating as a string.
+- `references` – This is the list of strings making up your golden standard responses. Ideally 10+ but a minimum of 3 for uncertainty to be calculated.
+- `scale_uncertainty` – This is the uncertainty in the expected score you will allow.
+- `aggregation_strategy` – How to aggregate scores across text: `full_context` (default, chunk + aggregate), `min_sentence_score`, or `max_sentence_score`.
 
-**Results Output:**
-- `sentiment` - The calculated sentiment of the LLM response.
-- `response` - The LLM response passed to the evaluator.
-- `references` - The golden standards used to calculated the mean score and the uncertainty.
-- `reference_scores` - The individual sentiment scores for each of the golden standards.
-- `mean_score` - The calculated mean sentiment score of the golden standards.
-- `calculated_uncertainty` - The standard deviation uncertainty of the golden standard scores.
-- `sentiment_result` - The result of the comparison test, either `pass`/`fail`
-- `min_sentence` / `max_sentence` - Included when using `min_sentence_score` or `max_sentence_score`, showing the sentence that set the score.
+**Result:**
+- `passed` – Whether `score` falls within `mean_score` ± `calculated_uncertainty`.
+- `score` – The calculated sentiment score of the response.
+- `threshold` – `None`; the criterion is the reference spread.
 
-**When to Use This Evaluator:**
+Also in `raw`: `sentiment`, `references`, `reference_scores`, `mean_score`,
+`calculated_uncertainty`, `sentiment_result`, `response`, plus `min_sentence`/`max_sentence`
+for the sentence-level strategies.
+
+**Use When:**
 
 Use this evaluator when:
 - You don’t have an exact target sentiment score, but you do have example responses that capture the tone you want.
