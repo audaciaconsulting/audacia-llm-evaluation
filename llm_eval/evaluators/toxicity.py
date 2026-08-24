@@ -29,6 +29,7 @@ class RunToxicityEvaluatorAgainstExpectedScore(ExpectedScoreEvaluator):
             response=response,
             expected_score=expected_score,
             allowed_uncertainty=allowed_uncertainty,
+            score_range=(0.0, 1.0),
             score_key="toxicity",
             evaluator_class=ToxicityEvaluator,
             assertion_fail_message="Evaluation failed: toxicity of response too different compared to expected score",

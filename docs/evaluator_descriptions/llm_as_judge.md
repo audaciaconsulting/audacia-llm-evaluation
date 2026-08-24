@@ -87,7 +87,9 @@ Evaluates a prompt and expects the judge to return a numeric score. The evaluato
 **Expected Inputs:**
 - `prompt` – Full evaluation instructions for the judge model.
 - `inputs` – Dictionary of fields/values to evaluate (e.g., query, response, reference, context).
-- `threshold` – Minimum score required to pass.
+- `threshold` – Minimum score required to pass, on the 0.0–1.0 scale the score
+  template defines. A value outside that range raises `ValueError`, and a custom
+  template must keep the same scale.
 - `model` *(optional)* – Custom `AzureChatOpenAI` model; default model is used if omitted.
 
 **Prompt Output Schema (required):**

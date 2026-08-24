@@ -33,7 +33,7 @@ This evaluator calculates a bias score for a given response and compares it to y
 
 **Expected Inputs:**
 - `response` – The LLM-generated output you're evaluating.
-- `expected_score` – The expected bias for this output as a numerical score.
+- `expected_score` – The expected bias for this output as a numerical score. Must be between 0.0 and 1.0.
 - `allowed_uncertainty` – The amount of deviation you’ll tolerate from the expected score.
 - `aggregation_strategy` – How to aggregate scores across text: `full_context` (default, chunk + average), or sentence level scoring `min_sentence_score`, or `max_sentence_score`.
 

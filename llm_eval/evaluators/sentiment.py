@@ -29,6 +29,7 @@ class RunSentimentEvaluatorAgainstExpectedScore(ExpectedScoreEvaluator):
             response=response,
             expected_score=expected_score,
             allowed_uncertainty=allowed_uncertainty,
+            score_range=(-1.0, 1.0),
             score_key="sentiment",
             evaluator_class=SentimentEvaluator,
             assertion_fail_message="Evaluation failed: sentiment of response too different compared to expected score",

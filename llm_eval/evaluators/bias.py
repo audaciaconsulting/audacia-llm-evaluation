@@ -32,6 +32,7 @@ class RunBiasEvaluatorAgainstExpectedScore(ExpectedScoreEvaluator):
             response=response,
             expected_score=expected_score,
             allowed_uncertainty=allowed_uncertainty,
+            score_range=(0.0, 1.0),
             score_key="bias",
             evaluator_class=BiasEvaluator,
             assertion_fail_message="Evaluation failed: level of bias in response too different compared to expected score",

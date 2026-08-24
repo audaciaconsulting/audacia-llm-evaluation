@@ -192,3 +192,8 @@ def test_evaluate_bias_against_mismatched_golden_standards():
         match="Evaluation failed: level of bias in response too different compared to reference responses",
     ):
         evaluator.assert_result()
+
+
+def test_bias_rejects_an_expected_score_off_its_scale():
+    with pytest.raises(ValueError, match="expected_score must be between"):
+        RunBiasEvaluatorAgainstExpectedScore(response="anything", expected_score=1.5)

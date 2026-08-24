@@ -128,3 +128,8 @@ def test_evaluate_sentiment_against_golden_standards():
     )
     assert result.raw["references"] == GOLDEN_STANDARDS
     assert result.passed
+
+
+def test_sentiment_rejects_an_expected_score_off_its_scale():
+    with pytest.raises(ValueError, match="expected_score must be between"):
+        RunSentimentEvaluatorAgainstExpectedScore(response="anything", expected_score=2.0)

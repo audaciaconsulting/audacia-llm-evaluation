@@ -4,7 +4,10 @@ import pytest
 
 from raw_contract import assert_raw_keys
 
+from pydantic import ValidationError
+
 from llm_eval.evaluators.llm_as_judge import (
+    JudgeScoreResult,
     RunLlmAsJudgePassFailEvaluator,
     RunLlmAsJudgeScoreEvaluator,
 )
@@ -165,3 +168,16 @@ def test_llm_as_judge_score_fail(inputs: dict, objective: str, methods: str, tem
         prompt = format_md(inputs, objective, methods, template)
         evaluator = RunLlmAsJudgeScoreEvaluator(prompt=prompt, threshold=threshold, inputs=inputs)
         evaluator.assert_result()
+
+
+@pytest.mark.parametrize("threshold", [-0.1, 3.0])
+def test_score_judge_rejects_a_threshold_off_the_template_scale(threshold):
+    """The score template defines a 0.0-1.0 scale; 3.0 could never be met."""
+    with pytest.raises(ValueError, match="scale the score template defines"):
+        RunLlmAsJudgeScoreEvaluator(prompt="p", inputs={"a": "b"}, threshold=threshold)
+
+
+def test_score_schema_rejects_an_off_scale_score():
+    """A judge answering outside the scale must fail, not be compared anyway."""
+    with pytest.raises(ValidationError):
+        JudgeScoreResult(llm_as_judge_score=4.0)

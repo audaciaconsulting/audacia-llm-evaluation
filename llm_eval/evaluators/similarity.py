@@ -73,8 +73,8 @@ class RunSimilarityEvaluator(Evaluator):
         self.threshold = threshold
         self.model_config = model_config or get_azure_ai_evaluation_model_config()
 
-        if not 0.0 <= threshold <= 5.0:
-            raise ValueError(f"Threshold must be between 0 and 5. Got {threshold}.")
+        if not 1.0 <= threshold <= 5.0:
+            raise ValueError(f"Threshold must be between 1 and 5. Got {threshold}.")
 
     def _evaluate(self) -> EvalResult:
         evaluator = SimilarityEvaluator(

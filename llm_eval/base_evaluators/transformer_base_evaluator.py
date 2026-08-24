@@ -105,6 +105,7 @@ class ExpectedScoreEvaluator(TransformerRunEvaluator):
         score_key: str,
         evaluator_class: type,
         assertion_fail_message: str,
+        score_range: Tuple[float, float],
         allowed_uncertainty: float = 0.05,
         aggregation_strategy=AggregationStrategy.FULL_CONTEXT,
     ):
@@ -116,11 +117,23 @@ class ExpectedScoreEvaluator(TransformerRunEvaluator):
             score_key (str): Key in the model's output holding the score.
             evaluator_class (type): The evaluator class wrapping the model.
             assertion_fail_message (str): Error message to use if the assertion fails.
+            score_range (Tuple[float, float]): The scale the model scores on, which
+                `expected_score` must sit within.
             allowed_uncertainty (float, optional): Acceptable deviation from the
                 expected score. Defaults to 0.05.
             aggregation_strategy (AggregationStrategy): How scores are aggregated
                 across the response. Defaults to the full context.
+
+        Raises:
+            ValueError: If `expected_score` falls outside `score_range`.
         """
+        low, high = score_range
+        if not low <= expected_score <= high:
+            raise ValueError(
+                f"expected_score must be between {low} and {high}, the scale this "
+                f"evaluator scores on. Got {expected_score}."
+            )
+
         self.expected_score = expected_score
         self.allowed_uncertainty = allowed_uncertainty
         super().__init__(

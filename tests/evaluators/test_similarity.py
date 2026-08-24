@@ -378,3 +378,13 @@ def test_run_exact_match_fails(
 ):
     with pytest.raises(AssertionError):
         RunExactMatchEvaluator(response, reference).assert_result()
+
+
+@pytest.mark.parametrize("threshold", [0.5, 5.5])
+def test_similarity_rejects_a_threshold_off_its_scale(threshold):
+    """Scores run 1-5, so a threshold below 1.0 could never fail."""
+    with pytest.raises(ValueError, match="between 1 and 5"):
+        RunSimilarityEvaluator(
+            query="q", response="r", reference="g",
+            threshold=threshold, model_config=None,
+        )

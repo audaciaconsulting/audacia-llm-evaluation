@@ -60,6 +60,10 @@ def check_prompt_output(prompt: str, inputs: dict):
             raise ValueError(f"Expected {s!r} in prompt")
 
 
+#: The scale the shipped score template defines; a custom template must keep it.
+JUDGE_SCORE_MIN, JUDGE_SCORE_MAX = 0.0, 1.0
+
+
 class JudgePassFailResult(BaseModel):
     """Structured output schema for pass/fail judge responses using a score field."""
     llm_as_judge_score: Literal["pass", "fail"]
@@ -68,7 +72,7 @@ class JudgePassFailResult(BaseModel):
 
 class JudgeScoreResult(BaseModel):
     """Structured output schema for score-based judge responses."""
-    llm_as_judge_score: float
+    llm_as_judge_score: float = Field(ge=JUDGE_SCORE_MIN, le=JUDGE_SCORE_MAX)
     failures_list: List[str] = Field(default_factory=list)
 
 
@@ -221,10 +225,20 @@ class RunLlmAsJudgeScoreEvaluator(BaseLlmAsJudgeEvaluator):
             prompt (str): Judging instructions, sent as the system message.
             inputs (Dict[str, str]): Inputs for the judge to consider, sent as the
                 human message. Keys must match the prompt's numbered input labels.
-            threshold (float): Minimum score the judge must give to pass.
+            threshold (float): Minimum score the judge must give to pass, on the
+                0.0-1.0 scale the score template defines.
+
+        Raises:
+            ValueError: If `threshold` falls outside that scale.
             model (Optional[AzureChatOpenAI]): Judge model. Defaults to the
                 environment-configured Azure OpenAI client.
         """
+        if not JUDGE_SCORE_MIN <= threshold <= JUDGE_SCORE_MAX:
+            raise ValueError(
+                f"Threshold must be between {JUDGE_SCORE_MIN} and {JUDGE_SCORE_MAX}, the "
+                f"scale the score template defines. Got {threshold}."
+            )
+
         self.threshold = threshold
         super().__init__(prompt=prompt, inputs=inputs, model=model)
 

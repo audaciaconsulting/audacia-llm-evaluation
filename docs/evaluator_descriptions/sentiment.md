@@ -45,7 +45,7 @@ For example, if `expected score = 0.5` and `unexpected score = 0.05`, a calculat
 
 **Expected Inputs:**
 - `response` – This is the LLM response you are evaluating.
-- `expected_score` – This is the sentiment score you expect the LLM response to have.
+- `expected_score` – This is the sentiment score you expect the LLM response to have. Must be between -1.0 and 1.0.
 - `allowed_uncertainty` – This is the uncertainty in the expected score you will allow.
 - `aggregation_strategy` – How to aggregate scores across text: `full_context` (default, chunk + average), or sentence level scoring `min_sentence_score`, or `max_sentence_score`.
 

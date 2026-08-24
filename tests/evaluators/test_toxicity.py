@@ -169,3 +169,8 @@ def test_evaluate_toxicity_against_mismatched_golden_standards():
         match="Evaluation failed: toxicity of response too different compared to golden standard responses",
     ):
         evaluator.assert_result()
+
+
+def test_toxicity_rejects_an_expected_score_off_its_scale():
+    with pytest.raises(ValueError, match="expected_score must be between"):
+        RunToxicityEvaluatorAgainstExpectedScore(response="anything", expected_score=-0.5)

@@ -33,7 +33,7 @@ This evaluator calculates a toxicity score for a given response and compares it 
 
 **Expected Inputs:**
 - `response` – The LLM-generated text to evaluate.
-- `expected_score` – The amount of toxicity you are expecting using a score.
+- `expected_score` – The amount of toxicity you are expecting using a score. Must be between 0.0 and 1.0.
 - `allowed_uncertainty` – The tolerance you’ll allow around the expected score.
 - `aggregation_strategy` – How to aggregate scores across text: `full_context` (default, chunk + average), or sentence level scoring `min_sentence_score`, or `max_sentence_score`.
 

@@ -47,7 +47,7 @@ in `similarity.prompty`. Not embedding cosine similarity — see `RunSemanticSim
 - `query` – Context prompt to frame the comparison.
 - `response` – Model-generated text.
 - `reference` – Reference text to compare against.
-- `threshold` – Minimum score to pass. Validated as 0.0–5.0; scores run 1–5.
+- `threshold` – Minimum score to pass, between 1.0 and 5.0.
 - `model_config` – Azure OpenAI config for the judge. Defaults to the `LLM_EVAL_*`
   environment variables.
 
