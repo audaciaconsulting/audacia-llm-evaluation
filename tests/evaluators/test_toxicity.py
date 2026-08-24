@@ -2,6 +2,8 @@ import pytest
 
 pytest.importorskip("transformers", reason="requires the 'local-models' extra")
 
+from raw_contract import assert_raw_keys
+
 from llm_eval.base_evaluators.custom_evaluators import AggregationStrategy
 from llm_eval.evaluators.toxicity import (
     RunToxicityEvaluatorAgainstExpectedScore,
@@ -71,11 +73,13 @@ def test_expected_toxicity_score(simple_toxicity_case_):
     )
     result = evaluator()
 
-    assert "toxicity" in result
-    assert expected_score - 0.1 <= result["toxicity"] <= expected_score + 0.1
+    # score only, on a wider window than the evaluator's own tolerance;
+    # test_evaluate_toxicity_against_known_score covers the verdict.
+    assert result.score is not None
+    assert expected_score - 0.1 <= result.score <= expected_score + 0.1
 
 
-def test_expected_bias_score_using_assert_method(failure_toxicity_case_):
+def test_expected_toxicity_score_using_assert_method(failure_toxicity_case_):
     response_text, expected_score = failure_toxicity_case_
 
     evaluator = RunToxicityEvaluatorAgainstExpectedScore(
@@ -96,11 +100,10 @@ def test_evaluate_toxicity_against_known_score(simple_toxicity_case_):
         response=response_text, expected_score=expected_score, allowed_uncertainty=0.1, aggregation_strategy=aggregation_strategy
     )()
 
-    assert all(
-        key in result
-        for key in ["toxicity", "response", "expected_score", "toxicity_result"]
-    )
-    assert result["toxicity_result"] == "pass"
+    assert result.passed
+    assert result.score is not None
+
+    assert_raw_keys(result, "toxicity", "response", "expected_score", "toxicity_result")
 
 
 def test_evaluate_toxicity_against_neutral_golden_standards():
@@ -109,20 +112,20 @@ def test_evaluate_toxicity_against_neutral_golden_standards():
     result = RunToxicityEvaluatorAgainstReferences(response=response_text, references=GOLDEN_STANDARDS_NEUTRAL,
                                                    scale_uncertainty=3)()  # Scale to 3 standard deviations - acceptable as it accounts for 99% deviation
 
-    assert all(
-        key in result
-        for key in [
-            "toxicity",
-            "response",
-            "references",
-            "reference_scores",
-            "mean_score",
-            "calculated_uncertainty",
-            "toxicity_result",
-        ]
+    assert result.score is not None
+
+    assert_raw_keys(
+        result,
+        "toxicity",
+        "response",
+        "references",
+        "reference_scores",
+        "mean_score",
+        "calculated_uncertainty",
+        "toxicity_result",
     )
-    assert result["references"] == GOLDEN_STANDARDS_NEUTRAL
-    assert result["toxicity_result"] == "pass"
+    assert result.raw["references"] == GOLDEN_STANDARDS_NEUTRAL
+    assert result.passed
 
 
 def test_evaluate_toxicity_against_biased_golden_standards():
@@ -131,17 +134,38 @@ def test_evaluate_toxicity_against_biased_golden_standards():
     result = RunToxicityEvaluatorAgainstReferences(response=response_text, references=GOLDEN_STANDARDS_TOXIC,
                                                    scale_uncertainty=3)()  # Scale to 3 standard deviations - acceptable as it accounts for 99% deviation
 
-    assert all(
-        key in result
-        for key in [
-            "toxicity",
-            "response",
-            "references",
-            "reference_scores",
-            "mean_score",
-            "calculated_uncertainty",
-            "toxicity_result",
-        ]
+    assert result.score is not None
+
+    assert_raw_keys(
+        result,
+        "toxicity",
+        "response",
+        "references",
+        "reference_scores",
+        "mean_score",
+        "calculated_uncertainty",
+        "toxicity_result",
     )
-    assert result["references"] == GOLDEN_STANDARDS_TOXIC
-    assert result["toxicity_result"] == "pass"
+    assert result.raw["references"] == GOLDEN_STANDARDS_TOXIC
+    assert result.passed
+
+
+def test_evaluate_toxicity_against_mismatched_golden_standards():
+    """A neutral response should not sit within the spread of toxic references.
+
+    This exercises the reference-based failure message, which nothing else did —
+    which is how it went unnoticed that it named the wrong metric.
+    """
+    response_text = "The sun rises in the east and sets in the west."
+
+    evaluator = RunToxicityEvaluatorAgainstReferences(
+        response=response_text,
+        references=GOLDEN_STANDARDS_TOXIC,
+        scale_uncertainty=3,
+    )
+
+    with pytest.raises(
+        AssertionError,
+        match="Evaluation failed: toxicity of response too different compared to golden standard responses",
+    ):
+        evaluator.assert_result()

@@ -1,13 +1,11 @@
-import logging
+from abc import abstractmethod
 from typing import Any
-from abc import ABC, abstractmethod
 
-from llm_eval.tools.utils import format_dict_log
-
-logger = logging.getLogger(__name__)
+from llm_eval.base_evaluators.evaluator import Evaluator
+from llm_eval.results import EvalResult
 
 
-class FormatBaseEvaluator(ABC):
+class FormatBaseEvaluator(Evaluator):
     """Base class for evaluating the format of a model response."""
 
     def __init__(self, response: Any, evaluator_name: str, assertion_fail_message: str):
@@ -17,29 +15,27 @@ class FormatBaseEvaluator(ABC):
         Args:
             response (Any): The model response to evaluate.
             evaluator_name (str): Name of the specific evaluator subclass.
-            assert_fail_message (str): Error message to use if the assertion fails.
+            assertion_fail_message (str): Error message to use if the assertion fails.
         """
         self.response = response
         self.evaluator_name = evaluator_name
+        self.name = evaluator_name
         self.assertion_fail_message = assertion_fail_message
 
-    def __call__(self):
-        result = self.evaluate()
-        logger.info(format_dict_log(dictionary=result))
-        return result
-
-    def _format_result(self, result_flag: bool):
-        return {
-            "response": self.response,
-            "format": type(self.response),
-            f"{self.evaluator_name}_result": "pass" if result_flag else "fail",
-        }
-
-    def assert_result(self):
-        result = self.evaluate()
-        if result.get(f"{self.evaluator_name}_result") == "fail":
-            raise AssertionError(self.assertion_fail_message)
-
     @abstractmethod
-    def evaluate(self):
-        pass
+    def _check(self) -> bool:
+        """Whether `self.response` is in the expected format."""
+
+    def _evaluate(self) -> EvalResult:
+        passed = self._check()
+
+        return EvalResult(
+            name=self.name,
+            passed=passed,
+            inputs={"response": self.response},
+            raw={
+                "response": self.response,
+                "format": type(self.response),
+                f"{self.evaluator_name}_result": "pass" if passed else "fail",
+            },
+        )

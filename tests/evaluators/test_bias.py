@@ -2,6 +2,8 @@ import pytest
 
 pytest.importorskip("transformers", reason="requires the 'local-models' extra")
 
+from raw_contract import assert_raw_keys
+
 from llm_eval.base_evaluators.custom_evaluators import AggregationStrategy
 from llm_eval.evaluators.bias import (
     RunBiasEvaluatorAgainstExpectedScore,
@@ -85,10 +87,12 @@ def test_expected_bias_score(simple_bias_case_):
         response=response_text, expected_score=expected_score, aggregation_strategy=aggregation_strategy
     )()
 
-    assert "bias" in result
-    assert expected_score - 0.1 <= result["bias"] <= expected_score + 0.1
+    # score only, on a wider window than the evaluator's own tolerance;
+    # test_evaluate_bias_against_known_score covers the verdict.
+    assert result.score is not None
+    assert expected_score - 0.1 <= result.score <= expected_score + 0.1
     if aggregation_strategy == AggregationStrategy.MAX_SENTENCE_SCORE:
-        assert result.get("max_sentence")
+        assert result.raw.get("max_sentence")
 
 
 def test_expected_bias_score_using_assert_method(failure_bias_case_):
@@ -112,12 +116,12 @@ def test_evaluate_bias_against_known_score(simple_bias_case_):
         response=response_text, expected_score=expected_score, allowed_uncertainty=0.1, aggregation_strategy=aggregation_strategy
     )()
 
-    assert all(
-        key in result for key in ["bias", "response", "expected_score", "bias_result"]
-    )
-    assert result["bias_result"] == "pass"
+    assert result.passed
+    assert result.score is not None
+
+    assert_raw_keys(result, "bias", "response", "expected_score", "bias_result")
     if aggregation_strategy == AggregationStrategy.MAX_SENTENCE_SCORE:
-        assert result.get("max_sentence")
+        assert result.raw.get("max_sentence")
 
 
 def test_evaluate_bias_against_neutral_golden_standards():
@@ -129,20 +133,20 @@ def test_evaluate_bias_against_neutral_golden_standards():
         scale_uncertainty=1,
     )()  # Scale to 3 standard deviations - acceptable as it accounts for 99% deviation
 
-    assert all(
-        key in result
-        for key in [
-            "bias",
-            "response",
-            "references",
-            "reference_scores",
-            "mean_score",
-            "calculated_uncertainty",
-            "bias_result",
-        ]
+    assert result.score is not None
+
+    assert_raw_keys(
+        result,
+        "bias",
+        "response",
+        "references",
+        "reference_scores",
+        "mean_score",
+        "calculated_uncertainty",
+        "bias_result",
     )
-    assert result["references"] == GOLDEN_STANDARDS_NEUTRAL
-    assert result["bias_result"] == "pass"
+    assert result.raw["references"] == GOLDEN_STANDARDS_NEUTRAL
+    assert result.passed
 
 
 def test_evaluate_bias_against_biased_golden_standards():
@@ -154,17 +158,37 @@ def test_evaluate_bias_against_biased_golden_standards():
         scale_uncertainty=1,
     )()  # Scale to 3 standard deviations - acceptable as it accounts for 99% deviation
 
-    assert all(
-        key in result
-        for key in [
-            "bias",
-            "response",
-            "references",
-            "reference_scores",
-            "mean_score",
-            "calculated_uncertainty",
-            "bias_result",
-        ]
+    assert result.score is not None
+
+    assert_raw_keys(
+        result,
+        "bias",
+        "response",
+        "references",
+        "reference_scores",
+        "mean_score",
+        "calculated_uncertainty",
+        "bias_result",
     )
-    assert result["references"] == GOLDEN_STANDARDS_BIASED
-    assert result["bias_result"] == "pass"
+    assert result.raw["references"] == GOLDEN_STANDARDS_BIASED
+    assert result.passed
+
+
+def test_evaluate_bias_against_mismatched_golden_standards():
+    """A neutral response should not sit within the spread of biased references.
+
+    Exercises the reference-based failure message, which nothing else did.
+    """
+    response_text = "The sun rises in the east and sets in the west."
+
+    evaluator = RunBiasEvaluatorAgainstReferences(
+        response=response_text,
+        references=GOLDEN_STANDARDS_BIASED,
+        scale_uncertainty=1,
+    )
+
+    with pytest.raises(
+        AssertionError,
+        match="Evaluation failed: level of bias in response too different compared to reference responses",
+    ):
+        evaluator.assert_result()

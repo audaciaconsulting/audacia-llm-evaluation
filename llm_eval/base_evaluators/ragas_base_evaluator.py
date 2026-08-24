@@ -1,11 +1,16 @@
 from ragas.dataset_schema import SingleTurnSample
-import logging
-from llm_eval.tools.utils import format_dict_log, camel_to_snake
 
-logger = logging.getLogger(__name__)
+from llm_eval.base_evaluators.evaluator import AsyncEvaluator
+from llm_eval.results import EvalResult
+from llm_eval.tools.utils import camel_to_snake
+
+#: Inputs holding retrieved text, shortened when logged.
+_CONTEXT_KEYS = ("retrieved_contexts", "reference_contexts")
 
 
-class RagasBaseEvaluator:
+class RagasBaseEvaluator(AsyncEvaluator):
+    """Scores sample data with a Ragas metric."""
+
     def __init__(
         self,
         sample_data: dict,
@@ -17,11 +22,17 @@ class RagasBaseEvaluator:
         """
         Initializes the evaluator.
 
-        :param response: The model's response to evaluate.
-        :param reference: The reference answer to compare against.
-        :param threshold: The threshold value for evaluation.
-        :param ragas_metric: The Ragas metric class to use for scoring.
-        :param ragas_metric_args: Arguments to pass to the metric (optional).
+        Args:
+            sample_data (dict): The inputs to score, as the metric's sample fields.
+            threshold (float): Minimum passing score between 0 and 1. A bool selects
+                binary scoring, where the score is rounded and 1 passes.
+            ragas_metric (type): The Ragas metric class to use for scoring.
+            assertion_fail_message (str): Message for assertion failures.
+            ragas_metric_args (dict, optional): Arguments to pass to the metric, such
+                as an llm or embedding model.
+
+        Raises:
+            ValueError: If a float `threshold` falls outside the inclusive [0, 1] range.
         """
         if ragas_metric_args is None:
             ragas_metric_args = {}
@@ -30,57 +41,51 @@ class RagasBaseEvaluator:
         self.threshold = threshold
         self.ragas_metric = ragas_metric
         self.ragas_metric_args = ragas_metric_args
-        self.metric_name = camel_to_snake(self.ragas_metric.__name__)
-        self.metric_name_result = f"{self.metric_name}_result"
+        self.name = camel_to_snake(self.ragas_metric.__name__)
         self.assertion_fail_message = assertion_fail_message
 
         if isinstance(self.threshold, float):
             if not 0.0 <= threshold <= 1.0:
                 raise ValueError(f"Threshold must be between 0 and 1. Got {threshold}.")
 
-    async def __call__(self) -> dict:
-        """
-        Scores the response and determines if it passes the threshold.
-        """
-        sample = SingleTurnSample(**self.sample_data)
+    async def _evaluate_async(self) -> EvalResult:
+        """Scores the sample data and determines if it passes the threshold."""
         score = await self.ragas_metric(**self.ragas_metric_args).single_turn_ascore(
-            sample=sample
+            sample=SingleTurnSample(**self.sample_data)
         )
 
-        if isinstance(self.threshold, bool):
-            pass_eval = "pass" if round(score) == 1 else "fail"
-        else:
-            pass_eval = "pass" if score >= self.threshold else "fail"
+        binary = isinstance(self.threshold, bool)
+        passed = round(score) == 1 if binary else score >= self.threshold
 
+        return EvalResult(
+            name=self.name,
+            passed=passed,
+            score=score,
+            # Binary metrics have no threshold; `raw` keeps the False it has
+            # always reported.
+            threshold=None if binary else self.threshold,
+            inputs=self.sample_data,
+            raw={
+                **self.sample_data,
+                self.name: score,
+                f"{self.name}_threshold": self.threshold,
+                f"{self.name}_result": "pass" if passed else "fail",
+            },
+        )
 
-        sample_data_logging = self.sample_data.copy()
+    def _log_payload(self, result: EvalResult) -> dict:
+        """Shortens retrieved contexts, which can be whole source documents.
 
-        for col in ['retrieved_contexts', 'reference_contexts']:
-            if col in sample_data_logging:
-                sample_data_logging[col] = [
-                    x if len(x) <= 200 else x[:100] + '......' + x[-100:]
-                    for x in sample_data_logging[col]
+        Only the log is shortened. The result keeps them in full, because diagnosing
+        a low score needs the text the score was derived from.
+        """
+        payload = dict(result.raw)
+
+        for key in _CONTEXT_KEYS:
+            if key in payload:
+                payload[key] = [
+                    text if len(text) <= 200 else f"{text[:100]}......{text[-100:]}"
+                    for text in payload[key]
                 ]
 
-        logging_results = {
-            **sample_data_logging,
-            self.metric_name: score,
-            f"{self.metric_name}_threshold": self.threshold,
-            self.metric_name_result: pass_eval,
-        }
-
-        logger.info(format_dict_log(dictionary=logging_results))
-
-        results = {
-            **self.sample_data,
-            self.metric_name: score,
-            f"{self.metric_name}_threshold": self.threshold,
-            self.metric_name_result: pass_eval,
-        }
-
-        return results
-
-    async def assert_result(self):
-        result = await self()
-        if result.get(f"{self.metric_name_result}") == "fail":
-            raise AssertionError(self.assertion_fail_message)
+        return payload

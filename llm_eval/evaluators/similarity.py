@@ -1,4 +1,3 @@
-import logging
 from typing import Optional
 
 from azure.ai.evaluation import (
@@ -22,17 +21,15 @@ from ragas.metrics import (
 from llm_eval.base_evaluators.azure_ai_similarity_base_evaluator import (
     BaseScoreEvaluator,
 )
+from llm_eval.base_evaluators.evaluator import Evaluator
 from llm_eval.base_evaluators.ragas_base_evaluator import RagasBaseEvaluator
+from llm_eval.results import EvalResult
 from llm_eval.tools.model_tools import (
     get_azure_ai_evaluation_model_config,
     get_ragas_wrapped_azure_open_ai_embedding_model,
 )
-from llm_eval.tools.utils import format_dict_log
 
-logger = logging.getLogger(__name__)
-
-
-class RunSimilarityEvaluator:
+class RunSimilarityEvaluator(Evaluator):
     """
     Evaluation Class: Similarity  
     Evaluation Method: LLM-Based Prompt Evaluation  
@@ -59,6 +56,9 @@ class RunSimilarityEvaluator:
     """
 
 
+    name = "similarity"
+    assertion_fail_message = "Similarity evaluation failed against ground truth"
+
     def __init__(
         self,
         query: str,
@@ -76,44 +76,34 @@ class RunSimilarityEvaluator:
         if not 0.0 <= threshold <= 5.0:
             raise ValueError(f"Threshold must be between 0 and 5. Got {threshold}.")
 
-    def __call__(self) -> dict:
+    def _evaluate(self) -> EvalResult:
         evaluator = SimilarityEvaluator(
             model_config=self.model_config, threshold=self.threshold
         )
-        result =  evaluator(
+        scored = evaluator(
             query=self.query,
             response=self.response,
             ground_truth=self.reference,
         )
 
-        result.update({'query': self.query, 'response': self.response, 'reference': self.reference})
-
-        logger.info(format_dict_log(dictionary=result))
-
-        return result
-
-    def assert_result(self):
-        result = self()
-        if result.get("similarity_result") == "fail":
-            raise AssertionError("Similarity evaluation failed against ground truth")
-
-    def evaluate(self, assert_result: bool = False):
-        result = self()
-
-        result.update(
-            {
+        return EvalResult(
+            name=self.name,
+            passed=scored.get("similarity_result") == "pass",
+            score=scored.get("similarity"),
+            threshold=self.threshold,
+            inputs={
                 "query": self.query,
                 "response": self.response,
                 "reference": self.reference,
-            }
+            },
+            raw={
+                **scored,
+                "query": self.query,
+                "response": self.response,
+                "reference": self.reference,
+            },
         )
 
-        logger.info(format_dict_log(dictionary=result))
-
-        if assert_result:
-            assert result["similarity_result"] == "pass"
-
-        return result
 
 class RunSemanticSimilarityEvaluator(RagasBaseEvaluator):
     """

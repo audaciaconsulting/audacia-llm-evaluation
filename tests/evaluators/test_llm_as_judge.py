@@ -2,6 +2,8 @@ from pathlib import Path
 
 import pytest
 
+from raw_contract import assert_raw_keys
+
 from llm_eval.evaluators.llm_as_judge import (
     RunLlmAsJudgePassFailEvaluator,
     RunLlmAsJudgeScoreEvaluator,
@@ -53,17 +55,14 @@ def test_llm_as_judge_pass(inputs: dict, objective: str, methods: str, template_
     prompt = format_md(inputs, objective, methods, template)
     evaluator = RunLlmAsJudgePassFailEvaluator(prompt=prompt, inputs=inputs)
 
-    evaluator.assert_result()
-    result = evaluator()
+    result = evaluator.assert_result()
 
-    assert all(
-        key in result
-        for key in [
-            "llm_as_judge_result",
-            "failures_list",
-            "prompt_trunc",
-        ]
-    )
+    assert result.passed
+    # this judge returns a verdict, not a score
+    assert result.score is None
+    assert result.reason == ""
+
+    assert_raw_keys(result, "llm_as_judge_result", "failures_list", "prompt_trunc")
 
 @pytest.mark.parametrize(
     ("inputs", "objective", "methods", "template_name"),
@@ -129,18 +128,18 @@ def test_llm_as_judge_score_pass(inputs: dict, objective: str, methods: str, tem
     prompt = format_md(inputs, objective, methods, template)
     evaluator = RunLlmAsJudgeScoreEvaluator(prompt=prompt, threshold=threshold, inputs=inputs)
 
-    evaluator.assert_result()
-    result = evaluator()
+    result = evaluator.assert_result()
 
-    assert all(
-        key in result
-        for key in [
-            "llm_as_judge_score",
-            "llm_as_judge_result",
-            "threshold",
-            "failures_list",
-            "prompt_trunc",
-        ]
+    assert result.passed
+    assert result.score is not None
+
+    assert_raw_keys(
+        result,
+        "llm_as_judge_score",
+        "llm_as_judge_result",
+        "threshold",
+        "failures_list",
+        "prompt_trunc",
     )
 
 
