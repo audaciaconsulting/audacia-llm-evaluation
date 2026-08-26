@@ -214,6 +214,10 @@ def get_azure_openai_llm(
 ) -> AzureChatOpenAI:
     """Returns an AzureChatOpenAI client with provided or environment-configured parameters.
 
+    Each of `model`, `azure_endpoint` and `api_version` falls back to its
+    `LLM_EVAL_LLM_*` variable and must be given one way or the other. `api_key` falls
+    back to `LLM_EVAL_LLM_API_KEY`, and with neither, auth is keyless (Entra ID).
+
     Args:
         model (Optional[str]): Azure OpenAI model deployment name.
         api_key (Optional[str]): Azure OpenAI API key.
@@ -237,12 +241,15 @@ def get_azure_openai_llm(
 
     Returns:
         AzureChatOpenAI: Configured Azure OpenAI chat client.
+
+    Raises:
+        ValueError: If the deployment, endpoint or API version is missing.
     """
 
-    model = model or os.getenv("LLM_EVAL_LLM_MODEL")
+    model = model or _require_env("LLM_EVAL_LLM_MODEL")
     api_key = api_key or os.getenv("LLM_EVAL_LLM_API_KEY")
-    azure_endpoint = azure_endpoint or os.getenv("LLM_EVAL_LLM_ENDPOINT")
-    api_version = api_version or os.getenv("LLM_EVAL_LLM_API_VERSION")
+    azure_endpoint = azure_endpoint or _require_env("LLM_EVAL_LLM_ENDPOINT")
+    api_version = api_version or _require_env("LLM_EVAL_LLM_API_VERSION")
 
     return AzureChatOpenAI(
         model=model,
@@ -291,11 +298,14 @@ def get_azure_openai_embedding_model(
         timeout (Optional[float]): Seconds per call.
         **kwargs: Passed to `AzureOpenAIEmbeddings`, such as `chunk_size`, which
             batches inputs per request and so bounds what each one costs.
+
+    Raises:
+        ValueError: If the deployment, endpoint or API version is missing.
     """
     return AzureOpenAIEmbeddings(
-        model=os.getenv("LLM_EVAL_EMBEDDING_MODEL"),
-        azure_endpoint=os.getenv("LLM_EVAL_EMBEDDING_MODEL_ENDPOINT"),
-        api_version=os.getenv("LLM_EVAL_EMBEDDING_MODEL_API_VERSION"),
+        model=_require_env("LLM_EVAL_EMBEDDING_MODEL"),
+        azure_endpoint=_require_env("LLM_EVAL_EMBEDDING_MODEL_ENDPOINT"),
+        api_version=_require_env("LLM_EVAL_EMBEDDING_MODEL_API_VERSION"),
         max_retries=max_retries,
         timeout=timeout,
         **_auth_kwargs(os.getenv("LLM_EVAL_EMBEDDING_MODEL_API_KEY"), credential),

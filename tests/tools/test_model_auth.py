@@ -203,3 +203,46 @@ def test_a_key_takes_precedence_over_a_pinned_credential(monkeypatch, token_prov
     assert mock_client.call_args.kwargs["api_key"] == "secret"
     token_provider.assert_not_called()
 
+
+# --- required config, on the client factories -------------------------------
+
+@pytest.mark.parametrize(
+    "missing",
+    ["LLM_EVAL_LLM_MODEL", "LLM_EVAL_LLM_ENDPOINT", "LLM_EVAL_LLM_API_VERSION"],
+)
+def test_llm_names_the_missing_variable(monkeypatch, missing):
+    """A missing variable used to reach the client as None, failing as an HTTP error."""
+    _set_env(monkeypatch, LLM_ENV, "LLM_EVAL_LLM_API_KEY", None)
+    monkeypatch.delenv(missing, raising=False)
+
+    with pytest.raises(ValueError, match=missing):
+        get_azure_openai_llm()
+
+
+@pytest.mark.parametrize("missing", list(EMBEDDING_ENV))
+def test_embedding_names_the_missing_variable(monkeypatch, missing):
+    _set_env(monkeypatch, EMBEDDING_ENV, "LLM_EVAL_EMBEDDING_MODEL_API_KEY", None)
+    monkeypatch.delenv(missing, raising=False)
+
+    with pytest.raises(ValueError, match=missing):
+        get_azure_openai_embedding_model()
+
+
+def test_llm_arguments_stand_in_for_the_environment(monkeypatch):
+    """Passing the config explicitly is still enough on its own."""
+    for name in LLM_ENV:
+        monkeypatch.delenv(name, raising=False)
+    monkeypatch.delenv("LLM_EVAL_LLM_API_KEY", raising=False)
+
+    with patch.object(model_tools, "AzureChatOpenAI") as mock_client:
+        get_azure_openai_llm(
+            model="gpt-4o",
+            azure_endpoint="https://example.openai.azure.com/",
+            api_version="2024-10-21",
+            api_key="secret",
+        )
+
+    kwargs = mock_client.call_args.kwargs
+    assert kwargs["model"] == "gpt-4o"
+    assert kwargs["azure_endpoint"] == "https://example.openai.azure.com/"
+    assert kwargs["api_version"] == "2024-10-21"

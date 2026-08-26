@@ -132,7 +132,7 @@ Each evaluator may also have additional functionality, for detailed descriptions
 
 Make sure you have the following environment variables set in your system environment or in a `.env` file located in your project root.
 
-> ⚠️ This package does not load your `.env` for you — loading it on import would override the consuming app's own configuration. Your application (or test harness) must load it, for example with `load_dotenv(find_dotenv())` from [python-dotenv](https://pypi.org/project/python-dotenv/). Without it the variables below resolve to `None`.
+> ⚠️ This package does not load your `.env` for you — loading it on import would override the consuming app's own configuration. Your application (or test harness) must load it, for example with `load_dotenv(find_dotenv())` from [python-dotenv](https://pypi.org/project/python-dotenv/). Without it, building a model client fails with a `ValueError` naming the variable that is missing.
 
 - `LLM_EVAL_LLM_MODEL` — The name of the Azure OpenAI language model deployment (e.g., `gpt-35-turbo`).
 - `LLM_EVAL_LLM_API_KEY` — The API key used to authenticate requests to the language model. Optional: if unset, authentication falls back to Entra ID (`DefaultAzureCredential` — az login / managed identity), which is required for resources with `disableLocalAuth=true`.
