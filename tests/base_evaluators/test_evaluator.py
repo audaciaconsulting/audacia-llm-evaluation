@@ -6,9 +6,11 @@ that a consumer cannot tell them apart from the outside.
 """
 
 import asyncio
+import threading
 
 import pytest
 
+from llm_eval.base_evaluators.evaluator import run_sync
 from llm_eval.evaluators.format import RunJsonResponseEvaluator
 from llm_eval.evaluators.similarity import RunStringPresenceEvaluator
 from llm_eval.results import EvalResult
@@ -107,3 +109,33 @@ def test_failure_reason_reaches_the_assertion_message():
 
     with pytest.raises(AssertionError, match="score 1.0 below 3.0"):
         Failing(response="{}").assert_result()
+
+
+async def _running_loop_id() -> int:
+    return id(asyncio.get_running_loop())
+
+
+def test_run_sync_reuses_one_background_loop():
+    """It used to build a thread and a loop per call, and this is the hot path."""
+
+    async def from_inside_a_loop():
+        return run_sync(_running_loop_id()), run_sync(_running_loop_id())
+
+    first, second = asyncio.run(from_inside_a_loop())
+
+    assert first == second
+
+
+def test_run_sync_does_not_accumulate_threads():
+    def call_from_inside_a_loop(times):
+        async def calls():
+            return [run_sync(_running_loop_id()) for _ in range(times)]
+
+        return asyncio.run(calls())
+
+    call_from_inside_a_loop(1)  # starts the background loop
+    settled = threading.active_count()
+    call_from_inside_a_loop(5)
+
+    assert threading.active_count() == settled
+
