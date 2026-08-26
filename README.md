@@ -157,6 +157,14 @@ RunLlmAsJudgeScoreEvaluator(prompt=..., inputs=..., threshold=0.7, model=grader)
 RunFaithfulnessEvaluator(..., llm=get_ragas_wrapped_llm(grader))
 ```
 
+Keyless auth uses `DefaultAzureCredential`, which resolves whichever credential it finds
+first — so a session signed into the wrong tenant fails with "Tenant provided in token
+does not match resource token". Fix it with `az login --tenant <id>`, or pin one:
+`get_azure_openai_llm(credential=AzureCliCredential(tenant_id=...))`. `credential=` is
+accepted there, on `get_azure_openai_embedding_model` and on the
+`get_ragas_wrapped_azure_*` factories; the azure-ai-evaluation scorers build their own
+credential, so `az login --tenant` is the only fix for those.
+
 Red-team (promptfoo) evaluations additionally require:
 
 - `LLM_EVAL_PROMPTFOO_LLM_MODEL` — The Azure OpenAI deployment name used by the promptfoo red-team provider.

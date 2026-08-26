@@ -2,6 +2,7 @@ import os
 from typing import Optional
 
 from azure.ai.evaluation import AzureOpenAIModelConfiguration
+from azure.core.credentials import TokenCredential
 from azure.identity import DefaultAzureCredential, get_bearer_token_provider
 from huggingface_hub import snapshot_download
 from langchain.chat_models.base import BaseChatModel
@@ -139,26 +140,30 @@ GRADER_TIMEOUT = 120.0
 _COGNITIVE_SERVICES_SCOPE = "https://cognitiveservices.azure.com/.default"
 
 
-def get_credential(credential=None):
+def get_credential(credential: Optional[TokenCredential] = None) -> TokenCredential:
     """Credential for keyless (Entra ID) auth against Azure OpenAI.
 
     Defaults to `DefaultAzureCredential` — `az login` locally, managed identity when
-    deployed. Note it resolves whichever credential it finds first, so a local session
-    signed into the wrong tenant fails with "Tenant provided in token does not match
+    deployed. It resolves whichever credential it finds first, so a session signed
+    into the wrong tenant fails with "Tenant provided in token does not match
     resource token". Fix that with `az login --tenant <id>`, or pass a pinned
-    credential such as `AzureCliCredential(tenant_id=...)`.
+    `AzureCliCredential(tenant_id=...)` to `get_azure_openai_llm`,
+    `get_azure_openai_embedding_model` or a `get_ragas_wrapped_azure_*` factory.
+    `get_azure_ai_evaluation_model_config` takes no credential — see its docstring.
     """
     return credential if credential is not None else DefaultAzureCredential()
 
 
-def _entra_token_provider(credential=None):
+def _entra_token_provider(credential: Optional[TokenCredential] = None):
     """Bearer-token provider for keyless (Entra ID) auth."""
     return get_bearer_token_provider(
         get_credential(credential), _COGNITIVE_SERVICES_SCOPE
     )
 
 
-def _auth_kwargs(api_key: Optional[str], credential=None) -> dict:
+def _auth_kwargs(
+    api_key: Optional[str], credential: Optional[TokenCredential] = None
+) -> dict:
     """Auth kwargs for a langchain Azure OpenAI client: key auth when a key is
     provided, otherwise Entra ID via a bearer-token provider."""
     if api_key:
@@ -176,7 +181,12 @@ def _require_env(env_var: str) -> str:
     return value
 
 
-def get_azure_ai_evaluation_model_config():
+def get_azure_ai_evaluation_model_config() -> AzureOpenAIModelConfiguration:
+    """Model configuration for the azure-ai-evaluation scorers.
+
+    Takes no `credential`: the configuration is a dict with no slot for one, and
+    azure-ai-evaluation builds a `DefaultAzureCredential` of its own.
+    """
     config = AzureOpenAIModelConfiguration(
         azure_endpoint=_require_env("LLM_EVAL_LLM_ENDPOINT"),
         azure_deployment=_require_env("LLM_EVAL_LLM_MODEL"),
@@ -195,6 +205,7 @@ def get_azure_openai_llm(
     api_key: Optional[str] = None,
     azure_endpoint: Optional[str] = None,
     api_version: Optional[str] = None,
+    credential: Optional[TokenCredential] = None,
     temperature: float = GRADER_TEMPERATURE,
     max_retries: int = GRADER_MAX_RETRIES,
     timeout: Optional[float] = GRADER_TIMEOUT,
@@ -208,6 +219,9 @@ def get_azure_openai_llm(
         api_key (Optional[str]): Azure OpenAI API key.
         azure_endpoint (Optional[str]): Azure endpoint URL.
         api_version (Optional[str]): API version to use.
+        credential (Optional[TokenCredential]): Pinned credential for keyless auth,
+            where `DefaultAzureCredential` resolves the wrong one. Ignored when a
+            key is used. See `get_credential`.
         temperature (float): Sampling temperature. Defaults to 0, so a grader's
             variance does not land in the scores it reports. Raise it only where
             you want the grader to sample.
@@ -238,7 +252,7 @@ def get_azure_openai_llm(
         max_retries=max_retries,
         timeout=timeout,
         rate_limiter=rate_limiter,
-        **_auth_kwargs(api_key),
+        **_auth_kwargs(api_key, credential),
         **kwargs,
     )
 
@@ -247,12 +261,19 @@ def get_ragas_wrapped_llm(model: BaseChatModel):
     return LangchainLLMWrapper(model)
 
 
-def get_ragas_wrapped_azure_openai_llm():
-    llm = get_azure_openai_llm()
+def get_ragas_wrapped_azure_openai_llm(
+    credential: Optional[TokenCredential] = None, **kwargs
+) -> LangchainLLMWrapper:
+    """The default grader for the ragas-backed evaluators, ragas-wrapped.
+
+    Arguments are passed to `get_azure_openai_llm`.
+    """
+    llm = get_azure_openai_llm(credential=credential, **kwargs)
     return get_ragas_wrapped_llm(llm)
 
 
 def get_azure_openai_embedding_model(
+    credential: Optional[TokenCredential] = None,
     max_retries: int = GRADER_MAX_RETRIES,
     timeout: Optional[float] = GRADER_TIMEOUT,
     **kwargs,
@@ -260,6 +281,9 @@ def get_azure_openai_embedding_model(
     """Returns an AzureOpenAIEmbeddings client from the environment.
 
     Args:
+        credential (Optional[TokenCredential]): Pinned credential for keyless auth.
+            Ignored when `LLM_EVAL_EMBEDDING_MODEL_API_KEY` is set. See
+            `get_credential`.
         max_retries (int): Attempts per call. Embedding calls share the
             deployment's rate limit, so raise it for large runs. This client backs
             off on its own schedule, `retry_min_seconds` to `retry_max_seconds`,
@@ -274,7 +298,7 @@ def get_azure_openai_embedding_model(
         api_version=os.getenv("LLM_EVAL_EMBEDDING_MODEL_API_VERSION"),
         max_retries=max_retries,
         timeout=timeout,
-        **_auth_kwargs(os.getenv("LLM_EVAL_EMBEDDING_MODEL_API_KEY")),
+        **_auth_kwargs(os.getenv("LLM_EVAL_EMBEDDING_MODEL_API_KEY"), credential),
         **kwargs,
     )
 
@@ -283,8 +307,14 @@ def get_ragas_wrapped_embedding_model(model: AzureOpenAIEmbeddings):
     return LangchainEmbeddingsWrapper(model)
 
 
-def get_ragas_wrapped_azure_open_ai_embedding_model() -> LangchainEmbeddingsWrapper:
-    model = get_azure_openai_embedding_model()
+def get_ragas_wrapped_azure_open_ai_embedding_model(
+    credential: Optional[TokenCredential] = None, **kwargs
+) -> LangchainEmbeddingsWrapper:
+    """The default embedding model for the ragas-backed evaluators, ragas-wrapped.
+
+    Arguments are passed to `get_azure_openai_embedding_model`.
+    """
+    model = get_azure_openai_embedding_model(credential=credential, **kwargs)
     return get_ragas_wrapped_embedding_model(model)
 
 
