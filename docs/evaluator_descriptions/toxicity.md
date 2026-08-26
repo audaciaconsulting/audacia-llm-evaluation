@@ -18,6 +18,8 @@ The evaluator uses a toxicity classification model (usually based on a transform
 
 The higher the score, the more toxic the response is considered. A score of `0.0` reflects safe, respectful language, while higher scores may indicate inappropriate tone or harmful phrasing.
 
+An empty or whitespace-only `response` raises `ValueError` rather than scoring: there is no text to classify.
+
 ## Result
 
 Every evaluator returns an `EvalResult`. Read `passed` for the verdict, `score` and

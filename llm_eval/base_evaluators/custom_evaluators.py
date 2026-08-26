@@ -203,7 +203,19 @@ class TransformerEvaluator:
 
         Returns:
             float: Extracted score.
+
+        Raises:
+            ValueError: If there are no results to score.
+            KeyError: If the model returned no `score_label` label.
         """
+        if not results:
+            # Aggregation would sum to 0.0 and label lookup would raise a bare
+            # KeyError; neither reads as "nothing was classified".
+            raise ValueError(
+                f"The {self.evaluator} evaluator got no classification results to "
+                "score."
+            )
+
         if self.aggregate and self.aggregate_weights:
             return sum(
                 self.aggregate_weights[x["label"]] * x["score"] for x in results
@@ -231,9 +243,19 @@ class TransformerEvaluator:
 
         Returns:
             dict: A dictionary containing the evaluation score with the evaluator name as the key.
+
+        Raises:
+            ValueError: If `response` holds no text to score.
         """
         # Split into sentences
         sentences = self._split_sentences(response)
+
+        # Every strategy below needs at least one sentence to classify.
+        if not sentences:
+            raise ValueError(
+                f"The {self.evaluator} evaluator was given a response with no text "
+                f"to score. Got {response!r}."
+            )
 
         if self.aggregation_strategy == AggregationStrategy.FULL_CONTEXT:
             # Group sentences into overlapping chunks that fit max_length
@@ -253,37 +275,29 @@ class TransformerEvaluator:
             AggregationStrategy.MAX_SENTENCE_SCORE
         ):
             # Score each sentence individually
-            sentence_scores = []
-            for sentence in sentences:
-                results = self.classifier(sentence)[0]
-                sentence_score = self._extract_score_from_results(results)
-                sentence_scores.append({"sentence": sentence, "score": sentence_score})
+            sentence_scores = [
+                {
+                    "sentence": sentence,
+                    "score": self._extract_score_from_results(
+                        self.classifier(sentence)[0]
+                    ),
+                }
+                for sentence in sentences
+            ]
 
-            # Return min or max score
-            if self.aggregation_strategy == AggregationStrategy.MIN_SENTENCE_SCORE:
-                selected = (
-                    min(sentence_scores, key=lambda x: x["score"])
-                    if sentence_scores
-                    else {"sentence": None, "score": 0.0}
-                )
-                score = selected["score"]
-                min_sentence = selected["sentence"]
-                return {
-                    self.evaluator: score,
-                    "min_sentence": min_sentence,
-                }
-            else:  # MAX_SENTENCE_SCORE
-                selected = (
-                    max(sentence_scores, key=lambda x: x["score"])
-                    if sentence_scores
-                    else {"sentence": None, "score": 0.0}
-                )
-                score = selected["score"]
-                max_sentence = selected["sentence"]
-                return {
-                    self.evaluator: score,
-                    "max_sentence": max_sentence,
-                }
+            # Report the lowest- or highest-scoring sentence and its score. The list
+            # is never empty, an empty response having been rejected above.
+            is_min = (
+                self.aggregation_strategy == AggregationStrategy.MIN_SENTENCE_SCORE
+            )
+            selected = (min if is_min else max)(
+                sentence_scores, key=lambda x: x["score"]
+            )
+
+            return {
+                self.evaluator: selected["score"],
+                "min_sentence" if is_min else "max_sentence": selected["sentence"],
+            }
 
         return {self.evaluator: score}
 

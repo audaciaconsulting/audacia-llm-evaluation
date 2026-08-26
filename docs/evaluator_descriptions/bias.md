@@ -18,6 +18,8 @@ The evaluator uses a transformer-based bias classifier to detect how biased a gi
 
 The final score reflects the severity of bias present in the LLM output. Lower scores indicate more neutral responses, while higher scores suggest more problematic or skewed language.
 
+An empty or whitespace-only `response` raises `ValueError` rather than scoring: there is no text to classify.
+
 ## Result
 
 Every evaluator returns an `EvalResult`. Read `passed` for the verdict, `score` and

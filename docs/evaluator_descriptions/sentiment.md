@@ -26,6 +26,8 @@ These categories are then converted into a **numerical sentiment score** using t
 
 The final score is a single number between -1 and 1 that represents the overall sentiment of the response.
 
+An empty or whitespace-only `response` raises `ValueError` rather than scoring: there is no text to classify.
+
 ## Result
 
 Every evaluator returns an `EvalResult`. Read `passed` for the verdict, `score` and
