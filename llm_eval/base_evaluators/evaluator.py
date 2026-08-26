@@ -103,7 +103,11 @@ class Evaluator(ABC):
         """Score the inputs. Implemented by each evaluator family."""
 
     async def _evaluate_async(self) -> EvalResult:
-        return self._evaluate()
+        """`_evaluate` in a thread, so awaiting it does not block the caller's loop.
+
+        Synchronous scoring is still blocking work: a local model, or a network call.
+        """
+        return await asyncio.to_thread(self._evaluate)
 
     def evaluate(self) -> EvalResult:
         """Score the inputs and log the result.

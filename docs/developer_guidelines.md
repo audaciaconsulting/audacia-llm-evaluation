@@ -18,6 +18,10 @@ If the underlying metric is async, subclass `AsyncEvaluator` and implement
 synchronous: never expose an `async def __call__` or `assert_result`. `RagasBaseEvaluator`
 and `BaseScoreEvaluator` already do this.
 
+A synchronous `_evaluate()` may block — a local model, or a network call — without
+stalling an async consumer: the base runs it in a thread. Never override
+`_evaluate_async` on an `Evaluator` subclass just to make the async path work.
+
 Set `name` (the metric, used in `EvalResult` and logs) and `assertion_fail_message` as class
 attributes, or in `__init__` where they vary.
 

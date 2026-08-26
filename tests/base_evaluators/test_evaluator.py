@@ -7,10 +7,11 @@ that a consumer cannot tell them apart from the outside.
 
 import asyncio
 import threading
+import time
 
 import pytest
 
-from llm_eval.base_evaluators.evaluator import run_sync
+from llm_eval.base_evaluators.evaluator import Evaluator, run_sync
 from llm_eval.evaluators.format import RunJsonResponseEvaluator
 from llm_eval.evaluators.similarity import RunStringPresenceEvaluator
 from llm_eval.results import EvalResult
@@ -139,3 +140,35 @@ def test_run_sync_does_not_accumulate_threads():
 
     assert threading.active_count() == settled
 
+
+class _SlowSyncEvaluator(Evaluator):
+    """Synchronous scoring slow enough to notice it holding up a loop."""
+
+    name = "slow"
+
+    def _evaluate(self) -> EvalResult:
+        time.sleep(0.2)
+        return EvalResult(name=self.name, passed=True)
+
+
+def test_awaiting_a_synchronous_evaluator_leaves_the_loop_free():
+    """`evaluate_async` ran `_evaluate` inline, so awaiting it blocked the caller."""
+
+    async def with_something_else_to_do():
+        ticks = 0
+
+        async def tick():
+            nonlocal ticks
+            while True:
+                await asyncio.sleep(0.01)
+                ticks += 1
+
+        ticker = asyncio.create_task(tick())
+        result = await _SlowSyncEvaluator().evaluate_async()
+        ticker.cancel()
+        return result.passed, ticks
+
+    passed, ticks = asyncio.run(with_something_else_to_do())
+
+    assert passed
+    assert ticks > 1
