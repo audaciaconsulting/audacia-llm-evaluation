@@ -5,6 +5,7 @@ from azure.ai.evaluation import AzureOpenAIModelConfiguration
 from azure.identity import DefaultAzureCredential, get_bearer_token_provider
 from huggingface_hub import snapshot_download
 from langchain.chat_models.base import BaseChatModel
+from langchain_core.rate_limiters import BaseRateLimiter
 from langchain_openai import AzureChatOpenAI, AzureOpenAIEmbeddings
 from ragas.embeddings import LangchainEmbeddingsWrapper
 from ragas.llms import LangchainLLMWrapper
@@ -132,7 +133,9 @@ def cache_required_models(
         )
 
 
-# Scope for Entra ID (Azure AD) auth against Azure OpenAI / Cognitive Services.
+GRADER_TEMPERATURE = 0.0
+GRADER_MAX_RETRIES = 2
+GRADER_TIMEOUT = 120.0
 _COGNITIVE_SERVICES_SCOPE = "https://cognitiveservices.azure.com/.default"
 
 
@@ -192,6 +195,11 @@ def get_azure_openai_llm(
     api_key: Optional[str] = None,
     azure_endpoint: Optional[str] = None,
     api_version: Optional[str] = None,
+    temperature: float = GRADER_TEMPERATURE,
+    max_retries: int = GRADER_MAX_RETRIES,
+    timeout: Optional[float] = GRADER_TIMEOUT,
+    rate_limiter: Optional[BaseRateLimiter] = None,
+    **kwargs,
 ) -> AzureChatOpenAI:
     """Returns an AzureChatOpenAI client with provided or environment-configured parameters.
 
@@ -200,6 +208,18 @@ def get_azure_openai_llm(
         api_key (Optional[str]): Azure OpenAI API key.
         azure_endpoint (Optional[str]): Azure endpoint URL.
         api_version (Optional[str]): API version to use.
+        temperature (float): Sampling temperature. Defaults to 0, so a grader's
+            variance does not land in the scores it reports. Raise it only where
+            you want the grader to sample.
+        max_retries (int): Attempts per call, backing off exponentially and
+            honouring `Retry-After`. Raise it when many evaluations run against a
+            rate-limited deployment.
+        timeout (Optional[float]): Seconds per call. The client sets no timeout of
+            its own, so `None` lets a stalled call hang the run.
+        rate_limiter (Optional[BaseRateLimiter]): Paces calls before they are sent,
+            rather than retrying after rejection — the better answer where the
+            deployment's limit is known. See `langchain_core.rate_limiters`.
+        **kwargs: Passed to `AzureChatOpenAI`, such as `seed` or `max_tokens`.
 
     Returns:
         AzureChatOpenAI: Configured Azure OpenAI chat client.
@@ -210,14 +230,17 @@ def get_azure_openai_llm(
     azure_endpoint = azure_endpoint or os.getenv("LLM_EVAL_LLM_ENDPOINT")
     api_version = api_version or os.getenv("LLM_EVAL_LLM_API_VERSION")
 
-    kwargs = {
-        "model": model,
-        "azure_endpoint": azure_endpoint,
-        "api_version": api_version,
+    return AzureChatOpenAI(
+        model=model,
+        azure_endpoint=azure_endpoint,
+        api_version=api_version,
+        temperature=temperature,
+        max_retries=max_retries,
+        timeout=timeout,
+        rate_limiter=rate_limiter,
         **_auth_kwargs(api_key),
-    }
-
-    return AzureChatOpenAI(**kwargs)
+        **kwargs,
+    )
 
 
 def get_ragas_wrapped_llm(model: BaseChatModel):
@@ -229,15 +252,31 @@ def get_ragas_wrapped_azure_openai_llm():
     return get_ragas_wrapped_llm(llm)
 
 
-def get_azure_openai_embedding_model():
-    kwargs = {
-        "model": os.getenv("LLM_EVAL_EMBEDDING_MODEL"),
-        "azure_endpoint": os.getenv("LLM_EVAL_EMBEDDING_MODEL_ENDPOINT"),
-        "api_version": os.getenv("LLM_EVAL_EMBEDDING_MODEL_API_VERSION"),
-        **_auth_kwargs(os.getenv("LLM_EVAL_EMBEDDING_MODEL_API_KEY")),
-    }
+def get_azure_openai_embedding_model(
+    max_retries: int = GRADER_MAX_RETRIES,
+    timeout: Optional[float] = GRADER_TIMEOUT,
+    **kwargs,
+) -> AzureOpenAIEmbeddings:
+    """Returns an AzureOpenAIEmbeddings client from the environment.
 
-    return AzureOpenAIEmbeddings(**kwargs)
+    Args:
+        max_retries (int): Attempts per call. Embedding calls share the
+            deployment's rate limit, so raise it for large runs. This client backs
+            off on its own schedule, `retry_min_seconds` to `retry_max_seconds`,
+            not the chat client's exponential one.
+        timeout (Optional[float]): Seconds per call.
+        **kwargs: Passed to `AzureOpenAIEmbeddings`, such as `chunk_size`, which
+            batches inputs per request and so bounds what each one costs.
+    """
+    return AzureOpenAIEmbeddings(
+        model=os.getenv("LLM_EVAL_EMBEDDING_MODEL"),
+        azure_endpoint=os.getenv("LLM_EVAL_EMBEDDING_MODEL_ENDPOINT"),
+        api_version=os.getenv("LLM_EVAL_EMBEDDING_MODEL_API_VERSION"),
+        max_retries=max_retries,
+        timeout=timeout,
+        **_auth_kwargs(os.getenv("LLM_EVAL_EMBEDDING_MODEL_API_KEY")),
+        **kwargs,
+    )
 
 
 def get_ragas_wrapped_embedding_model(model: AzureOpenAIEmbeddings):

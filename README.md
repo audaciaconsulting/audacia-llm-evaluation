@@ -144,6 +144,19 @@ Make sure you have the following environment variables set in your system enviro
 - `LLM_EVAL_EMBEDDING_MODEL_ENDPOINT` — The endpoint URL for the embedding model resource.
 - `LLM_EVAL_EMBEDDING_MODEL_API_VERSION` — The API version used for the embedding model (typically the same as the LLM version).
 
+The grader client defaults to `temperature=0`, so the grader's own sampling does not land
+in the scores it reports, and to `max_retries=2`. Both are arguments on
+`get_azure_openai_llm()` — raise the retries when many evaluations run against a
+rate-limited deployment, and pass the client to an evaluator's `model=` or `llm=`:
+
+```python
+from llm_eval.tools.model_tools import get_azure_openai_llm, get_ragas_wrapped_llm
+
+grader = get_azure_openai_llm(max_retries=8)
+RunLlmAsJudgeScoreEvaluator(prompt=..., inputs=..., threshold=0.7, model=grader)
+RunFaithfulnessEvaluator(..., llm=get_ragas_wrapped_llm(grader))
+```
+
 Red-team (promptfoo) evaluations additionally require:
 
 - `LLM_EVAL_PROMPTFOO_LLM_MODEL` — The Azure OpenAI deployment name used by the promptfoo red-team provider.
