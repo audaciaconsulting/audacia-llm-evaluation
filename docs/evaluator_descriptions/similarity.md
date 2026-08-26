@@ -10,42 +10,54 @@ Each evaluator compares a `response` with a `reference` using a specific similar
 
 Results are typically numerical scores with configurable thresholds to decide pass/fail. Some binary methods produce only 0.0/1.0.
 
-> **Async usage:** `RunSimilarityEvaluator` is synchronous. Every other similarity evaluator returns a coroutine from `__call__` and `assert_result`, so make sure to `await` them inside an async context.
+> **Calling:** every similarity evaluator is synchronous. Some await a scorer internally, but that is not visible from the outside. `evaluate_async` / `assert_result_async` are available for callers already inside an event loop.
+
+## Result
+
+Every evaluator returns an `EvalResult`. Read `passed` for the verdict, `score` and
+`threshold` for the number, `reason` where the evaluator explains itself, and `inputs` for
+what was evaluated. `raw` carries the flat metric dict, in the `{metric}_result` convention,
+for anything the top level does not. Per-evaluator detail below.
 
 ## Evaluators
 
 ### Summary Table
 
-| Evaluator                     | Method            | Granularity | Measures                                   | Await? |
-|------------------------------|-------------------|-------------|--------------------------------------------|--------|
-| RunSimilarityEvaluator       | Embedding Cosine  | Medium      | Semantic match (0–5 scale)                 | No     |
-| RunSemanticSimilarity        | Embedding Cosine  | Medium      | Semantic match (0–1 scale)                 | Yes    |
-| RunMeteorScoreEvaluator      | n-gram + Semantic | Low-Medium  | Lexical and word-level semantic overlap    | Yes    |
-| RunBleuScoreEvaluator        | n-gram            | Low         | Overlap of word sequences                  | Yes    |
-| RunGleuScoreEvaluator        | n-gram            | Low         | Balanced precision/recall overlap          | Yes    |
-| RunRougeScoreEvaluator       | n-gram            | Low         | Summary-level similarity (F1)              | Yes    |
-| RunF1ScoreEvaluator          | Word              | Low         | Precision and recall                       | Yes    |
-| RunNonLLMStringSimilarity    | String Distance   | Low         | String distance metrics (e.g. Levenshtein) | Yes    |
-| RunStringPresenceEvaluator   | String Match      | Low         | Binary presence of reference               | Yes    |
-| RunExactMatchEvaluator       | String Match      | Low         | Exact match detection                      | Yes    |
-
-`Await?` indicates whether `__call__`/`assert_result` return coroutines that must be awaited.
+| Evaluator                     | Method            | Granularity | Measures                                   |
+|------------------------------|-------------------|-------------|--------------------------------------------|
+| RunSimilarityEvaluator       | LLM Prompt        | High        | Semantic match (1–5 scale)                 |
+| RunSemanticSimilarityEvaluator        | Embedding Cosine  | Medium      | Semantic match (0–1 scale)                 |
+| RunMeteorScoreEvaluator      | n-gram + Semantic | Low-Medium  | Lexical and word-level semantic overlap    |
+| RunBleuScoreEvaluator        | n-gram            | Low         | Overlap of word sequences                  |
+| RunGleuScoreEvaluator        | n-gram            | Low         | Balanced precision/recall overlap          |
+| RunRougeScoreEvaluator       | n-gram            | Low         | Summary-level similarity (F1)              |
+| RunF1ScoreEvaluator          | Word              | Low         | Precision and recall                       |
+| RunNonLLMStringSimilarityEvaluator    | String Distance   | Low         | String distance metrics (e.g. Levenshtein) |
+| RunStringPresenceEvaluator   | String Match      | Low         | Binary presence of reference               |
+| RunExactMatchEvaluator       | String Match      | Low         | Exact match detection                      |
 
 ---
 
 ### 1. RunSimilarityEvaluator
 
-Uses sentence embeddings to score similarity between the model's output and the reference.
+An LLM scores how semantically aligned the response is with the reference, using the prompt
+in `similarity.prompty`. Not embedding cosine similarity — see `RunSemanticSimilarityEvaluator`.
 
 **Expected Inputs:**
 - `query` – Context prompt to frame the comparison.
 - `response` – Model-generated text.
 - `reference` – Reference text to compare against.
-- `threshold` – Minimum score (1.0–5.0) to pass.
+- `threshold` – Minimum score to pass, between 1.0 and 5.0.
+- `model_config` – Azure OpenAI config for the judge. Defaults to the `LLM_EVAL_*`
+  environment variables.
 
-**Results Output:**
-- `similarity` – Score between 1 and 5.
-- `similarity_result` – `pass`/`fail`.
+**Result:**
+- `passed` – Whether `score` met `threshold`.
+- `score` – Between 1 and 5.
+- `threshold` – The value you passed.
+
+Also in `raw`: `similarity`, `gpt_similarity` (legacy duplicate), `similarity_threshold`,
+`similarity_result`, and the inputs. No `similarity_reason` — the SDK omits it for this metric.
 
 **Use When:**
 - Semantic alignment matters more than exact wording.
@@ -53,7 +65,7 @@ Uses sentence embeddings to score similarity between the model's output and the 
 
 ---
 
-### 2. RunSemanticSimilarity
+### 2. RunSemanticSimilarityEvaluator
 
 Computes similarity using embeddings and cosine similarity within a [0.0–1.0] scale.
 
@@ -62,9 +74,13 @@ Computes similarity using embeddings and cosine similarity within a [0.0–1.0] 
 - `reference` – Expected output.
 - `threshold` – Minimum cosine similarity (0.0–1.0).
 
-**Results Output:**
-- `semantic_similarity` – Score.
-- `semantic_similarity_result` – `pass`/`fail`.
+**Result:**
+- `passed` – Whether `score` met `threshold`.
+- `score` – 0.0–1.0.
+- `threshold` – The value you passed.
+
+Also in `raw`: `semantic_similarity`, `semantic_similarity_threshold`,
+`semantic_similarity_result`, and the inputs.
 
 **Use When:**
 - You want fine-grained semantic comparison with embeddings.
@@ -81,9 +97,12 @@ Leverages METEOR to account for synonyms, stemming, and order in scoring.
 - `reference` – Reference text.
 - `threshold` – METEOR threshold (0.0–1.0).
 
-**Results Output:**
-- `meteor` – Score.
-- `meteor_result` – `pass`/`fail`.
+**Result:**
+- `passed` – Whether `score` met `threshold`.
+- `score` – 0.0–1.0.
+- `threshold` – The value you passed.
+
+Also in `raw`: `meteor_score`, `meteor_threshold`, `meteor_result`, and the inputs.
 
 **Use When:**
 - Evaluation requires flexibility in expression (e.g., paraphrasing).
@@ -99,9 +118,12 @@ Computes BLEU score based on n-gram overlap.
 - `reference` – Reference sentence.
 - `threshold` – BLEU score threshold (0.0–1.0).
 
-**Results Output:**
-- `bleu` – Score.
-- `bleu_result` – `pass`/`fail`.
+**Result:**
+- `passed` – Whether `score` met `threshold`.
+- `score` – 0.0–1.0.
+- `threshold` – The value you passed.
+
+Also in `raw`: `bleu_score`, `bleu_threshold`, `bleu_result`, and the inputs.
 
 **Use When:**
 - Lexical precision is key (e.g., machine translation).
@@ -117,9 +139,12 @@ GLEU balances precision and recall for n-gram matching.
 - `reference` – Gold standard response.
 - `threshold` – GLEU threshold (0.0–1.0).
 
-**Results Output:**
-- `gleu` – Score.
-- `gleu_result` – `pass`/`fail`.
+**Result:**
+- `passed` – Whether `score` met `threshold`.
+- `score` – 0.0–1.0.
+- `threshold` – The value you passed.
+
+Also in `raw`: `gleu_score`, `gleu_threshold`, `gleu_result`, and the inputs.
 
 **Use When:**
 - Sentence-level evaluation is required with balanced overlap.
@@ -135,9 +160,13 @@ Uses ROUGE-L (longest common subsequence) to compute F1 scores.
 - `reference` – Reference text.
 - `threshold` – ROUGE-L F1 threshold (0.0–1.0).
 
-**Results Output:**
-- `rouge_f1_score` – Score.
-- `rouge_f1_score_result` – `pass`/`fail`.
+**Result:**
+- `passed` – Whether `score` met `threshold`.
+- `score` – The ROUGE-L F1 score, 0.0–1.0.
+- `threshold` – The value you passed.
+
+Also in `raw`: `rouge_f1_score`, `rouge_precision`, `rouge_recall`, a `_result` and
+`_threshold` for each, and the inputs.
 
 **Use When:**
 - You’re evaluating summarization or gist-level coverage.
@@ -153,16 +182,19 @@ Word-level comparison using harmonic mean of precision and recall.
 - `reference` – Reference string.
 - `threshold` – F1 score threshold (0.0–1.0).
 
-**Results Output:**
-- `f1` – Score.
-- `f1_result` – `pass`/`fail`.
+**Result:**
+- `passed` – Whether `score` met `threshold`.
+- `score` – 0.0–1.0.
+- `threshold` – The value you passed.
+
+Also in `raw`: `f1_score`, `f1_threshold`, `f1_result`, and the inputs.
 
 **Use When:**
 - You want balanced word overlap accuracy.
 
 ---
 
-### 8. RunNonLLMStringSimilarity
+### 8. RunNonLLMStringSimilarityEvaluator
 
 Uses string distance metrics (e.g., Levenshtein, Jaro) for similarity.
 
@@ -171,9 +203,13 @@ Uses string distance metrics (e.g., Levenshtein, Jaro) for similarity.
 - `reference` – Reference string.
 - `threshold` – Score threshold (0.0–1.0).
 
-**Results Output:**
-- `non_llmstring_similarity` – Score.
-- `non_llmstring_similarity_result` – `pass`/`fail`.
+**Result:**
+- `passed` – Whether `score` met `threshold`.
+- `score` – 0.0–1.0.
+- `threshold` – The value you passed.
+
+Also in `raw`: `non_llmstring_similarity`, `non_llmstring_similarity_threshold`,
+`non_llmstring_similarity_result`, and the inputs.
 
 **Use When:**
 - You prefer character-level distance metrics over semantics.
@@ -188,9 +224,13 @@ Binary check for whether reference string is present in response.
 - `response` – Model output.
 - `reference` – Substring to match.
 
-**Results Output:**
-- `string_presence` – `1.0` if found, `0.0` otherwise.
-- `string_presence_result` – `pass`/`fail`.
+**Result:**
+- `passed` – Whether `score` rounds to 1.
+- `score` – `1.0` if the reference is present, `0.0` if not.
+- `threshold` – `None`; this evaluator is binary and takes no threshold.
+
+Also in `raw`: `string_presence`, `string_presence_threshold`, `string_presence_result`,
+and the inputs.
 
 **Use When:**
 - You need guaranteed inclusion of exact wording.
@@ -205,9 +245,12 @@ Binary evaluator for full-string equality.
 - `response` – Generated output.
 - `reference` – Exact expected output.
 
-**Results Output:**
-- `exact_match` – `1.0` or `0.0`.
-- `exact_match_result` – `pass`/`fail`.
+**Result:**
+- `passed` – Whether `score` rounds to 1.
+- `score` – `1.0` on an exact match, `0.0` otherwise.
+- `threshold` – `None`; this evaluator is binary and takes no threshold.
+
+Also in `raw`: `exact_match`, `exact_match_threshold`, `exact_match_result`, and the inputs.
 
 **Use When:**
 - Strict match is required (e.g., classification, ID labels).

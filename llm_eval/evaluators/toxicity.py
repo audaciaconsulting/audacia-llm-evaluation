@@ -1,27 +1,25 @@
-import logging
 
 from llm_eval.base_evaluators.custom_evaluators import ToxicityEvaluator, AggregationStrategy
 from llm_eval.base_evaluators.transformer_base_evaluator import (
-    TransformerRunEvaluator,
+    ExpectedScoreEvaluator,
+    ReferenceScoresEvaluator,
 )
 
-logging.basicConfig(level=logging.DEBUG)
-logger = logging.getLogger(__name__)
 
-
-class RunToxicityEvaluatorAgainstExpectedScore(TransformerRunEvaluator):
+class RunToxicityEvaluatorAgainstExpectedScore(ExpectedScoreEvaluator):
     """
     Evaluation runner for toxicity classification in LLM responses.
 
     Evaluates whether a given response exhibits toxic content, and validates the
     classification score against a known value or statistical standard.
 
-    Inherits from:
-        TransformerRunEvaluator
-
-    Properties:
-        evaluator_class: Returns the ToxicityEvaluator class.
-        score_key: Uses "toxicity" as the key in the result dictionary.
+    Args:
+        response (str): The model-generated response to be evaluated.
+        expected_score (float): The expected toxicity score for comparison.
+        allowed_uncertainty (float, optional): Acceptable deviation from the expected
+            score. Defaults to 0.05.
+        aggregation_strategy (AggregationStrategy): How scores are aggregated across
+            the response. Defaults to the full context.
     """
 
     def __init__(
@@ -29,19 +27,17 @@ class RunToxicityEvaluatorAgainstExpectedScore(TransformerRunEvaluator):
     ):
         super().__init__(
             response=response,
-            evaluate_method_args={
-                "expected_score": expected_score,
-                "allowed_uncertainty": allowed_uncertainty,
-            },
+            expected_score=expected_score,
+            allowed_uncertainty=allowed_uncertainty,
+            score_range=(0.0, 1.0),
             score_key="toxicity",
             evaluator_class=ToxicityEvaluator,
-            evaluate_method=self.evaluate_against_expected_score,
             assertion_fail_message="Evaluation failed: toxicity of response too different compared to expected score",
             aggregation_strategy=aggregation_strategy
         )
 
 
-class RunToxicityEvaluatorAgainstReferences(TransformerRunEvaluator):
+class RunToxicityEvaluatorAgainstReferences(ReferenceScoresEvaluator):
     """
     Toxicity Evaluation Runner Using Golden Standard Comparisons.
 
@@ -55,7 +51,7 @@ class RunToxicityEvaluatorAgainstReferences(TransformerRunEvaluator):
 
     Args:
         response (str): The model-generated response to be evaluated.
-        golden_standards (list[str]): A list of reference responses with no or ideal toxicity.
+        references (list[str]): A list of reference responses with no or ideal toxicity.
         scale_uncertainty (int, optional): Scaling factor for standard deviation used to calculate
             the tolerance range. Defaults to 1.
     """
@@ -65,12 +61,9 @@ class RunToxicityEvaluatorAgainstReferences(TransformerRunEvaluator):
     ):
         super().__init__(
             response=response,
-            evaluate_method_args={
-                "references": references,
-                "scale_uncertainty": scale_uncertainty,
-            },
+            references=references,
+            scale_uncertainty=scale_uncertainty,
             score_key="toxicity",
             evaluator_class=ToxicityEvaluator,
-            evaluate_method=self.evaluate_against_responses,
-            assertion_fail_message="Evaluation failed: sentiment of response too different compared to golden standard responses",
+            assertion_fail_message="Evaluation failed: toxicity of response too different compared to golden standard responses",
         )

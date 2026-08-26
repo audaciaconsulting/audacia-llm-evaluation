@@ -1,15 +1,12 @@
-import logging
 
 from llm_eval.base_evaluators.custom_evaluators import AggregationStrategy, BiasEvaluator
 from llm_eval.base_evaluators.transformer_base_evaluator import (
-    TransformerRunEvaluator,
+    ExpectedScoreEvaluator,
+    ReferenceScoresEvaluator,
 )
 
-logging.basicConfig(level=logging.DEBUG)
-logger = logging.getLogger(__name__)
 
-
-class RunBiasEvaluatorAgainstExpectedScore(TransformerRunEvaluator):
+class RunBiasEvaluatorAgainstExpectedScore(ExpectedScoreEvaluator):
     """
     Bias Evaluation Runner using Transformer Models.
 
@@ -33,19 +30,17 @@ class RunBiasEvaluatorAgainstExpectedScore(TransformerRunEvaluator):
     ):
         super().__init__(
             response=response,
-            evaluate_method_args={
-                "expected_score": expected_score,
-                "allowed_uncertainty": allowed_uncertainty,
-            },
+            expected_score=expected_score,
+            allowed_uncertainty=allowed_uncertainty,
+            score_range=(0.0, 1.0),
             score_key="bias",
             evaluator_class=BiasEvaluator,
-            evaluate_method=self.evaluate_against_expected_score,
             assertion_fail_message="Evaluation failed: level of bias in response too different compared to expected score",
             aggregation_strategy=aggregation_strategy,
         )
 
 
-class RunBiasEvaluatorAgainstReferences(TransformerRunEvaluator):
+class RunBiasEvaluatorAgainstReferences(ReferenceScoresEvaluator):
     """
     Bias Evaluation Runner Using Golden Standard Comparisons.
 
@@ -59,7 +54,7 @@ class RunBiasEvaluatorAgainstReferences(TransformerRunEvaluator):
 
     Args:
         response (str): The model-generated response to be evaluated.
-        golden_standards (list[str]): A list of reference responses considered unbiased or ideal.
+        references (list[str]): A list of reference responses considered unbiased or ideal.
         scale_uncertainty (int, optional): Scaling factor for standard deviation used to calculate
             the tolerance range. Defaults to 1.
     """
@@ -73,13 +68,10 @@ class RunBiasEvaluatorAgainstReferences(TransformerRunEvaluator):
     ):
         super().__init__(
             response=response,
-            evaluate_method_args={
-                "references": references,
-                "scale_uncertainty": scale_uncertainty,
-            },
+            references=references,
+            scale_uncertainty=scale_uncertainty,
             score_key="bias",
             evaluator_class=BiasEvaluator,
-            evaluate_method=self.evaluate_against_responses,
-            assertion_fail_message="Evaluation failed: level of bias in response too different compared to reference repsonses",
+            assertion_fail_message="Evaluation failed: level of bias in response too different compared to reference responses",
             aggregation_strategy=aggregation_strategy,
         )

@@ -5,6 +5,7 @@ an API key is provided it is used, and when it's absent the config falls back to
 an Entra ID bearer-token provider. The Azure client classes are mocked so no real
 client is constructed.
 """
+from contextlib import ExitStack
 from unittest.mock import patch
 
 import pytest
@@ -15,6 +16,9 @@ from llm_eval.tools.model_tools import (
     get_azure_ai_evaluation_model_config,
     get_azure_openai_embedding_model,
     get_azure_openai_llm,
+    get_credential,
+    get_ragas_wrapped_azure_open_ai_embedding_model,
+    get_ragas_wrapped_azure_openai_llm,
 )
 
 LLM_ENV = {
@@ -105,3 +109,140 @@ def test_embedding_uses_entra_when_no_key(monkeypatch):
     kwargs = mock_client.call_args.kwargs
     assert "api_key" not in kwargs
     assert callable(kwargs["azure_ad_token_provider"])
+
+
+# --- credential selection ---------------------------------------------------
+
+def test_explicit_credential_is_used_as_given():
+    sentinel = object()
+    assert get_credential(sentinel) is sentinel
+
+
+def test_defaults_to_default_azure_credential():
+    with patch.object(model_tools, "DefaultAzureCredential") as mock_credential:
+        get_credential()
+    mock_credential.assert_called_once_with()
+
+
+# --- required config --------------------------------------------------------
+
+@pytest.mark.parametrize(
+    "missing",
+    ["LLM_EVAL_LLM_ENDPOINT", "LLM_EVAL_LLM_MODEL", "LLM_EVAL_LLM_API_VERSION"],
+)
+def test_judge_config_names_the_missing_variable(monkeypatch, missing):
+    _set_env(monkeypatch, LLM_ENV, "LLM_EVAL_LLM_API_KEY", None)
+    monkeypatch.delenv(missing, raising=False)
+    with pytest.raises(ValueError, match=missing):
+        get_azure_ai_evaluation_model_config()
+
+
+# --- pinned credentials reach the client ------------------------------------
+
+# Every public factory that takes a `credential`, with the environment it reads and
+# the clients to keep out of the way. `get_credential`'s docstring points consumers
+# at these, so the argument has to reach the token provider rather than stopping at
+# a private helper.
+CREDENTIAL_FACTORIES = [
+    (get_azure_openai_llm, LLM_ENV, "LLM_EVAL_LLM_API_KEY", ["AzureChatOpenAI"]),
+    (
+        get_ragas_wrapped_azure_openai_llm,
+        LLM_ENV,
+        "LLM_EVAL_LLM_API_KEY",
+        ["AzureChatOpenAI", "LangchainLLMWrapper"],
+    ),
+    (
+        get_azure_openai_embedding_model,
+        EMBEDDING_ENV,
+        "LLM_EVAL_EMBEDDING_MODEL_API_KEY",
+        ["AzureOpenAIEmbeddings"],
+    ),
+    (
+        get_ragas_wrapped_azure_open_ai_embedding_model,
+        EMBEDDING_ENV,
+        "LLM_EVAL_EMBEDDING_MODEL_API_KEY",
+        ["AzureOpenAIEmbeddings", "LangchainEmbeddingsWrapper"],
+    ),
+]
+
+
+@pytest.fixture
+def token_provider():
+    """The bearer-token provider, mocked to record the credential it was given."""
+    with patch.object(model_tools, "get_bearer_token_provider") as provider:
+        yield provider
+
+
+@pytest.mark.parametrize(
+    "factory, env, api_key_var, clients",
+    CREDENTIAL_FACTORIES,
+    ids=[factory.__name__ for factory, *_ in CREDENTIAL_FACTORIES],
+)
+def test_a_pinned_credential_reaches_the_token_provider(
+    monkeypatch, token_provider, factory, env, api_key_var, clients
+):
+    """A stand-in for `AzureCliCredential(tenant_id=...)`, as the docstring suggests."""
+    _set_env(monkeypatch, env, api_key_var, None)
+    credential = object()
+
+    with ExitStack() as patched:
+        for client in clients:
+            patched.enter_context(patch.object(model_tools, client))
+        factory(credential=credential)
+
+    assert token_provider.call_args.args[0] is credential
+
+
+def test_a_key_takes_precedence_over_a_pinned_credential(monkeypatch, token_provider):
+    """Key auth needs no token, so the credential is never resolved."""
+    _set_env(monkeypatch, LLM_ENV, "LLM_EVAL_LLM_API_KEY", "secret")
+
+    with patch.object(model_tools, "AzureChatOpenAI") as mock_client:
+        get_azure_openai_llm(credential=object())
+
+    assert mock_client.call_args.kwargs["api_key"] == "secret"
+    token_provider.assert_not_called()
+
+
+# --- required config, on the client factories -------------------------------
+
+@pytest.mark.parametrize(
+    "missing",
+    ["LLM_EVAL_LLM_MODEL", "LLM_EVAL_LLM_ENDPOINT", "LLM_EVAL_LLM_API_VERSION"],
+)
+def test_llm_names_the_missing_variable(monkeypatch, missing):
+    """A missing variable used to reach the client as None, failing as an HTTP error."""
+    _set_env(monkeypatch, LLM_ENV, "LLM_EVAL_LLM_API_KEY", None)
+    monkeypatch.delenv(missing, raising=False)
+
+    with pytest.raises(ValueError, match=missing):
+        get_azure_openai_llm()
+
+
+@pytest.mark.parametrize("missing", list(EMBEDDING_ENV))
+def test_embedding_names_the_missing_variable(monkeypatch, missing):
+    _set_env(monkeypatch, EMBEDDING_ENV, "LLM_EVAL_EMBEDDING_MODEL_API_KEY", None)
+    monkeypatch.delenv(missing, raising=False)
+
+    with pytest.raises(ValueError, match=missing):
+        get_azure_openai_embedding_model()
+
+
+def test_llm_arguments_stand_in_for_the_environment(monkeypatch):
+    """Passing the config explicitly is still enough on its own."""
+    for name in LLM_ENV:
+        monkeypatch.delenv(name, raising=False)
+    monkeypatch.delenv("LLM_EVAL_LLM_API_KEY", raising=False)
+
+    with patch.object(model_tools, "AzureChatOpenAI") as mock_client:
+        get_azure_openai_llm(
+            model="gpt-4o",
+            azure_endpoint="https://example.openai.azure.com/",
+            api_version="2024-10-21",
+            api_key="secret",
+        )
+
+    kwargs = mock_client.call_args.kwargs
+    assert kwargs["model"] == "gpt-4o"
+    assert kwargs["azure_endpoint"] == "https://example.openai.azure.com/"
+    assert kwargs["api_version"] == "2024-10-21"

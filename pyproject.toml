@@ -1,6 +1,6 @@
 [project]
 name = "audacia-llm-evaluation"
-version = "0.2.0"
+version = "0.3.0"
 description = "A framework to evaluate LLMs in AI systems"
 authors = [
     { name = "Chris Bentley", email = "chris.bentley@audacia.co.uk" },
@@ -11,33 +11,39 @@ readme = "README.md"
 license = "MIT"
 requires-python = ">=3.11"
 dependencies = [
-    "azure-ai-evaluation>=1.8.0",
-    "azure-ai-projects>=1.0.0b11",
+    # Bounded to one minor: 1.18 renames ROUGE's and F1's output keys, so those
+    # evaluators silently fail on it. See docs/developer_guidelines.md.
+    "azure-ai-evaluation>=1.8.0,<1.9",
+    # Pinned: a beta, and azure-ai-evaluation 1.8 fails at import on 2.x.
+    "azure-ai-projects==1.0.0b11",
     "huggingface-hub>=0.33.0",
     "langchain-openai>=0.3.24,<1",
     "promptflow>=1.18.1",
-    "pytest>=8.4.1",
-    "pytest-asyncio>=1.0.0",
     "PyYAML>=6.0",
     "python-dotenv>=1.1.0",
-    # ragas imports langchain_community.chat_models.vertexai (removed in
-    # langchain-community 0.4) but doesn't pin it. Keep the langchain stack on
-    # 0.3 or consumers crash on import. ragas 0.4.x has the same bad import, so
-    # don't raise these until it's fixed upstream.
+    # ragas imports langchain_community.chat_models.vertexai, removed in
+    # langchain-community 0.4 and unpinned by ragas (0.4.x included).
     "ragas>=0.2.15,<0.3",
     "rapidfuzz>=3.13.0",
     "langchain-community>=0.3,<0.4",
     "azure-identity>=1.23.0",
 ]
 
+[dependency-groups]
+# Test tooling only; `llm_eval` imports neither. `uv sync` includes dev by default.
+dev = [
+    "pytest>=8.4.1",
+    "pytest-asyncio>=1.0.0",
+]
+
 [project.optional-dependencies]
-# Only the sentiment/toxicity/bias evaluators run a local Hugging Face model.
-# They are the sole users of torch + transformers, so those are opt-in here to
-# keep the base install small. torch resolves to the CPU-only build (see
-# [tool.uv.sources] below) because the evaluators run on device="cpu".
+# Only the sentiment/toxicity/bias evaluators run a local Hugging Face model, so
+# their torch + transformers are opt-in to keep the base install small.
 local-models = [
-    "torch>=2.7.1",
-    "transformers>=4.52.4",
+    # Bounded: the evaluators read the pipeline's label/score output shape, where a
+    # change gives a wrong score rather than an error.
+    "torch>=2.7.1,<3",
+    "transformers>=4.52.4,<5",
 ]
 
 [build-system]
@@ -48,6 +54,10 @@ build-backend = "setuptools.build_meta"
 where = ["."]
 include = ["llm_eval*"]
 
+# A wheel ships only .py files by default; PEP 561 needs py.typed present.
+[tool.setuptools.package-data]
+llm_eval = ["py.typed"]
+
 
 [tool.pytest.ini_options]
 addopts = "-s --log-cli-level=INFO"
@@ -55,8 +65,7 @@ log_cli = true
 log_cli_level = "INFO"
 
 [tool.uv.sources]
-# Pull the CPU-only torch build. The local-model evaluators run on device="cpu",
-# so this avoids ~3.4GB of unused CUDA/nvidia wheels on install.
+# CPU-only torch: the evaluators run on device="cpu", saving ~3.4GB of CUDA wheels.
 torch = { index = "pytorch-cpu" }
 
 [[tool.uv.index]]

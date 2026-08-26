@@ -2,6 +2,8 @@ import pytest
 
 pytest.importorskip("transformers", reason="requires the 'local-models' extra")
 
+from raw_contract import assert_raw_keys
+
 from llm_eval.base_evaluators.custom_evaluators import AggregationStrategy
 from llm_eval.evaluators.sentiment import (
     RunSentimentEvaluatorAgainstExpectedScore,
@@ -68,8 +70,10 @@ def test_expected_sentiment_score(simple_sentiment_case_):
         response=response_text, expected_score=expected_score, aggregation_strategy=aggregation_strategy
     )()
 
-    assert "sentiment" in result
-    assert expected_score - 0.2 <= result["sentiment"] <= expected_score + 0.2
+    # score only, on a wider window than the evaluator's own tolerance;
+    # test_evaluate_sentiment_against_known_score covers the verdict.
+    assert result.score is not None
+    assert expected_score - 0.2 <= result.score <= expected_score + 0.2
 
 
 def test_expected_sentiment_score_using_assert_method(failure_sentiment_case_):
@@ -92,11 +96,16 @@ def test_evaluate_sentiment_against_known_score(simple_sentiment_case_):
         response=response_text, expected_score=expected_score, allowed_uncertainty=0.2, aggregation_strategy=aggregation_strategy
     )()
 
-    assert all(
-        key in result
-        for key in ["sentiment", "response", "expected_score", "sentiment_result"]
+    assert result.score is not None
+
+    assert_raw_keys(
+        result,
+        "sentiment",
+        "response",
+        "expected_score",
+        "sentiment_result",
     )
-    assert result["sentiment_result"] == "pass"
+    assert result.passed
 
 
 def test_evaluate_sentiment_against_golden_standards():
@@ -105,17 +114,22 @@ def test_evaluate_sentiment_against_golden_standards():
     result = RunSentimentEvaluatorAgainstReferences(response=response_text, references=GOLDEN_STANDARDS,
                                                     scale_uncertainty=3)()  # Scale to 3 standard deviations - acceptable
 
-    assert all(
-        key in result
-        for key in [
-            "sentiment",
-            "response",
-            "references",
-            "reference_scores",
-            "mean_score",
-            "calculated_uncertainty",
-            "sentiment_result",
-        ]
+    assert result.score is not None
+
+    assert_raw_keys(
+        result,
+        "sentiment",
+        "response",
+        "references",
+        "reference_scores",
+        "mean_score",
+        "calculated_uncertainty",
+        "sentiment_result",
     )
-    assert result["references"] == GOLDEN_STANDARDS
-    assert result["sentiment_result"] == "pass"
+    assert result.raw["references"] == GOLDEN_STANDARDS
+    assert result.passed
+
+
+def test_sentiment_rejects_an_expected_score_off_its_scale():
+    with pytest.raises(ValueError, match="expected_score must be between"):
+        RunSentimentEvaluatorAgainstExpectedScore(response="anything", expected_score=2.0)

@@ -1,161 +1,214 @@
-import logging
+from abc import abstractmethod
 from statistics import mean, stdev
-from typing import List
+from typing import List, Tuple
 
 from llm_eval.base_evaluators.custom_evaluators import AggregationStrategy
-from llm_eval.tools.utils import format_dict_log
-
-logging.basicConfig(level=logging.DEBUG)
-logger = logging.getLogger(__name__)
+from llm_eval.base_evaluators.evaluator import Evaluator
+from llm_eval.results import EvalResult
 
 
-class TransformerRunEvaluator:
+class TransformerRunEvaluator(Evaluator):
     """
-    Abstract base class for running transformer-based evaluation on a response and validating
+    Base class for running transformer-based evaluation on a response and validating
     it against expectations or golden standards.
 
-    This class defines a reusable evaluation interface for subclasses like sentiment, bias,
-    or toxicity evaluators that wrap specific Transformer models and scoring logic.
+    This class defines a reusable evaluation interface for subclasses like sentiment,
+    bias, or toxicity evaluators that wrap specific Transformer models and scoring
+    logic.
 
     Attributes:
         response (str): The textual response to be evaluated.
 
-    Subclasses must define:
-        - evaluator_class (a property returning the appropriate evaluator class)
-        - score_key (a property indicating which key in the result contains the score)
-
-    Example:
-        class RunSentimentEvaluator(TransformerRunEvaluator):
-            @property
-            def evaluator_class(self):
-                return SentimentEvaluator
-
-            @property
-            def score_key(self):
-                return "sentiment"
+    Subclasses supply `evaluator_class` (the model wrapper), `score_key` (which key in
+    its output holds the score), and `_judge` (how that score is decided on).
     """
 
     def __init__(
         self,
         response: str,
-        evaluate_method_args: dict,
         score_key: str,
         evaluator_class: type,
-        evaluate_method: type,
         assertion_fail_message: str,
         aggregation_strategy=AggregationStrategy.FULL_CONTEXT,
     ):
+        """Initialize the transformer evaluator.
+
+        Args:
+            response (str): The textual response to be evaluated.
+            score_key (str): Key in the model's output holding the score.
+            evaluator_class (type): The evaluator class wrapping the model.
+            assertion_fail_message (str): Error message to use if the assertion fails.
+            aggregation_strategy (AggregationStrategy): How scores are aggregated
+                across the response. Defaults to the full context.
+        """
         self.response = response
-        self.evaluate_method_args = evaluate_method_args
         self.score_key = score_key
+        self.name = score_key
         self.evaluator_class = evaluator_class
-        self.evaluate_method = evaluate_method
         self.assertion_fail_message = assertion_fail_message
-        self.result = None
         self.aggregation_strategy = aggregation_strategy
 
-    def __call__(self):
+    @abstractmethod
+    def _judge(self, score: float) -> Tuple[bool, dict]:
+        """Decide on `score`.
+
+        Args:
+            score (float): The score the model gave the response.
+
+        Returns:
+            Tuple[bool, dict]: Whether it passed, and the fields explaining why, which
+                are added to the result's `raw`.
+        """
+
+    def _score(self, response: str) -> dict:
+        """Runs the model over `response`."""
+        evaluator = self.evaluator_class(self.aggregation_strategy)
+        return evaluator(response=response)
+
+    def _evaluate(self) -> EvalResult:
         """
         Runs the evaluation on the response using the configured evaluator class.
 
         Returns:
-            dict: A dictionary containing the evaluation score.
+            EvalResult: The outcome, with the model's scores in `raw`.
         """
+        scores = self._score(self.response)
+        score = scores[self.score_key]
+        passed, detail = self._judge(score)
+
+        return EvalResult(
+            name=self.name,
+            passed=passed,
+            score=score,
+            inputs={"response": self.response},
+            raw={
+                **scores,
+                **detail,
+                "response": self.response,
+                f"{self.score_key}_result": "pass" if passed else "fail",
+            },
+        )
 
 
-        evaluator = self.evaluator_class(self.aggregation_strategy)
-        self.result = evaluator(response=self.response)
-        return self.evaluate_method(**self.evaluate_method_args)
+class ExpectedScoreEvaluator(TransformerRunEvaluator):
+    """
+    Compares the evaluated score to an expected score within an uncertainty margin.
 
-    def assert_result(self):
-        """
-        Raises an AssertionError if the result is not a pass.
+    Attributes:
+        response (str): The textual response to be evaluated.
+    """
+
+    def __init__(
+        self,
+        response: str,
+        expected_score: float,
+        score_key: str,
+        evaluator_class: type,
+        assertion_fail_message: str,
+        score_range: Tuple[float, float],
+        allowed_uncertainty: float = 0.05,
+        aggregation_strategy=AggregationStrategy.FULL_CONTEXT,
+    ):
+        """Initialize the expected-score evaluator.
 
         Args:
-            result (dict): The result dictionary with a boolean `result` key.
-            message (str): The error message to include if assertion fails.
+            response (str): The textual response to be evaluated.
+            expected_score (float): The target score the response should be close to.
+            score_key (str): Key in the model's output holding the score.
+            evaluator_class (type): The evaluator class wrapping the model.
+            assertion_fail_message (str): Error message to use if the assertion fails.
+            score_range (Tuple[float, float]): The scale the model scores on, which
+                `expected_score` must sit within.
+            allowed_uncertainty (float, optional): Acceptable deviation from the
+                expected score. Defaults to 0.05.
+            aggregation_strategy (AggregationStrategy): How scores are aggregated
+                across the response. Defaults to the full context.
 
         Raises:
-            AssertionError: If result['result'] is False or missing.
+            ValueError: If `expected_score` falls outside `score_range`.
         """
-        result = self()
-        if result.get(f"{self.score_key}_result") == "fail":
-            raise AssertionError(self.assertion_fail_message)
+        low, high = score_range
+        if not low <= expected_score <= high:
+            raise ValueError(
+                f"expected_score must be between {low} and {high}, the scale this "
+                f"evaluator scores on. Got {expected_score}."
+            )
 
-    def evaluate_against_expected_score(
-        self, expected_score: float, allowed_uncertainty: float = 0.05
-    ):
-        """
-        Compares the evaluated score to an expected score within a given uncertainty margin.
+        self.expected_score = expected_score
+        self.allowed_uncertainty = allowed_uncertainty
+        super().__init__(
+            response=response,
+            score_key=score_key,
+            evaluator_class=evaluator_class,
+            assertion_fail_message=assertion_fail_message,
+            aggregation_strategy=aggregation_strategy,
+        )
 
-        Args:
-            expected_score (float): The target score the response should be close to.
-            allowed_uncertainty (float, optional): Acceptable deviation from the expected score. Defaults to 0.05.
-
-        Returns:
-            dict: A dictionary including evaluation result, expected score, and pass/fail flag.
-        """
-
-        score = self.result[self.score_key]
-        pass_state = (
-            expected_score - allowed_uncertainty
+    def _judge(self, score: float) -> Tuple[bool, dict]:
+        passed = (
+            self.expected_score - self.allowed_uncertainty
             < score
-            < expected_score + allowed_uncertainty
+            < self.expected_score + self.allowed_uncertainty
         )
-        self.result.update(
-            {
-                "response": self.response,
-                "expected_score": expected_score,
-                f"{self.score_key}_result": "pass" if pass_state else "fail",
-            }
-        )
+        return passed, {"expected_score": self.expected_score}
 
-        logger.info(format_dict_log(dictionary=self.result))
 
-        return self.result
+class ReferenceScoresEvaluator(TransformerRunEvaluator):
+    """
+    Compares the evaluated score to the spread of golden standard scores.
 
-    def evaluate_against_responses(
-        self, references: List[str], scale_uncertainty: int = 1
+    Uses the mean of the reference scores plus or minus their standard deviation,
+    scaled by `scale_uncertainty`, as the acceptance range. Include ten or more
+    references for this to work effectively; three is the absolute minimum.
+
+    Attributes:
+        response (str): The textual response to be evaluated.
+    """
+
+    def __init__(
+        self,
+        response: str,
+        references: List[str],
+        score_key: str,
+        evaluator_class: type,
+        assertion_fail_message: str,
+        scale_uncertainty: int = 1,
+        aggregation_strategy=AggregationStrategy.FULL_CONTEXT,
     ):
-        """
-        Compares the evaluated score to the distribution of scores from a set of golden standard responses.
-
-        Uses the mean ± scaled standard deviation of the golden scores as the acceptance range.
+        """Initialize the reference-scores evaluator.
 
         Args:
-            references (List[str]): A list of gold-standard responses for comparison.
-            scale_uncertainty (int, optional): Scaling factor for the standard deviation. Defaults to 1.
-
-        Returns:
-            dict: A dictionary including golden stats, individual scores, and pass/fail result.
+            response (str): The textual response to be evaluated.
+            references (List[str]): Gold-standard responses for comparison.
+            score_key (str): Key in the model's output holding the score.
+            evaluator_class (type): The evaluator class wrapping the model.
+            assertion_fail_message (str): Error message to use if the assertion fails.
+            scale_uncertainty (int, optional): Scaling factor for the standard
+                deviation. Defaults to 1.
+            aggregation_strategy (AggregationStrategy): How scores are aggregated
+                across the response. Defaults to the full context.
         """
+        self.references = references
+        self.scale_uncertainty = scale_uncertainty
+        super().__init__(
+            response=response,
+            score_key=score_key,
+            evaluator_class=evaluator_class,
+            assertion_fail_message=assertion_fail_message,
+            aggregation_strategy=aggregation_strategy,
+        )
 
-        current_score = self.result[self.score_key]
-        reference_scores = []
-        for reference in references:
-            evaluator_kwargs = {}
-            if self.aggregation_strategy is not None:
-                evaluator_kwargs["aggregation_strategy"] = self.aggregation_strategy
-
-            evaluator = self.evaluator_class(**evaluator_kwargs)
-            reference_scores.append(evaluator(response=reference)[self.score_key])
+    def _judge(self, score: float) -> Tuple[bool, dict]:
+        reference_scores = [
+            self._score(reference)[self.score_key] for reference in self.references
+        ]
         score_mean = mean(reference_scores)
-        score_uncertainty = stdev(reference_scores) * scale_uncertainty
-        pass_state = (
-            score_mean - score_uncertainty
-            < current_score
-            < score_mean + score_uncertainty
-        )
-        self.result.update(
-            {
-                "response": self.response,
-                "references": references,
-                "reference_scores": reference_scores,
-                "mean_score": score_mean,
-                "calculated_uncertainty": score_uncertainty,
-                f"{self.score_key}_result": "pass" if pass_state else "fail",
-            }
-        )
+        uncertainty = stdev(reference_scores) * self.scale_uncertainty
+        passed = score_mean - uncertainty < score < score_mean + uncertainty
 
-        logger.info(format_dict_log(dictionary=self.result))
-        return self.result
+        return passed, {
+            "references": self.references,
+            "reference_scores": reference_scores,
+            "mean_score": score_mean,
+            "calculated_uncertainty": uncertainty,
+        }

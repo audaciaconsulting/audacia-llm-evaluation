@@ -1,5 +1,7 @@
 import pytest
 
+from raw_contract import assert_raw_keys
+
 from llm_eval.evaluators.rag import (
     RunLLMContextPrecisionWithReferenceEvaluator,
     RunLLMContextRecallEvaluator,
@@ -10,20 +12,18 @@ from llm_eval.evaluators.rag import (
 )
 
 
-@pytest.mark.asyncio
-async def test_llm_context_precision_with_reference_passes(
+def test_llm_context_precision_with_reference_passes(
     user_input="Where is the Eiffel Tower located?",
     reference="The Eiffel Tower is located in Paris.",
     retrieved_contexts=["Paris is the location of the Eiffel Tower"],
     threshold=0.9,
 ):
-    await RunLLMContextPrecisionWithReferenceEvaluator(
+    RunLLMContextPrecisionWithReferenceEvaluator(
         user_input, reference, retrieved_contexts, threshold
     ).assert_result()
 
 
-@pytest.mark.asyncio
-async def test_llm_context_precision_with_reference_output(
+def test_llm_context_precision_with_reference_output(
     user_input="Where is the Eiffel Tower located?",
     reference="The Eiffel Tower is located in Paris.",
     retrieved_contexts=["Paris is the location of the Eiffel Tower"],
@@ -32,23 +32,23 @@ async def test_llm_context_precision_with_reference_output(
     evaluator = RunLLMContextPrecisionWithReferenceEvaluator(
         user_input, reference, retrieved_contexts, threshold
     )
-    result = await evaluator()
+    result = evaluator()
 
-    assert all(
-        key in result
-        for key in [
-            "user_input",
-            "reference",
-            "retrieved_contexts",
-            "llmcontext_precision_with_reference",
-            "llmcontext_precision_with_reference_threshold",
-            "llmcontext_precision_with_reference_result",
-        ]
+    assert result.passed
+    assert result.score >= result.threshold
+
+    assert_raw_keys(
+        result,
+        "user_input",
+        "reference",
+        "retrieved_contexts",
+        "llmcontext_precision_with_reference",
+        "llmcontext_precision_with_reference_threshold",
+        "llmcontext_precision_with_reference_result",
     )
 
 
-@pytest.mark.asyncio
-async def test_llm_context_precision_with_reference_fails(
+def test_llm_context_precision_with_reference_fails(
     user_input="Where is the Eiffel Tower located?",
     reference="The Eiffel Tower is located in Paris.",
     retrieved_contexts=[
@@ -58,13 +58,12 @@ async def test_llm_context_precision_with_reference_fails(
     threshold=0.6,
 ):
     with pytest.raises(AssertionError):
-        await RunLLMContextPrecisionWithReferenceEvaluator(
+        RunLLMContextPrecisionWithReferenceEvaluator(
             user_input, reference, retrieved_contexts, threshold
         ).assert_result()
 
 
-@pytest.mark.asyncio
-async def test_non_llm_context_precision_with_reference_passes(
+def test_non_llm_context_precision_with_reference_passes(
     retrieved_contexts=["The Eiffel Tower is located in Paris."],
     reference_contexts=[
         "Paris is the capital of France.",
@@ -72,13 +71,12 @@ async def test_non_llm_context_precision_with_reference_passes(
     ],
     threshold=0.8,
 ):
-    await RunNonLLMContextPrecisionWithReferenceEvaluator(
+    RunNonLLMContextPrecisionWithReferenceEvaluator(
         retrieved_contexts, reference_contexts, threshold
     ).assert_result()
 
 
-@pytest.mark.asyncio
-async def test_non_llm_context_precision_with_reference_output(
+def test_non_llm_context_precision_with_reference_output(
     retrieved_contexts=["The Eiffel Tower is located in Paris."],
     reference_contexts=[
         "Paris is the capital of France.",
@@ -89,22 +87,22 @@ async def test_non_llm_context_precision_with_reference_output(
     evaluator = RunNonLLMContextPrecisionWithReferenceEvaluator(
         retrieved_contexts, reference_contexts, threshold
     )
-    result = await evaluator()
+    result = evaluator()
 
-    assert all(
-        key in result
-        for key in [
-            "retrieved_contexts",
-            "reference_contexts",
-            "non_llmcontext_precision_with_reference",
-            "non_llmcontext_precision_with_reference_threshold",
-            "non_llmcontext_precision_with_reference_result",
-        ]
+    assert result.passed
+    assert result.score >= result.threshold
+
+    assert_raw_keys(
+        result,
+        "retrieved_contexts",
+        "reference_contexts",
+        "non_llmcontext_precision_with_reference",
+        "non_llmcontext_precision_with_reference_threshold",
+        "non_llmcontext_precision_with_reference_result",
     )
 
 
-@pytest.mark.asyncio
-async def test_non_llm_context_precision_with_reference_fails(
+def test_non_llm_context_precision_with_reference_fails(
     retrieved_contexts=["Big Ben is located in London"],
     reference_contexts=[
         "Paris is the capital of France.",
@@ -113,13 +111,12 @@ async def test_non_llm_context_precision_with_reference_fails(
     threshold=0.8,
 ):
     with pytest.raises(AssertionError):
-        await RunNonLLMContextPrecisionWithReferenceEvaluator(
+        RunNonLLMContextPrecisionWithReferenceEvaluator(
             retrieved_contexts, reference_contexts, threshold
         ).assert_result()
 
 
-@pytest.mark.asyncio
-async def test_llm_context_recall_passes(
+def test_llm_context_recall_passes(
     user_input="Where is the Eiffel Tower located?",
     response="The Eiffel Tower is located in Paris.",
     reference="The Eiffel Tower is located in Paris.",
@@ -128,7 +125,7 @@ async def test_llm_context_recall_passes(
     ],
     threshold=0.8,
 ):
-    await RunLLMContextRecallEvaluator(
+    RunLLMContextRecallEvaluator(
         user_input=user_input,
         response=response,
         reference=reference,
@@ -137,8 +134,7 @@ async def test_llm_context_recall_passes(
     ).assert_result()
 
 
-@pytest.mark.asyncio
-async def test_llm_context_recall_output(
+def test_llm_context_recall_output(
     user_input="Where is the Eiffel Tower located?",
     response="The Eiffel Tower is located in Paris.",
     reference="The Eiffel Tower is located in Paris.",
@@ -154,24 +150,24 @@ async def test_llm_context_recall_output(
         retrieved_contexts=retrieved_contexts,
         threshold=threshold,
     )
-    result = await evaluator()
+    result = evaluator()
 
-    assert all(
-        key in result
-        for key in [
-            "user_input",
-            "response",
-            "reference",
-            "retrieved_contexts",
-            "llmcontext_recall",
-            "llmcontext_recall_threshold",
-            "llmcontext_recall_result",
-        ]
+    assert result.passed
+    assert result.score >= result.threshold
+
+    assert_raw_keys(
+        result,
+        "user_input",
+        "response",
+        "reference",
+        "retrieved_contexts",
+        "llmcontext_recall",
+        "llmcontext_recall_threshold",
+        "llmcontext_recall_result",
     )
 
 
-@pytest.mark.asyncio
-async def test_llm_context_recall_fails(
+def test_llm_context_recall_fails(
     user_input="Where is the Eiffel Tower located?",
     response="The Eiffel Tower is located in Paris.",
     reference="The Eiffel Tower is located in Paris.",
@@ -179,7 +175,7 @@ async def test_llm_context_recall_fails(
     threshold=0.8,
 ):
     with pytest.raises(AssertionError):
-        await RunLLMContextRecallEvaluator(
+        RunLLMContextRecallEvaluator(
             user_input=user_input,
             response=response,
             reference=reference,
@@ -188,8 +184,7 @@ async def test_llm_context_recall_fails(
         ).assert_result()
 
 
-@pytest.mark.asyncio
-async def test_non_llm_context_recall_passes(
+def test_non_llm_context_recall_passes(
     retrieved_contexts=["Paris is the capital of France."],
     reference_contexts=[
         "Paris is the capital of France.",
@@ -197,15 +192,14 @@ async def test_non_llm_context_recall_passes(
     ],
     threshold=0.5,
 ):
-    await RunNonLLMContextRecallEvaluator(
+    RunNonLLMContextRecallEvaluator(
         retrieved_contexts=retrieved_contexts,
         reference_contexts=reference_contexts,
         threshold=threshold,
     ).assert_result()
 
 
-@pytest.mark.asyncio
-async def test_non_llm_context_recall_output(
+def test_non_llm_context_recall_output(
     retrieved_contexts=["Paris is the capital of France."],
     reference_contexts=[
         "Paris is the capital of France.",
@@ -218,22 +212,22 @@ async def test_non_llm_context_recall_output(
         reference_contexts=reference_contexts,
         threshold=threshold,
     )
-    result = await evaluator()
+    result = evaluator()
 
-    assert all(
-        key in result
-        for key in [
-            "retrieved_contexts",
-            "reference_contexts",
-            "non_llmcontext_recall",
-            "non_llmcontext_recall_threshold",
-            "non_llmcontext_recall_result",
-        ]
+    assert result.passed
+    assert result.score >= result.threshold
+
+    assert_raw_keys(
+        result,
+        "retrieved_contexts",
+        "reference_contexts",
+        "non_llmcontext_recall",
+        "non_llmcontext_recall_threshold",
+        "non_llmcontext_recall_result",
     )
 
 
-@pytest.mark.asyncio
-async def test_non_llm_context_recall_fails(
+def test_non_llm_context_recall_fails(
     retrieved_contexts=["Paris is the capital of France."],
     reference_contexts=[
         "Paris is the capital of France.",
@@ -242,15 +236,14 @@ async def test_non_llm_context_recall_fails(
     threshold=0.6,
 ):
     with pytest.raises(AssertionError):
-        await RunNonLLMContextRecallEvaluator(
+        RunNonLLMContextRecallEvaluator(
             retrieved_contexts=retrieved_contexts,
             reference_contexts=reference_contexts,
             threshold=threshold,
         ).assert_result()
 
 
-@pytest.mark.asyncio
-async def test_run_faithfulness_passes(
+def test_run_faithfulness_passes(
     user_input="When was the first super bowl?",
     response="The first superbowl was held on Jan 15, 1967",
     retrieved_contexts=[
@@ -258,7 +251,7 @@ async def test_run_faithfulness_passes(
     ],
     threshold=0.9,
 ):
-    await RunFaithfulnessEvaluator(
+    RunFaithfulnessEvaluator(
         user_input=user_input,
         response=response,
         retrieved_contexts=retrieved_contexts,
@@ -266,8 +259,7 @@ async def test_run_faithfulness_passes(
     ).assert_result()
 
 
-@pytest.mark.asyncio
-async def test_run_faithfulness_output(
+def test_run_faithfulness_output(
     user_input="When was the first super bowl?",
     response="The first superbowl was held on Jan 15, 1967",
     retrieved_contexts=[
@@ -281,23 +273,23 @@ async def test_run_faithfulness_output(
         retrieved_contexts=retrieved_contexts,
         threshold=threshold,
     )
-    result = await evaluator()
+    result = evaluator()
 
-    assert all(
-        key in result
-        for key in [
-            "user_input",
-            "response",
-            "retrieved_contexts",
-            "faithfulness",
-            "faithfulness_threshold",
-            "faithfulness_result",
-        ]
+    assert result.passed
+    assert result.score >= result.threshold
+
+    assert_raw_keys(
+        result,
+        "user_input",
+        "response",
+        "retrieved_contexts",
+        "faithfulness",
+        "faithfulness_threshold",
+        "faithfulness_result",
     )
 
 
-@pytest.mark.asyncio
-async def test_run_faithfulness_fails(
+def test_run_faithfulness_fails(
     user_input="When was the first super bowl?",
     response="The first superbowl was held on Jan 15, 1967",
     retrieved_contexts=[
@@ -306,7 +298,7 @@ async def test_run_faithfulness_fails(
     threshold=0.9,
 ):
     with pytest.raises(AssertionError):
-        await RunFaithfulnessEvaluator(
+        RunFaithfulnessEvaluator(
             user_input=user_input,
             response=response,
             retrieved_contexts=retrieved_contexts,
@@ -314,19 +306,17 @@ async def test_run_faithfulness_fails(
         ).assert_result()
 
 
-@pytest.mark.asyncio
-async def test_run_response_relevancy_passes(
+def test_run_response_relevancy_passes(
     user_input="When was the first super bowl?",
     response="The first superbowl was held on Jan 15, 1967",
     threshold=0.9,
 ):
-    await RunResponseRelevancyEvaluator(
+    RunResponseRelevancyEvaluator(
         user_input=user_input, response=response, threshold=threshold
     ).assert_result()
 
 
-@pytest.mark.asyncio
-async def test_run_response_relevancy_output(
+def test_run_response_relevancy_output(
     user_input="When was the first super bowl?",
     response="The first superbowl was held on Jan 15, 1967",
     threshold=0.9,
@@ -334,27 +324,27 @@ async def test_run_response_relevancy_output(
     evaluator = RunResponseRelevancyEvaluator(
         user_input=user_input, response=response, threshold=threshold
     )
-    result = await evaluator()
+    result = evaluator()
 
-    assert all(
-        key in result
-        for key in [
-            "user_input",
-            "response",
-            "response_relevancy",
-            "response_relevancy_threshold",
-            "response_relevancy_result",
-        ]
+    assert result.passed
+    assert result.score >= result.threshold
+
+    assert_raw_keys(
+        result,
+        "user_input",
+        "response",
+        "response_relevancy",
+        "response_relevancy_threshold",
+        "response_relevancy_result",
     )
 
 
-@pytest.mark.asyncio
-async def test_run_response_relevancy_fails(
+def test_run_response_relevancy_fails(
     user_input="When was the first super bowl?",
     response="The Super Bowl is a championship game in American football played annually.",
     threshold=0.7,
 ):
     with pytest.raises(AssertionError):
-        await RunResponseRelevancyEvaluator(
+        RunResponseRelevancyEvaluator(
             user_input=user_input, response=response, threshold=threshold
         ).assert_result()

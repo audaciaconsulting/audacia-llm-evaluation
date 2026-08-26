@@ -1,13 +1,10 @@
-import logging
 import re
 from typing import Optional
 from langchain_openai import AzureChatOpenAI
 from langchain_core.messages import SystemMessage, HumanMessage
+from llm_eval.base_evaluators.evaluator import Evaluator
+from llm_eval.results import EvalResult
 from llm_eval.tools.model_tools import get_azure_openai_llm
-from llm_eval.tools.utils import format_dict_log
-
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
 
 from pydantic import BaseModel, Field
 from typing import List, Literal, Dict
@@ -63,18 +60,28 @@ def check_prompt_output(prompt: str, inputs: dict):
             raise ValueError(f"Expected {s!r} in prompt")
 
 
+#: The scale the shipped score template defines; a custom template must keep it.
+JUDGE_SCORE_MIN, JUDGE_SCORE_MAX = 0.0, 1.0
+
+
 class JudgePassFailResult(BaseModel):
     """Structured output schema for pass/fail judge responses using a score field."""
     llm_as_judge_score: Literal["pass", "fail"]
     failures_list: List[str] = Field(default_factory=list)
 
 
-class RunLlmAsJudgePassFailEvaluator:
-    """
-    Evaluate prompt-defined criteria with an LLM judge and return pass/fail output.
+class JudgeScoreResult(BaseModel):
+    """Structured output schema for score-based judge responses."""
+    llm_as_judge_score: float = Field(ge=JUDGE_SCORE_MIN, le=JUDGE_SCORE_MAX)
+    failures_list: List[str] = Field(default_factory=list)
 
-    Use the pass/fail template at:
-    - `llm_eval/prompt_templates/llm-as-judge-template.md`
+
+class BaseLlmAsJudgeEvaluator(Evaluator):
+    """
+    Evaluate prompt-defined criteria with an LLM judge.
+
+    Subclasses set `result_schema` (the structured output the judge must return) and
+    implement `_passed`, which decides on that output.
 
     Prompt template constraints enforced by `check_prompt_output`:
     - Keep these exact strings in the prompt:
@@ -92,15 +99,15 @@ class RunLlmAsJudgePassFailEvaluator:
     - `prompt` as a system message containing judging instructions.
     - `inputs` as a formatted human message payload.
 
-    Expected structured model output (`JudgePassFailResult`):
-    - `llm_as_judge_score`: `"pass"` or `"fail"`
-    - `failures_list`: list of failure reasons
-
-    Returned dict includes:
-    - `llm_as_judge_result`
+    `EvalResult.raw` includes:
+    - `llm_as_judge_result` (`"pass"` or `"fail"`)
     - `failures_list`
     - `prompt_trunc`
     """
+
+    name = "llm_as_judge"
+    result_schema: type
+    threshold: Optional[float] = None
 
     def __init__(
             self,
@@ -108,85 +115,102 @@ class RunLlmAsJudgePassFailEvaluator:
             inputs: Dict[str, str],
             model: Optional[AzureChatOpenAI] = None,
     ):
-        self.prompt = prompt
-        self.model = model or get_azure_openai_llm()
-        self.inputs = inputs
+        """Initialize the judge evaluator.
 
-    def __call__(self) -> dict:
+        Args:
+            prompt (str): Judging instructions, sent as the system message.
+            inputs (Dict[str, str]): Inputs for the judge to consider, sent as the
+                human message. Keys must match the prompt's numbered input labels.
+            model (Optional[AzureChatOpenAI]): Judge model. Defaults to the
+                environment-configured Azure OpenAI client.
+        """
+        self.prompt = prompt
+        self.inputs = inputs
+        self.model = model or get_azure_openai_llm()
+
+    def _passed(self, judged) -> bool:
+        """Whether the judge's output counts as a pass.
+
+        Args:
+            judged: The judge's response, parsed into `result_schema`.
+        """
+        raise NotImplementedError
+
+    def _score(self, judged) -> Optional[float]:
+        """The numeric score, where the judge reports one."""
+        return None
+
+    def _raw(self, judged, passed: bool) -> dict:
+        """Extra `raw` fields specific to this judge."""
+        return {}
+
+    def _evaluate(self) -> EvalResult:
         check_prompt_output(self.prompt, self.inputs)
-        inputs_str = format_inputs(self.inputs)
-        structured_model = self.model.with_structured_output(JudgePassFailResult)
-        llm_result = structured_model.invoke(
+        structured_model = self.model.with_structured_output(self.result_schema)
+        judged = structured_model.invoke(
             [
                 SystemMessage(content=self.prompt),
-                HumanMessage(content=inputs_str),
+                HumanMessage(content=format_inputs(self.inputs)),
             ]
         )
-        result = {
-            "llm_as_judge_result": llm_result.llm_as_judge_score,
-            "failures_list": llm_result.failures_list,
-            "prompt_trunc": truncate_prompt(self.prompt)
-        }
 
-        logger.info(format_dict_log(dictionary=result))
-        return result
+        passed = self._passed(judged)
 
-    def assert_result(self):
-        result = self()
-        if result.get("llm_as_judge_result") == "fail":
-            raise AssertionError("LLM-as-Judge evaluation failed")
-
-    def evaluate(self, assert_result: bool = False):
-        result = self()
-
-        logger.info(format_dict_log(dictionary=result))
-
-        if assert_result:
-            assert result["llm_as_judge_result"] == "pass"
-
-        return result
+        return EvalResult(
+            name=self.name,
+            passed=passed,
+            score=self._score(judged),
+            threshold=self.threshold,
+            reason="; ".join(judged.failures_list),
+            inputs=dict(self.inputs),
+            raw={
+                **self._raw(judged, passed),
+                "llm_as_judge_result": "pass" if passed else "fail",
+                "failures_list": judged.failures_list,
+                "prompt_trunc": truncate_prompt(self.prompt),
+            },
+        )
 
 
-class JudgeScoreResult(BaseModel):
-    """Structured output schema for score-based judge responses."""
-    llm_as_judge_score: float
-    failures_list: List[str] = Field(default_factory=list)
+class RunLlmAsJudgePassFailEvaluator(BaseLlmAsJudgeEvaluator):
+    """
+    Evaluate prompt-defined criteria with an LLM judge and return pass/fail output.
+
+    Use the pass/fail template at:
+    - `llm_eval/prompt_templates/llm-as-judge-template.md`
+
+    See `BaseLlmAsJudgeEvaluator` for the prompt template constraints.
+
+    Expected structured model output (`JudgePassFailResult`):
+    - `llm_as_judge_score`: `"pass"` or `"fail"`
+    - `failures_list`: list of failure reasons
+    """
+
+    assertion_fail_message = "LLM-as-Judge evaluation failed"
+    result_schema = JudgePassFailResult
+
+    def _passed(self, judged) -> bool:
+        return judged.llm_as_judge_score == "pass"
 
 
-class RunLlmAsJudgeScoreEvaluator:
+class RunLlmAsJudgeScoreEvaluator(BaseLlmAsJudgeEvaluator):
     """
     Evaluate prompt-defined criteria with an LLM judge and return a scored result.
 
-     Use the score-threshold template at:
+    Use the score-threshold template at:
     - `llm_eval/prompt_templates/llm-as-judge-score-threshold-template.md`
 
-    Prompt template constraints enforced by `check_prompt_output`:
-    - Keep these exact strings in the prompt:
-      - `## Inputs`
-      - `You will receive:`
-      - `## Output Format`
-      - `Output ONLY valid JSON`
-      - `llm_as_judge_score`
-      - `failures_list`
-    - Keep numbered input lines whose labels exactly match the keys of `inputs`
-      in order (e.g. `1. query`, `2. response`).
-    - If you customize the template, do not remove or rename these required strings.
-
-    The evaluator sends:
-    - `prompt` as a system message containing judging instructions.
-    - `inputs` as a formatted human message payload.
+    See `BaseLlmAsJudgeEvaluator` for the prompt template constraints.
 
     Expected structured model output (`JudgeScoreResult`):
     - `llm_as_judge_score`: numeric score from the judge model
     - `failures_list`: list of failure reasons
 
-    Returned dict includes:
-    - `llm_as_judge_score`
-    - `llm_as_judge_result` (`"pass"` when score `>= threshold`, else `"fail"`)
-    - `threshold`
-    - `failures_list`
-    - `prompt_trunc`
+    `EvalResult.raw` also includes `llm_as_judge_score` and `threshold`.
     """
+
+    assertion_fail_message = "LLM-as-Judge score evaluation failed"
+    result_schema = JudgeScoreResult
 
     def __init__(
             self,
@@ -195,43 +219,37 @@ class RunLlmAsJudgeScoreEvaluator:
             threshold: float,
             model: Optional[AzureChatOpenAI] = None,
     ):
-        self.prompt = prompt
-        self.inputs = inputs
+        """Initialize the scoring judge evaluator.
+
+        Args:
+            prompt (str): Judging instructions, sent as the system message.
+            inputs (Dict[str, str]): Inputs for the judge to consider, sent as the
+                human message. Keys must match the prompt's numbered input labels.
+            threshold (float): Minimum score the judge must give to pass, on the
+                0.0-1.0 scale the score template defines.
+
+        Raises:
+            ValueError: If `threshold` falls outside that scale.
+            model (Optional[AzureChatOpenAI]): Judge model. Defaults to the
+                environment-configured Azure OpenAI client.
+        """
+        if not JUDGE_SCORE_MIN <= threshold <= JUDGE_SCORE_MAX:
+            raise ValueError(
+                f"Threshold must be between {JUDGE_SCORE_MIN} and {JUDGE_SCORE_MAX}, the "
+                f"scale the score template defines. Got {threshold}."
+            )
+
         self.threshold = threshold
-        self.model = model or get_azure_openai_llm()
+        super().__init__(prompt=prompt, inputs=inputs, model=model)
 
-    def __call__(self) -> dict:
-        check_prompt_output(self.prompt, self.inputs)
-        inputs_str = format_inputs(self.inputs)
-        structured_model = self.model.with_structured_output(JudgeScoreResult)
-        llm_result = structured_model.invoke(
-            [
-                SystemMessage(content=self.prompt),
-                HumanMessage(content=inputs_str),
-            ]
-        )
-        result = {
-            "llm_as_judge_score": llm_result.llm_as_judge_score,
-            "llm_as_judge_result": "pass" if llm_result.llm_as_judge_score >= self.threshold else "fail",
+    def _passed(self, judged) -> bool:
+        return judged.llm_as_judge_score >= self.threshold
+
+    def _score(self, judged) -> Optional[float]:
+        return judged.llm_as_judge_score
+
+    def _raw(self, judged, passed: bool) -> dict:
+        return {
+            "llm_as_judge_score": judged.llm_as_judge_score,
             "threshold": self.threshold,
-            "failures_list": llm_result.failures_list,
-            "prompt_trunc": truncate_prompt(self.prompt)
         }
-
-        logger.info(format_dict_log(dictionary=result))
-        return result
-
-    def assert_result(self):
-        result = self()
-        if result.get("llm_as_judge_result") == "fail":
-            raise AssertionError("LLM-as-Judge score evaluation failed")
-
-    def evaluate(self, assert_result: bool = False):
-        result = self()
-
-        logger.info(format_dict_log(dictionary=result))
-
-        if assert_result:
-            assert result["llm_as_judge_result"] == "pass"
-
-        return result

@@ -1,7 +1,10 @@
 import json
+import logging
 from typing import Any
 
 from llm_eval.base_evaluators.format_base_evaluator import FormatBaseEvaluator
+
+logger = logging.getLogger(__name__)
 
 
 class RunCustomResponseEvaluator(FormatBaseEvaluator):
@@ -16,11 +19,14 @@ class RunCustomResponseEvaluator(FormatBaseEvaluator):
             expected_type (type): The expected Python type (e.g., dict, list, str).
         """
         self.expected_type = expected_type
-        super().__init__(response=response, evaluator_name="custom_response", assertion_fail_message="Evaluation failed: output type of response not the expected format")
+        super().__init__(
+            response=response,
+            evaluator_name="custom_response",
+            assertion_fail_message="Evaluation failed: output type of response not the expected format",
+        )
 
-
-    def evaluate(self):
-        return self._format_result(isinstance(self.response, self.expected_type))
+    def _check(self) -> bool:
+        return isinstance(self.response, self.expected_type)
 
 
 class RunJsonResponseEvaluator(FormatBaseEvaluator):
@@ -33,14 +39,15 @@ class RunJsonResponseEvaluator(FormatBaseEvaluator):
         Args:
             response (Any): The response string to evaluate.
         """
-        super().__init__(response=response, evaluator_name="json_response", assertion_fail_message="Evaluation failed: output is not a valid JSON format")
+        super().__init__(
+            response=response,
+            evaluator_name="json_response",
+            assertion_fail_message="Evaluation failed: output is not a valid JSON format",
+        )
 
-    def evaluate(self):
+    def _check(self) -> bool:
         try:
-            parsed = json.loads(self.response)
-            is_valid = isinstance(parsed, dict)
-        except (json.JSONDecodeError, TypeError) as e:
-            print(f"[Error] JSON parsing failed: {e}")
-            is_valid = False
-
-        return self._format_result(is_valid)
+            return isinstance(json.loads(self.response), dict)
+        except (json.JSONDecodeError, TypeError) as error:
+            logger.info("JSON parsing failed: %s", error)
+            return False

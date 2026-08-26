@@ -199,3 +199,5 @@ cython_debug/
 /llm_eval/red_teaming/promptfoo_bidwriter_config.yaml
 /llm_eval/red_teaming/promptfoo_bidwriter_config_generated_redteam.yaml
 /llm_eval/red_teaming/promptfoo_bidwriter_config_generated_redteam_results.json
+/docs/tickets/*
+
